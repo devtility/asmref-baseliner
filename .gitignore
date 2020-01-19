@@ -1,0 +1,7 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/AsmRefBaseliner
+/src/DumpAsmRefs/bin/Debug/net46
+/src/DumpAsmRefs/obj

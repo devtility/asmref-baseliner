@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DumpAsmRefs": {
+      "commandName": "Project",
+      "commandLineArgs": "Dump*  d:\\repos\\personal\\** **\\System*"
+    }
+  }
+}
