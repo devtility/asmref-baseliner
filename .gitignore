@@ -3,5 +3,5 @@
 ################################################################################
 
 /.vs/AsmRefBaseliner
-/src/DumpAsmRefs/bin/Debug/net46
+/src/DumpAsmRefs/bin/Debug
 /src/DumpAsmRefs/obj

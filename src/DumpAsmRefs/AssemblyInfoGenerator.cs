@@ -8,14 +8,14 @@ namespace DumpAsmRefs
 {
     public class AssemblyInfoGenerator
     {
-        public IList<AssemblyReferenceInfo> Fetch(FileSearchResult result)
+        public IList<AssemblyReferenceInfo> Fetch(string baseDirectory, IEnumerable<string> relativeFilePaths)
         {
             var results = new List<AssemblyReferenceInfo>();
 
-            foreach(var relativePath in result.RelativeFilePaths)
+            foreach(var relativePath in relativeFilePaths)
             {
-                var fullPath = Path.Combine(result.BaseDirectory, relativePath);
-                var assembly = Assembly.LoadFrom(fullPath);
+                var fullPath = Path.Combine(baseDirectory, relativePath);
+                var assembly = LoadAssembly(fullPath);
 
                 var newResult = new AssemblyReferenceInfo
                 {
@@ -29,6 +29,13 @@ namespace DumpAsmRefs
             }
             return results;
         }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3885:\"Assembly.Load\" should be used",
+            Justification = "The user has given us the file path to specify the assembly they want us to load")]
+        protected virtual Assembly LoadAssembly(string fullFilePath)
+        {
+            return Assembly.LoadFrom(fullFilePath);
+        }
     }
 
     public class AssemblyReferenceInfo
@@ -37,6 +44,6 @@ namespace DumpAsmRefs
         public string SourceAssemblyRelativePath { get; set; }
 
         public AssemblyName SourceAssemblyName { get; set; }
-        public AssemblyName[] ReferencedAssemblies { get; set; }
+        public IReadOnlyList<AssemblyName> ReferencedAssemblies { get; set; }
     }
 }

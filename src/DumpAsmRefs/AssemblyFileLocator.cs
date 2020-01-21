@@ -19,7 +19,7 @@ namespace DumpAsmRefs
 
         #region IFileLocator interfaces 
 
-        public FileSearchResult Search(string baseDirectory, string[] includePatterns, string[] excludePatterns)
+        public FileSearchResult Search(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
         {
             var matchingPaths = SearchForFiles(baseDirectory, includePatterns, excludePatterns)
                 .Where(IsAssembly)
@@ -31,7 +31,7 @@ namespace DumpAsmRefs
 
         #endregion
 
-        private static IEnumerable<string> SearchForFiles(string baseDirectory, string[] includePatterns, string[] excludePatterns)
+        private static IEnumerable<string> SearchForFiles(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
         {
             var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
             matcher.AddIncludePatterns(includePatterns);

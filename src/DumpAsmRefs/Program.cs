@@ -19,13 +19,13 @@ namespace DumpAsmRefs
             logger.LogDebug(UIStrings.Matching_BaseDirectory, baseDirectory);
             var searchResult = fileLocator.Search(baseDirectory, args, null);
 
-            if (searchResult.RelativeFilePaths.Length > 0)
+            if (searchResult.RelativeFilePaths.Count > 0)
             {
-                logger.LogInfo(UIStrings.Matching_MatchesFound, searchResult.RelativeFilePaths.Length);
+                logger.LogInfo(UIStrings.Matching_MatchesFound, searchResult.RelativeFilePaths.Count);
                 DebugDumpList(UIStrings.Matching_ResultListHeader, searchResult.RelativeFilePaths, logger);
 
                 var asmGenerator = new AssemblyInfoGenerator();
-                var asmInfo = asmGenerator.Fetch(searchResult);
+                var asmInfo = asmGenerator.Fetch(searchResult.BaseDirectory, searchResult.RelativeFilePaths);
 
                 var reportBuilder = new TextFileReportBuilder();
                 var data = reportBuilder.Generate(searchResult, asmInfo);

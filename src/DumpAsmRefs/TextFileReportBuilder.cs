@@ -37,9 +37,8 @@ namespace DumpAsmRefs
             sb.Append("# Base directory: ").AppendLine(fileSearchResult.BaseDirectory);
             sb.Append("# Include patterns: ").AppendLine(string.Join(", ", fileSearchResult.IncludePatterns ?? NotItemsStringArray));
             sb.Append("# Exclude patterns: ").AppendLine(string.Join(", ", fileSearchResult.ExcludePatterns ?? NotItemsStringArray));
-            sb.Append("# Number of matches: ").AppendLine(fileSearchResult.RelativeFilePaths.Length.ToString());
+            sb.Append("# Number of matches: ").AppendLine(fileSearchResult.RelativeFilePaths.Count.ToString());
             sb.AppendLine();
-
         }
 
         private static void WriteSingleAssemblyInfo(StringBuilder sb, AssemblyReferenceInfo asmRefInfo)
@@ -49,7 +48,7 @@ namespace DumpAsmRefs
             sb.Append("Assembly: ").AppendLine(asmRefInfo.SourceAssemblyName.ToString());
             sb.Append("Relative path: ").AppendLine(asmRefInfo.SourceAssemblyRelativePath);
             sb.AppendLine();
-            sb.Append("Referenced assemblies:   # count = ").AppendLine(asmRefInfo.ReferencedAssemblies.Length.ToString());
+            sb.Append("Referenced assemblies:   # count = ").AppendLine(asmRefInfo.ReferencedAssemblies.Count.ToString());
 
             foreach(var refdItem in asmRefInfo.ReferencedAssemblies.OrderBy(x => x.FullName))
             {
