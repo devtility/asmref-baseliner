@@ -5,5 +5,5 @@
 /.vs/AsmRefBaseliner
 /src/DumpAsmRefs/bin/Debug
 /src/DumpAsmRefs/obj
-/DumpAsmRefs.Tests/bin/Debug/netcoreapp3.1
-/DumpAsmRefs.Tests/obj
+/tests/DumpAsmRefs.Tests/bin/Debug/netcoreapp3.1
+/tests/DumpAsmRefs.Tests/obj

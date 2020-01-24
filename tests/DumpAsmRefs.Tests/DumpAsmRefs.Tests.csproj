@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\DumpAsmRefs\DumpAsmRefs.csproj" />
+    <ProjectReference Include="..\..\src\DumpAsmRefs\DumpAsmRefs.csproj" />
   </ItemGroup>
 
 </Project>
