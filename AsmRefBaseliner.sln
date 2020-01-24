@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29521.150
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DumpAsmRefs", "src\DumpAsmRefs\DumpAsmRefs.csproj", "{D6934E08-EF99-4152-BFBF-25EA76610865}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumpAsmRefs.Tests", "DumpAsmRefs.Tests\DumpAsmRefs.Tests.csproj", "{C6FA7119-16E2-4564-9F26-A1612BE0A454}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{D6934E08-EF99-4152-BFBF-25EA76610865}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6934E08-EF99-4152-BFBF-25EA76610865}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6934E08-EF99-4152-BFBF-25EA76610865}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6FA7119-16E2-4564-9F26-A1612BE0A454}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6FA7119-16E2-4564-9F26-A1612BE0A454}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6FA7119-16E2-4564-9F26-A1612BE0A454}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6FA7119-16E2-4564-9F26-A1612BE0A454}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

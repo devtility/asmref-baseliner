@@ -17,11 +17,34 @@ namespace DumpAsmRefs
 
         private static readonly string[] AssemblyFileExtensions = new[] { ".dll", ".exe" };
 
+        // Factory method injection point for testing
+        public delegate DirectoryInfoBase DirectoryWrapperFactoryMethod(string baseDirectory);
+        private readonly DirectoryWrapperFactoryMethod directoryWrapperFactoryMethod;
+
+        public AssemblyFileLocator()
+            :this(CreateDirectoryWrapper)
+        {
+        }
+
+        internal AssemblyFileLocator(DirectoryWrapperFactoryMethod factoryMethod)
+        {
+            this.directoryWrapperFactoryMethod = factoryMethod;
+        }
+
+        /// <summary>
+        /// Factory method. Overridable for testing
+        /// </summary>
+        private static DirectoryInfoBase CreateDirectoryWrapper(string directoryPath)
+        {
+            return new DirectoryInfoWrapper(new DirectoryInfo(directoryPath));
+        }
+
         #region IFileLocator interfaces 
 
         public FileSearchResult Search(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
         {
-            var matchingPaths = SearchForFiles(baseDirectory, includePatterns, excludePatterns)
+            var baseDirectoryInfo = directoryWrapperFactoryMethod(baseDirectory);
+            var matchingPaths = SearchForFiles(baseDirectoryInfo, includePatterns, excludePatterns)
                 .Where(IsAssembly)
                 .ToArray();
 
@@ -31,13 +54,13 @@ namespace DumpAsmRefs
 
         #endregion
 
-        private static IEnumerable<string> SearchForFiles(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
+        private static IEnumerable<string> SearchForFiles(DirectoryInfoBase baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
         {
             var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
             matcher.AddIncludePatterns(includePatterns);
             matcher.AddExcludePatterns(excludePatterns ?? Array.Empty<string>());
 
-            var directoryInfo = new DirectoryInfoWrapper(new DirectoryInfo(baseDirectory));
+            var directoryInfo = baseDirectory;
             var result = matcher.Execute(directoryInfo);
 
             return result.Files
