@@ -4,7 +4,12 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
-- master
+  - master
+  - branch-*
+
+pr:
+  - master
+  - branch-*
 
 pool:
   vmImage: 'windows-latest'
@@ -26,8 +31,16 @@ steps:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+    msbuildArgs: '/p:OutputPath=$(Build.ArtifactStagingDirectory)\binaries'
 
 - task: VSTest@2
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
+    artifact: 'binaries'
+    publishLocation: 'pipeline'
+
