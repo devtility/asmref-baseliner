@@ -31,7 +31,14 @@ steps:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    msbuildArgs: '/p:OutputPath=$(Build.ArtifactStagingDirectory)\binaries'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin'
+    Contents: |
+      **\dump**
+      **\Microsoft.Extensions**
+    TargetFolder: '$(Build.ArtifactStagingDirectory)\binaries'
 
 - task: VSTest@2
   inputs:
