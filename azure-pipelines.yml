@@ -31,8 +31,8 @@ steps:
     SonarCloud: 'SonarCloud - Devtility'
     organization: 'devtility'
     scannerMode: 'MSBuild'
-    projectKey: 'asmref-baseliner'
-    projectName: 'AsmRef Baseliner'
+    projectKey: 'asmrefs-baseliner'
+    projectName: 'AsmRefs Baseliner'
     projectVersion: '0.1'
 
 - task: VSBuild@1
