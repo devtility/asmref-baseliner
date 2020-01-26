@@ -26,6 +26,15 @@ steps:
   inputs:
     restoreSolution: '$(solution)'
 
+- task: SonarCloudPrepare@1
+  inputs:
+    SonarCloud: 'SonarCloud - Devtility'
+    organization: 'devtility'
+    scannerMode: 'MSBuild'
+    projectKey: 'asmref-baseliner'
+    projectName: 'AsmRef Baseliner'
+    projectVersion: '0.1'
+
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
@@ -45,9 +54,14 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
+- task: SonarCloudAnalyze@1
+
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
     artifact: 'binaries'
     publishLocation: 'pipeline'
 
+- task: SonarCloudPublish@1
+  inputs:
+    pollingTimeoutSec: '300'
