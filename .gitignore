@@ -7,3 +7,5 @@
 /src/DumpAsmRefs/obj
 /tests/DumpAsmRefs.Tests/bin/Debug/netcoreapp3.1
 /tests/DumpAsmRefs.Tests/obj
+/.sonarqube
+/tests/DumpAsmRefs.Tests/bin

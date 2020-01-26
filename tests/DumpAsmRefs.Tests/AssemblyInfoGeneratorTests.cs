@@ -17,9 +17,11 @@ namespace DumpAsmRefs.Tests
             //
             var testSubject = new TestableAssemblyInfoGenerator();
 
+            var objectAssembly = typeof(object).Assembly;
+            var expectedName = objectAssembly.GetName();
             testSubject.FilePathToAssemblyMap = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase)
             {
-                { "c:\\foo\\system.dll", typeof(object).Assembly }
+                { "c:\\foo\\system.dll", objectAssembly }
             };
 
             var result = testSubject.Fetch("c:\\foo\\", new string[] { "system.dll" });
@@ -29,8 +31,7 @@ namespace DumpAsmRefs.Tests
             result.Count.Should().Be(1);
 
             result[0].SourceAssemblyFullPath.Should().Be("c:\\foo\\system.dll");
-            result[0].SourceAssemblyName.Name.Should().Contain("System");
-            result[0].SourceAssemblyName.ToString().Should().Contain("Culture=neutral, PublicKeyToken=7cec85d7bea7798e");
+            result[0].SourceAssemblyName.FullName.Should().Be(objectAssembly.GetName().FullName);
 
             result[0].ReferencedAssemblies.Should().NotBeNull();
             result[0].ReferencedAssemblies.Should().BeEmpty();
@@ -94,11 +95,15 @@ namespace DumpAsmRefs.Tests
 
         private static void CheckReferencedAssemblies(AssemblyReferenceInfo result, params Type[] typesInRefAssemblies)
         {
-            var refAsmFullNames = typesInRefAssemblies.Select(t => t.Assembly.FullName).ToArray();
+            var refAsmFullNames = typesInRefAssemblies.Select(t => t.Assembly.GetName().FullName)
+                .Distinct()
+                .ToArray();
 
             result.ReferencedAssemblies.Select(ra => ra.FullName)
                 .Should()
                 .BeEquivalentTo(refAsmFullNames);
+
+
         }
 
         private class TestableAssemblyInfoGenerator : AssemblyInfoGenerator
