@@ -7,12 +7,12 @@ namespace DumpAsmRefs
 {
     public class ConsoleLogger : ILogger
     {
-        private readonly Verbosity verbosity;
-
         public ConsoleLogger(Verbosity verbosity)
         {
-            this.verbosity = verbosity;
+            Verbosity = verbosity;
         }
+
+        public Verbosity Verbosity { get; set; }
 
         #region ILogger implementation
 
@@ -37,7 +37,7 @@ namespace DumpAsmRefs
 
         private void Log(Verbosity minimumVerbosity, ConsoleColor? color, string message, params object[] arguments)
         {
-            if (verbosity < minimumVerbosity)
+            if (Verbosity < minimumVerbosity)
             {
                 return;
             }
