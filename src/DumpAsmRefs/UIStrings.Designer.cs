@@ -106,6 +106,51 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Output report file name.
+        /// </summary>
+        internal static string Parser_ArgDescription_File {
+            get {
+                return ResourceManager.GetString("Parser_ArgDescription_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Root search directory.
+        /// </summary>
+        internal static string Parser_ArgDescription_Root {
+            get {
+                return ResourceManager.GetString("Parser_ArgDescription_Root", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logging verbosity level.
+        /// </summary>
+        internal static string Parser_ArgDescription_Verbosity {
+            get {
+                return ResourceManager.GetString("Parser_ArgDescription_Verbosity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid verbosity option &quot;{0}&quot;.
+        /// </summary>
+        internal static string Parser_Error_InvalidVerbosity {
+            get {
+                return ResourceManager.GetString("Parser_Error_InvalidVerbosity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Must provide at least one include pattern.
+        /// </summary>
+        internal static string Parser_IncludePatternRequired {
+            get {
+                return ResourceManager.GetString("Parser_IncludePatternRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finished.
         /// </summary>
         internal static string Program_Finished {
