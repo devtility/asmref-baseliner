@@ -133,6 +133,21 @@
   <data name="Matching_RootDirectory" xml:space="preserve">
     <value>Root directory for files matches: {0}</value>
   </data>
+  <data name="Parser_ArgDescription_File" xml:space="preserve">
+    <value>Output report file name</value>
+  </data>
+  <data name="Parser_ArgDescription_Root" xml:space="preserve">
+    <value>Root search directory</value>
+  </data>
+  <data name="Parser_ArgDescription_Verbosity" xml:space="preserve">
+    <value>Logging verbosity level</value>
+  </data>
+  <data name="Parser_Error_InvalidVerbosity" xml:space="preserve">
+    <value>Invalid verbosity option "{0}"</value>
+  </data>
+  <data name="Parser_IncludePatternRequired" xml:space="preserve">
+    <value>Must provide at least one include pattern</value>
+  </data>
   <data name="Program_Finished" xml:space="preserve">
     <value>Finished</value>
   </data>

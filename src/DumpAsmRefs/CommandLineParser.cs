@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using DumpAsmRefs.Interfaces;
+using Microsoft.Extensions.CommandLineUtils;
+using System;
 using System.IO;
 using System.Linq;
 
@@ -12,22 +14,43 @@ namespace DumpAsmRefs
 
         public bool TryParse(ILogger logger, string[] args, out UserArguments userArguments)
         {
-            // TODO: parse arguments
+            userArguments = null;
 
-            string outputFileName = null;
-            string rootDirectory = Directory.GetCurrentDirectory();
+            var app = new CommandLineApplication(false);
 
-            if (string.IsNullOrEmpty(outputFileName))
+            var rootDirOption = app.Option("--root|-r", UIStrings.Parser_ArgDescription_Root, CommandOptionType.SingleValue);
+            var fileOption = app.Option("--outfile|-o", UIStrings.Parser_ArgDescription_File, CommandOptionType.SingleValue);
+            var verbosityOpt = app.Option("--verbosity|-v", UIStrings.Parser_ArgDescription_Verbosity, CommandOptionType.SingleValue);
+
+            app.Execute(args);
+
+            var fileName = fileOption.HasValue() ? fileOption.Value() : DefaultOutputFileName;
+            var rootDir = rootDirOption.HasValue() ? rootDirOption.Value() : Directory.GetCurrentDirectory();
+            if (!Path.IsPathRooted(fileName))
             {
-                outputFileName = DefaultOutputFileName;
+                fileName = Path.Combine(rootDir, fileName);
             }
-            if (!Path.IsPathRooted(outputFileName))
+
+            var verbosity = Verbosity.Normal;
+            if (verbosityOpt.HasValue()
+                && !Enum.TryParse<Verbosity>(verbosityOpt.Value(), true, out verbosity))
             {
-                outputFileName = Path.Combine(rootDirectory, outputFileName);
+                logger.LogError(UIStrings.Parser_Error_InvalidVerbosity, verbosityOpt.Value());
+                return false;
             }
 
-            userArguments = new UserArguments(rootDirectory, args, Enumerable.Empty<string>(), outputFileName, Verbosity.Diagnostic);
+            var includeArgs = app.RemainingArguments.Where(x => !x.StartsWith("!")).ToArray();
+            var excludeArgs = app.RemainingArguments.Where(x => x.StartsWith("!"))
+                .Select(x => x.Substring(1))
+                .ToArray();
 
+            if (includeArgs.Length == 0)
+            {
+                logger.LogError(UIStrings.Parser_IncludePatternRequired);
+                return false;
+            }
+
+            userArguments = new UserArguments(rootDir, includeArgs, excludeArgs, fileName, verbosity);
             return true;
         }
     }
