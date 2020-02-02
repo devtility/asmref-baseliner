@@ -10,14 +10,19 @@ namespace DumpAsmRefs
     {
         public static void Main(string[] args)
         {
-            Execute(args, Directory.GetCurrentDirectory(),
-                new ConsoleLogger(Verbosity.Diagnostic), new AssemblyFileLocator());
+            var logger = new ConsoleLogger(Verbosity.Diagnostic);
+            var parser = new CommandLineParser();
+            if (parser.TryParse(logger, args, out var userArguments))
+            {
+                logger.Verbosity = userArguments.Verbosity;
+                Execute(userArguments, logger, new AssemblyFileLocator());
+            }
         }
 
-        internal static void Execute(string[] args, string baseDirectory, ILogger logger, IFileLocator fileLocator)
+        internal static void Execute(UserArguments userArguments, ILogger logger, IFileLocator fileLocator)
         {
-            logger.LogDebug(UIStrings.Matching_BaseDirectory, baseDirectory);
-            var searchResult = fileLocator.Search(baseDirectory, args, null);
+            logger.LogDebug(UIStrings.Matching_RootDirectory, userArguments.RootDirectory);
+            var searchResult = fileLocator.Search(userArguments.RootDirectory, userArguments.IncludePatterns, userArguments.ExcludePatterns);
 
             if (searchResult.RelativeFilePaths.Count > 0)
             {
@@ -30,9 +35,8 @@ namespace DumpAsmRefs
                 var reportBuilder = new TextFileReportBuilder();
                 var data = reportBuilder.Generate(searchResult, asmInfo);
 
-                var reportPath = Path.Combine(baseDirectory, "ReferencedAssemblies.txt");
-                File.WriteAllText(reportPath, data);
-                logger.LogInfo(UIStrings.Program_ReportFileWritten, reportPath);
+                File.WriteAllText(userArguments.OutputFileFullPath, data);
+                logger.LogInfo(UIStrings.Program_ReportFileWritten, userArguments.OutputFileFullPath);
             }
             else
             {

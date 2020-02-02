@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Matching_BaseDirectory" xml:space="preserve">
-    <value>Base directory for files matches: {0}</value>
-  </data>
   <data name="Matching_MatchesFound" xml:space="preserve">
     <value>Found {0} matches</value>
   </data>
@@ -132,6 +129,9 @@
   <data name="Matching_ResultListItem" xml:space="preserve">
     <value>{0} {1}</value>
     <comment>0 = item number, 1 = item</comment>
+  </data>
+  <data name="Matching_RootDirectory" xml:space="preserve">
+    <value>Root directory for files matches: {0}</value>
   </data>
   <data name="Program_Finished" xml:space="preserve">
     <value>Finished</value>

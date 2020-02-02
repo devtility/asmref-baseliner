@@ -61,15 +61,6 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Base directory for files matches: {0}.
-        /// </summary>
-        internal static string Matching_BaseDirectory {
-            get {
-                return ResourceManager.GetString("Matching_BaseDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Found {0} matches.
         /// </summary>
         internal static string Matching_MatchesFound {
@@ -102,6 +93,15 @@ namespace DumpAsmRefs {
         internal static string Matching_ResultListItem {
             get {
                 return ResourceManager.GetString("Matching_ResultListItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Root directory for files matches: {0}.
+        /// </summary>
+        internal static string Matching_RootDirectory {
+            get {
+                return ResourceManager.GetString("Matching_RootDirectory", resourceCulture);
             }
         }
         
