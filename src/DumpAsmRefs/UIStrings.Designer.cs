@@ -167,5 +167,14 @@ namespace DumpAsmRefs {
                 return ResourceManager.GetString("Program_ReportFileWritten", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Report file does not exist.
+        /// </summary>
+        internal static string ReportComparer_Error_ReportNotFound {
+            get {
+                return ResourceManager.GetString("ReportComparer_Error_ReportNotFound", resourceCulture);
+            }
+        }
     }
 }

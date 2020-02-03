@@ -155,4 +155,7 @@
     <value>Report file written: {0}</value>
     <comment>0 = file path</comment>
   </data>
+  <data name="ReportComparer_Error_ReportNotFound" xml:space="preserve">
+    <value>Report file does not exist</value>
+  </data>
 </root>
