@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace DumpAsmRefs.Interfaces
 {
-    internal interface IReportBuilder
+    internal interface IAssemblyInfoGenerator
     {
-        string Generate(FileSearchResult fileSearchResult, IEnumerable<AssemblyReferenceInfo> assemblyReferenceInfos);
+        IList<AssemblyReferenceInfo> Fetch(string baseDirectory, IEnumerable<string> relativeFilePaths);
     }
 }

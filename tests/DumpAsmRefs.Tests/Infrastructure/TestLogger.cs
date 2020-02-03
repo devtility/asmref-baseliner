@@ -1,16 +1,17 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using DumpAsmRefs.Interfaces;
-using System;
 using System.Collections.Generic;
 
 namespace DumpAsmRefs.Tests.Infrastructure
 {
     internal class TestLogger : ILogger
     {
+        public Verbosity Verbosity { get; set; }
         public IList<string> DebugMessages { get; } = new List<string>();
         public IList<string> InfoMessages { get; } = new List<string>();
         public IList<string> NormalMessages { get; } = new List<string>();
+        public IList<string> Warnings { get; } = new List<string>();
         public IList<string> Errors { get; } = new List<string>();
 
         #region ILogger implementation
@@ -37,7 +38,7 @@ namespace DumpAsmRefs.Tests.Infrastructure
 
         void ILogger.LogWarning(string message, params object[] arguments)
         {
-            throw new NotImplementedException();
+            Warnings.Add(string.Format(message, arguments));
         }
 
         #endregion ILogger implementation
