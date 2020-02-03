@@ -2,8 +2,10 @@
 
 namespace DumpAsmRefs.Interfaces
 {
-    public interface ILogger
+    internal interface ILogger
     {
+        Verbosity Verbosity { get; set; }
+
         void LogError(string message, params object[] arguments);
         void LogWarning(string message, params object[] arguments);
         void LogInfo(string message, params object[] arguments);

@@ -1,12 +1,13 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
+using DumpAsmRefs.Interfaces;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
 namespace DumpAsmRefs
 {
-    public class AssemblyInfoGenerator
+    public class AssemblyInfoGenerator : IAssemblyInfoGenerator
     {
         public IList<AssemblyReferenceInfo> Fetch(string baseDirectory, IEnumerable<string> relativeFilePaths)
         {

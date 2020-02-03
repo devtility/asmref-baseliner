@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DumpAsmRefs.Interfaces
 {
-    public interface IFileLocator
+    internal interface IFileLocator
     {
         FileSearchResult Search(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns);
     }

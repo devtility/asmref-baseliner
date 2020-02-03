@@ -6,44 +6,54 @@ using System.IO;
 
 namespace DumpAsmRefs
 {
+    public enum ExitCodes
+    {
+        Success = 0,
+        ParsingError = 1,
+        NoMatchingFiles = 2
+    }
+
     public static class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             var logger = new ConsoleLogger(Verbosity.Diagnostic);
             var parser = new CommandLineParser();
             if (parser.TryParse(logger, args, out var userArguments))
             {
                 logger.Verbosity = userArguments.Verbosity;
-                Execute(userArguments, logger, new AssemblyFileLocator());
+                return Execute(userArguments, new AssemblyFileLocator(),
+                    new AssemblyInfoGenerator(), new TextFileReportBuilder(), logger);
             }
+
+            return (int)ExitCodes.ParsingError;
         }
 
-        internal static void Execute(UserArguments userArguments, ILogger logger, IFileLocator fileLocator)
+        internal static int Execute(UserArguments userArguments, IFileLocator fileLocator,
+            IAssemblyInfoGenerator assemblyInfoGenerator, IReportBuilder reportBuilder, ILogger logger)
         {
+            logger.Verbosity = userArguments.Verbosity;
             logger.LogDebug(UIStrings.Matching_RootDirectory, userArguments.RootDirectory);
             var searchResult = fileLocator.Search(userArguments.RootDirectory, userArguments.IncludePatterns, userArguments.ExcludePatterns);
 
-            if (searchResult.RelativeFilePaths.Count > 0)
-            {
-                logger.LogInfo(UIStrings.Matching_MatchesFound, searchResult.RelativeFilePaths.Count);
-                DebugDumpList(UIStrings.Matching_ResultListHeader, searchResult.RelativeFilePaths, logger);
-
-                var asmGenerator = new AssemblyInfoGenerator();
-                var asmInfo = asmGenerator.Fetch(searchResult.BaseDirectory, searchResult.RelativeFilePaths);
-
-                var reportBuilder = new TextFileReportBuilder();
-                var data = reportBuilder.Generate(searchResult, asmInfo);
-
-                File.WriteAllText(userArguments.OutputFileFullPath, data);
-                logger.LogInfo(UIStrings.Program_ReportFileWritten, userArguments.OutputFileFullPath);
-            }
-            else
+            if (searchResult.RelativeFilePaths.Count == 0)
             {
                 logger.LogWarning(UIStrings.Matching_NoFiles);
+                return (int)ExitCodes.NoMatchingFiles;
             }
 
+            logger.LogInfo(UIStrings.Matching_MatchesFound, searchResult.RelativeFilePaths.Count);
+            DebugDumpList(UIStrings.Matching_ResultListHeader, searchResult.RelativeFilePaths, logger);
+
+            var asmInfo = assemblyInfoGenerator.Fetch(searchResult.BaseDirectory, searchResult.RelativeFilePaths);
+
+            var data = reportBuilder.Generate(searchResult, asmInfo);
+
+            File.WriteAllText(userArguments.OutputFileFullPath, data);
+            logger.LogInfo(UIStrings.Program_ReportFileWritten, userArguments.OutputFileFullPath);
+ 
             logger.LogDebug(UIStrings.Program_Finished);
+            return (int)ExitCodes.Success;
         }
 
         private static void DebugDumpList(string headerMessage, IEnumerable<string> items, ILogger logger)

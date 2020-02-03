@@ -69,7 +69,7 @@ namespace DumpAsmRefs.Tests
             var logger = new TestLogger();
 
             var result = testSubject.TryParse(logger,
-                new string[] { },
+                System.Array.Empty<string>(),
                 out var userArguments);
 
             result.Should().BeFalse();

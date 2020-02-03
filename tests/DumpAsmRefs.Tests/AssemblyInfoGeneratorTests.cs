@@ -18,7 +18,6 @@ namespace DumpAsmRefs.Tests
             var testSubject = new TestableAssemblyInfoGenerator();
 
             var objectAssembly = typeof(object).Assembly;
-            var expectedName = objectAssembly.GetName();
             testSubject.FilePathToAssemblyMap = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase)
             {
                 { "c:\\foo\\system.dll", objectAssembly }
@@ -73,11 +72,13 @@ namespace DumpAsmRefs.Tests
             var asm1 = AssemblyCreator.CreateAssembly("asm1", typeof(object));
             var asm2 = AssemblyCreator.CreateAssembly("asm2", typeof(object), typeof(Xunit.ClassDataAttribute));
 
-            var testSubject = new TestableAssemblyInfoGenerator();
-            testSubject.FilePathToAssemblyMap = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase)
+            var testSubject = new TestableAssemblyInfoGenerator
             {
-                { "c:\\asm1.dll", asm1 },
-                { "c:\\asm2.dll", asm2 }
+                FilePathToAssemblyMap = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "c:\\asm1.dll", asm1 },
+                    { "c:\\asm2.dll", asm2 }
+                }
             };
 
             var result = testSubject.Fetch("c:\\", new string[] { "asm1.dll", "asm2.dll" });
