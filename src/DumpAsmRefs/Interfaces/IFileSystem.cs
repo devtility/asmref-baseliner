@@ -7,7 +7,7 @@ namespace DumpAsmRefs.Interfaces
     {
         bool FileExists(string path);
 
-        void WriteAllFile(string path, string contents);
+        void WriteAllText(string path, string contents);
 
         string ReadAllText(string path);
 

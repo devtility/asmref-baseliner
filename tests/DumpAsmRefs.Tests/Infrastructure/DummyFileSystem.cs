@@ -30,7 +30,7 @@ namespace DumpAsmRefs.Tests.Infrastructure
             return fileToPathMap[path];
         }
 
-        void IFileSystem.WriteAllFile(string path, string contents)
+        void IFileSystem.WriteAllText(string path, string contents)
         {
             throw new NotImplementedException();
         }

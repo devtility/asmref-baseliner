@@ -26,6 +26,7 @@ namespace DumpAsmRefs.Tests
             var fileLocator = new Mock<IFileLocator>();
             var asmInfoGenerator = new Mock<IAssemblyInfoGenerator>();
             var reportBuilder = new Mock<IReportBuilder>();
+            var fileSystem = new Mock<IFileSystem>();
 
             var userArgs = new UserArguments("c:\\root", new string[] { "include1" },
                 new string[] { "exclude1" }, "outfile.txt", Verbosity.Detailed);
@@ -43,7 +44,7 @@ namespace DumpAsmRefs.Tests
 
             // Execute
             var result = Program.Execute(userArgs, fileLocator.Object, asmInfoGenerator.Object,
-                reportBuilder.Object,  logger);
+                reportBuilder.Object,  fileSystem.Object, logger);
 
             // Checks
             result.Should().Be((int)ExitCodes.Success);
@@ -55,6 +56,8 @@ namespace DumpAsmRefs.Tests
                 Times.Once);
 
             reportBuilder.Verify(x => x.Generate(fileSearchResult, asmRefInfo), Times.Once);
+
+            fileSystem.Verify(x => x.WriteAllText(userArgs.OutputFileFullPath, It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
@@ -64,6 +67,7 @@ namespace DumpAsmRefs.Tests
             var fileLocator = new Mock<IFileLocator>();
             var asmInfoGenerator = new Mock<IAssemblyInfoGenerator>();
             var reportBuilder = new Mock<IReportBuilder>();
+            var fileSystem = new Mock<IFileSystem>();
 
             var userArgs = new UserArguments("c:\\root", new string[] { "include1" },
                 new string[] { "exclude1" }, "outfile.txt", Verbosity.Detailed);
@@ -77,7 +81,7 @@ namespace DumpAsmRefs.Tests
 
             // Execute
             var result = Program.Execute(userArgs, fileLocator.Object, asmInfoGenerator.Object,
-                reportBuilder.Object, logger);
+                reportBuilder.Object, fileSystem.Object, logger);
 
             // Checks
             result.Should().Be((int)ExitCodes.NoMatchingFiles);
@@ -90,6 +94,8 @@ namespace DumpAsmRefs.Tests
                 
             reportBuilder.Verify(x => x.Generate(It.IsAny<FileSearchResult>(),
                 It.IsAny<IEnumerable<AssemblyReferenceInfo>>()), Times.Never);
+
+            fileSystem.Verify(x => x.WriteAllText(userArgs.OutputFileFullPath, It.IsAny<string>()), Times.Never);
         }
     }
 }

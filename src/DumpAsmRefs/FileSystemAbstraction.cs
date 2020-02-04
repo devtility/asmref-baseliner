@@ -9,7 +9,7 @@ namespace DumpAsmRefs
     {
         bool IFileSystem.FileExists(string path) => File.Exists(path);
 
-        void IFileSystem.WriteAllFile(string path, string contents) => File.WriteAllText(path, contents);
+        void IFileSystem.WriteAllText(string path, string contents) => File.WriteAllText(path, contents);
         
         string IFileSystem.ReadAllText(string path) => File.ReadAllText(path);
 
