@@ -2,7 +2,6 @@
 
 using DumpAsmRefs.Interfaces;
 using System.Collections.Generic;
-using System.IO;
 
 namespace DumpAsmRefs
 {
@@ -23,14 +22,15 @@ namespace DumpAsmRefs
             {
                 logger.Verbosity = userArguments.Verbosity;
                 return Execute(userArguments, new AssemblyFileLocator(),
-                    new AssemblyInfoGenerator(), new TextFileReportBuilder(), logger);
+                    new AssemblyInfoGenerator(), new TextFileReportBuilder(), 
+                    new FileSystemAbstraction(), logger);
             }
 
             return (int)ExitCodes.ParsingError;
         }
 
         internal static int Execute(UserArguments userArguments, IFileLocator fileLocator,
-            IAssemblyInfoGenerator assemblyInfoGenerator, IReportBuilder reportBuilder, ILogger logger)
+            IAssemblyInfoGenerator assemblyInfoGenerator, IReportBuilder reportBuilder, IFileSystem fileSystem, ILogger logger)
         {
             logger.Verbosity = userArguments.Verbosity;
             logger.LogDebug(UIStrings.Matching_RootDirectory, userArguments.RootDirectory);
@@ -49,7 +49,7 @@ namespace DumpAsmRefs
 
             var data = reportBuilder.Generate(searchResult, asmInfo);
 
-            File.WriteAllText(userArguments.OutputFileFullPath, data);
+            fileSystem.WriteAllText(userArguments.OutputFileFullPath, data);
             logger.LogInfo(UIStrings.Program_ReportFileWritten, userArguments.OutputFileFullPath);
  
             logger.LogDebug(UIStrings.Program_Finished);

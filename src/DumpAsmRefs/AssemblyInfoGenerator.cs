@@ -2,7 +2,6 @@
 
 using DumpAsmRefs.Interfaces;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 
 namespace DumpAsmRefs
@@ -15,7 +14,7 @@ namespace DumpAsmRefs
 
             foreach(var relativePath in relativeFilePaths)
             {
-                var fullPath = Path.Combine(baseDirectory, relativePath);
+                var fullPath = System.IO.Path.Combine(baseDirectory, relativePath);
                 var assembly = LoadAssembly(fullPath);
 
                 var newResult = new AssemblyReferenceInfo

@@ -5,7 +5,6 @@ using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace DumpAsmRefs
@@ -36,7 +35,7 @@ namespace DumpAsmRefs
         /// </summary>
         private static DirectoryInfoBase CreateDirectoryWrapper(string directoryPath)
         {
-            return new DirectoryInfoWrapper(new DirectoryInfo(directoryPath));
+            return new DirectoryInfoWrapper(new System.IO.DirectoryInfo(directoryPath));
         }
 
         #region IFileLocator interfaces 
@@ -70,7 +69,7 @@ namespace DumpAsmRefs
 
         private static bool IsAssembly(string path)
         {
-            var ext = Path.GetExtension(path);
+            var ext = System.IO.Path.GetExtension(path);
             return AssemblyFileExtensions.Any(afe => afe.Equals(ext, FileNameComparer));
         }
     }
