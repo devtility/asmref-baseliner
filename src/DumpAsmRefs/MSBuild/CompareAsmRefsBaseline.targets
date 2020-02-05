@@ -1,0 +1,41 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask AssemblyFile="$(MSBuildThisFileDirectory)..\DumpAsmRefs.exe" TaskName="CompareReportFiles" />
+
+  <!-- New assembly reference report generation -->  
+  <Target Name="GenerateAsmRefReportOnBuild" AfterTargets="Build">    
+    <Warning Condition="$(AsmRefIncludePatterns)==''" Text='Property "AsmRefIncludePatterns" is not set. New assembly reference baseline will not be generated.' />
+    <CallTarget Condition="$(AsmRefIncludePatterns)!='true'" Targets="Internal_GenerateAsmRefReportOnBuild" />
+  </Target>
+
+  <Target Name="Internal_GenerateAsmRefReportOnBuild" >
+    <PropertyGroup>
+      <AsmRefRootSearchDir Condition="$(AsmRefRootSearchDir)==''">$(OutDir)</AsmRefRootSearchDir>
+      <AsmRefOutputFilePath Condition="$(AsmRefOutputFilePath)==''">$(MSBuildProjectDirectory)\$(OutDir)CurrentReferencedAssemblies.txt</AsmRefOutputFilePath>
+    </PropertyGroup>
+
+    <Message Importance="normal" Text="Assembly reference root search directory: $(AsmRefRootSearchDir)" />
+    <Message Importance="normal" Text="Assembly reference include patterns: $(AsmRefIncludePatterns)" />
+    <Message Importance="normal" Text="Assembly reference exclude patterns: $(AsmRefExcludePatterns)" />
+    <Message Importance="normal" Text="Assembly reference output file: $(AsmRefOutputFilePath)" />
+    
+    <Exec Command="$(MSBuildThisFileDirectory)..\DumpAsmRefs.exe -r:$(AsmRefRootSearchDir) -o:$(AsmRefOutputFilePath) -v:Diagnostic $(AsmRefIncludePatterns) $(AsmRefExcludePatterns)" />
+  </Target>
+
+  <!-- Comparison of baseline against new assembly reference report -->
+  <Target Name="CompareAsmRefReportsOnBuild" AfterTargets="GenerateAsmRefReportOnBuild">
+
+    <PropertyGroup>
+      <AsmRefBaseLineFileExists Condition="$(AsmRefBaselineFilePath)!=''">true</AsmRefBaseLineFileExists>
+      <AsmRefOutputFileExists Condition="$(AsmRefOutputFilePath)!=''">true</AsmRefOutputFileExists>
+    </PropertyGroup>
+
+    <Warning Condition="$(AsmRefBaseLineFileExists) != 'true'" Text='Property "AsmRefBaselineFilePath" is not set. Assembly reference baseline comparison will not be performed.' />
+    <Warning Condition="$(AsmRefOutputFileExists) != 'true'" Text='Property "AsmRefOutputFileExists" is not set. Assembly reference baseline comparison will not be performed.' />
+
+    <CompareReportFiles Condition="$(AsmRefBaseLineFileExists) == 'true' AND $(AsmRefOutputFileExists) == 'true'"
+                        BaselineReportFilePath="$(AsmRefBaselineFilePath)"
+                        CurrentReportFilePath="$(AsmRefOutputFilePath)" />
+  </Target>
+
+</Project>
