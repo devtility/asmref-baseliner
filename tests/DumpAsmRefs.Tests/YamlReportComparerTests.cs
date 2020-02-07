@@ -49,7 +49,7 @@ bbb ccc
 
 # Blank lines above should be ignored
 ";
-            var dummyFS = new DummyFileSystem();
+            var dummyFS = new FakeFileSystem();
             dummyFS.AddFile("file1", contents1);
             dummyFS.AddFile("file2", contents2);
 
@@ -67,7 +67,7 @@ aaa
 
             const string contents2 = @"# XXXX
 AAA";
-            var dummyFS = new DummyFileSystem();
+            var dummyFS = new FakeFileSystem();
             dummyFS.AddFile("file1", contents1);
             dummyFS.AddFile("file2", contents2);
 
