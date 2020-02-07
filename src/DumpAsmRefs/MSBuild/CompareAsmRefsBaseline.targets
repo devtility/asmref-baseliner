@@ -21,7 +21,7 @@
 
   -->
 
-  <UsingTask AssemblyFile="$(MSBuildThisFileDirectory)..\DumpAsmRefs.exe" TaskName="CompareReportFiles" />
+  <UsingTask AssemblyFile="$(MSBuildThisFileDirectory)..\DumpAsmRefs.exe" TaskName="CompareAsmRefReportFiles" />
 
   <Target Name="CheckAsmRefWorkflow" AfterTargets="Build" Condition="$(DisableAsmRefBaselining) != 'true' " >
     <CallTarget Targets="_EnsureAsmRefFilePathsAreSet" />
@@ -77,7 +77,7 @@
     <Warning Condition="$(AsmRefBaseLineFileExists) != 'true'" Text='Property "AsmRefBaselineFilePath" is not set. Assembly reference baseline comparison will not be performed.' />
     <Warning Condition="$(AsmRefOutputFileExists) != 'true'" Text='Property "AsmRefOutputFilePath" is not set. Assembly reference baseline comparison will not be performed.' />
 
-    <CompareReportFiles Condition="$(AsmRefBaseLineFileExists) == 'true' AND $(AsmRefOutputFileExists) == 'true'"
+    <CompareAsmRefReportFiles Condition="$(AsmRefBaseLineFileExists) == 'true' AND $(AsmRefOutputFileExists) == 'true'"
                         BaselineReportFilePath="$(AsmRefBaselineFilePath)"
                         CurrentReportFilePath="$(AsmRefOutputFilePath)" />
   </Target>
