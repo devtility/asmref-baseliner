@@ -1,15 +1,32 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net461</TargetFramework>
     <Authors>Devtility</Authors>
-    <PackageId>Devtility.DumpAsmRefs</PackageId>
+    <Company>Devtility</Company>
+    <PackageId>Devtility.CompareAsmRefs</PackageId>
+    <Version>0.1</Version>
+    <Copyright>(c) Devtility 2020</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/devtility/asmref-baseliner</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/devtility/asmref-baseliner</RepositoryUrl>
+    <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
+
+
+    <MsExtCmdLinUtilsVersion>1.1.1</MsExtCmdLinUtilsVersion>
+    <MsExtGlobbing>1.1.1</MsExtGlobbing>    
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
-    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="1.1.1" />
+    <None Include="MSBuild\Devtility.CompareAsmRefs.targets" Pack="true" PackagePath="build" />
+    <None Include="$(NuGetPackageRoot)\Microsoft.Extensions.CommandLineUtils\$(MsExtCmdLinUtilsVersion)\lib\net451\Microsoft.Extensions.CommandLineUtils.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net461" Visible="false" />
+    <None Include="$(NuGetPackageRoot)\Microsoft.Extensions.FileSystemGlobbing\$(MsExtGlobbing)\lib\net45\Microsoft.Extensions.FileSystemGlobbing.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net461" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="$(MsExtCmdLinUtilsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="$(MsExtGlobbing)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,10 +49,5 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="MSBuild\CompareAsmRefsBaseline.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
+ 
