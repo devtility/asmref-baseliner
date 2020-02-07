@@ -6,15 +6,15 @@ using Microsoft.Build.Utilities;
 
 namespace DumpAsmRefs
 {
-    public class CompareReportFiles : Task
+    public class CompareAsmRefReportFiles : Task
     {
         private readonly IFileSystem fileSystem;
 
-        public CompareReportFiles() : this(new FileSystemAbstraction())
+        public CompareAsmRefReportFiles() : this(new FileSystemAbstraction())
         {
         }
 
-        internal CompareReportFiles(IFileSystem fileSystem)
+        internal CompareAsmRefReportFiles(IFileSystem fileSystem)
         {
             this.fileSystem = fileSystem;
         }
@@ -33,13 +33,13 @@ namespace DumpAsmRefs
 
             if (result)
             {
-                this.Log.LogMessage(MessageImportance.High, "Files are the same. Source: {0}, Target: {1}",
+                this.Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_ReferencesAreSame,
                     BaseLineReportFilePath, CurrentReportFilePath);
                 return true;
             }
             else
             {
-                this.Log.LogError("Files are different. Source: {0}, Target: {1}",
+                this.Log.LogError(UIStrings.CompareTask_ReferencesAreDifferent,
                     BaseLineReportFilePath, CurrentReportFilePath);
                 return false;
             }
