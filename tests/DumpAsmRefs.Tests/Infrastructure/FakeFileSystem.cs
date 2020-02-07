@@ -1,10 +1,12 @@
-﻿using DumpAsmRefs.Interfaces;
+﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
+
+using DumpAsmRefs.Interfaces;
 using System;
 using System.Collections.Generic;
 
 namespace DumpAsmRefs.Tests.Infrastructure
 {
-    internal class DummyFileSystem : IFileSystem
+    internal class FakeFileSystem : IFileSystem
     {
         private readonly Dictionary<string, string> fileToPathMap = new Dictionary<string, string>();
 

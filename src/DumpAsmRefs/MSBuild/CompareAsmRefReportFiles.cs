@@ -10,10 +10,12 @@ namespace DumpAsmRefs
     {
         private readonly IFileSystem fileSystem;
 
-        public CompareAsmRefReportFiles() : this(new FileSystemAbstraction())
+        public CompareAsmRefReportFiles()
         {
+            fileSystem = new FileSystemAbstraction();
         }
 
+        // Testing
         internal CompareAsmRefReportFiles(IFileSystem fileSystem)
         {
             this.fileSystem = fileSystem;

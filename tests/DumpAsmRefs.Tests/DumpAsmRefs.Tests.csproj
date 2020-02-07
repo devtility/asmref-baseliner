@@ -25,4 +25,9 @@
     <ProjectReference Include="..\..\src\DumpAsmRefs\DumpAsmRefs.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+  </ItemGroup>
+
 </Project>
