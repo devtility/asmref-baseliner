@@ -17,10 +17,7 @@ namespace DumpAsmRefs.Tests
             var testSubject = new TestableAssemblyInfoGenerator();
 
             var objectAssembly = typeof(object).Assembly;
-            testSubject.FilePathToAssemblyMap = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "c:\\foo\\system.dll", objectAssembly }
-            };
+            testSubject.FilePathToAssemblyMap["c:\\foo\\system.dll"] = objectAssembly;
 
             var result = testSubject.Fetch("c:\\foo\\", new string[] { "system.dll" });
 
@@ -47,10 +44,7 @@ namespace DumpAsmRefs.Tests
 
             var asm = AssemblyCreator.CreateAssembly("foo", typesInRefAssemblies);
 
-            testSubject.FilePathToAssemblyMap = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "c:\\foo.dll", asm }
-            };
+            testSubject.FilePathToAssemblyMap["c:\\foo.dll"] = asm;
 
             var result = testSubject.Fetch("c:\\", new string[] { "foo.dll" });
 
@@ -71,15 +65,10 @@ namespace DumpAsmRefs.Tests
             var asm1 = AssemblyCreator.CreateAssembly("asm1", typeof(object));
             var asm2 = AssemblyCreator.CreateAssembly("asm2", typeof(object), typeof(Xunit.ClassDataAttribute));
 
-            var testSubject = new TestableAssemblyInfoGenerator
-            {
-                FilePathToAssemblyMap = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase)
-                {
-                    { "c:\\asm1.dll", asm1 },
-                    { "c:\\asm2.dll", asm2 }
-                }
-            };
-
+            var testSubject = new TestableAssemblyInfoGenerator();
+            testSubject.FilePathToAssemblyMap["c:\\asm1.dll"] = asm1;
+            testSubject.FilePathToAssemblyMap["c:\\asm2.dll"] = asm2;
+               
             var result = testSubject.Fetch("c:\\", new string[] { "asm1.dll", "asm2.dll" });
 
             // Checks
@@ -103,20 +92,14 @@ namespace DumpAsmRefs.Tests
             // Set up unloadable assembly
             var exceptionFilePath = "c:\\invalid1.dll";
             var expectedException = new BadImageFormatException("foo");
-            testSubject.FilePathToExceptionToThrowMap = new Dictionary<string, Exception>()
-            {
-                { exceptionFilePath, expectedException }
-            };
+            testSubject.FilePathToExceptionToThrowMap[exceptionFilePath] = expectedException;
 
             // Set up valid assemblies
             var validAsm1 = AssemblyCreator.CreateAssembly("valid1", typeof(System.Collections.CollectionBase));
             var validAsm2 = AssemblyCreator.CreateAssembly("valid2", typeof(object));
 
-            testSubject.FilePathToAssemblyMap = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "c:\\valid1.dll", validAsm1 },
-                { "c:\\valid2.dll", validAsm2 }
-            };
+            testSubject.FilePathToAssemblyMap["c:\\valid1.dll"] = validAsm1;
+            testSubject.FilePathToAssemblyMap["c:\\valid2.dll"] = validAsm2;
 
             var result = testSubject.Fetch("c:\\", new string[] { "valid1.dll", "invalid1.dll", "valid2.dll" });
 
@@ -141,18 +124,20 @@ namespace DumpAsmRefs.Tests
                 .Distinct()
                 .ToArray();
 
+            result.LoadException.Should().BeNull();
+
             result.ReferencedAssemblies.Select(ra => ra.FullName)
                 .Should()
                 .BeEquivalentTo(refAsmFullNames);
-
-            result.LoadException.Should().BeNull();
         }
 
         private class TestableAssemblyInfoGenerator : AssemblyInfoGenerator
         {
             public IDictionary<string, Assembly> FilePathToAssemblyMap { get; set; }
+                = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
 
             public IDictionary<string, Exception> FilePathToExceptionToThrowMap { get; set; }
+                = new Dictionary<string, Exception>(StringComparer.OrdinalIgnoreCase);
 
             protected override Assembly LoadAssembly(string fullFilePath)
             {
