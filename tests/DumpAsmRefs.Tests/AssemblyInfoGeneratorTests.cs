@@ -14,7 +14,6 @@ namespace DumpAsmRefs.Tests
         [Fact]
         public void SystemAssembly_NoRefs()
         {
-            //
             var testSubject = new TestableAssemblyInfoGenerator();
 
             var objectAssembly = typeof(object).Assembly;
@@ -94,6 +93,48 @@ namespace DumpAsmRefs.Tests
             CheckReferencedAssemblies(result[1], typeof(object), typeof(Xunit.ClassDataAttribute));
         }
 
+        [Fact]
+        public void ExceptionLoadingAssembly_Captured()
+        {
+            // Assembly load exceptions should be caught and should not prevent
+            // later assemblies from being processed
+            var testSubject = new TestableAssemblyInfoGenerator();
+
+            // Set up unloadable assembly
+            var exceptionFilePath = "c:\\invalid1.dll";
+            var expectedException = new BadImageFormatException("foo");
+            testSubject.FilePathToExceptionToThrowMap = new Dictionary<string, Exception>()
+            {
+                { exceptionFilePath, expectedException }
+            };
+
+            // Set up valid assemblies
+            var validAsm1 = AssemblyCreator.CreateAssembly("valid1", typeof(System.Collections.CollectionBase));
+            var validAsm2 = AssemblyCreator.CreateAssembly("valid2", typeof(object));
+
+            testSubject.FilePathToAssemblyMap = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "c:\\valid1.dll", validAsm1 },
+                { "c:\\valid2.dll", validAsm2 }
+            };
+
+            var result = testSubject.Fetch("c:\\", new string[] { "valid1.dll", "invalid1.dll", "valid2.dll" });
+
+            // Checks
+            result.Should().NotBeNull();
+            result.Count.Should().Be(3);
+
+            result[0].SourceAssemblyFullPath.Should().Be("c:\\valid1.dll");
+            CheckReferencedAssemblies(result[0], typeof(System.Collections.CollectionBase));
+
+            result[1].SourceAssemblyFullPath.Should().Be("c:\\invalid1.dll");
+            result[1].LoadException.Should().Be(expectedException);
+            result[1].ReferencedAssemblies.Should().BeNull();
+
+            result[2].SourceAssemblyFullPath.Should().Be("c:\\valid2.dll");
+            CheckReferencedAssemblies(result[2], typeof(System.Collections.CollectionBase));
+        }
+
         private static void CheckReferencedAssemblies(AssemblyReferenceInfo result, params Type[] typesInRefAssemblies)
         {
             var refAsmFullNames = typesInRefAssemblies.Select(t => t.Assembly.GetName().FullName)
@@ -104,15 +145,22 @@ namespace DumpAsmRefs.Tests
                 .Should()
                 .BeEquivalentTo(refAsmFullNames);
 
-
+            result.LoadException.Should().BeNull();
         }
 
         private class TestableAssemblyInfoGenerator : AssemblyInfoGenerator
         {
             public IDictionary<string, Assembly> FilePathToAssemblyMap { get; set; }
 
+            public IDictionary<string, Exception> FilePathToExceptionToThrowMap { get; set; }
+
             protected override Assembly LoadAssembly(string fullFilePath)
             {
+                if (FilePathToExceptionToThrowMap.TryGetValue(fullFilePath, out var exception))
+                {
+                    throw exception;
+                }
+
                 if (FilePathToAssemblyMap.TryGetValue(fullFilePath, out var assembly))
                 {
                     return assembly;

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using DumpAsmRefs.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -15,14 +16,25 @@ namespace DumpAsmRefs
             foreach(var relativePath in relativeFilePaths)
             {
                 var fullPath = System.IO.Path.Combine(baseDirectory, relativePath);
-                var assembly = LoadAssembly(fullPath);
+
+                Assembly assembly = null;
+                Exception asmLoadException = null;
+                try
+                {
+                    assembly = LoadAssembly(fullPath);
+                }
+                catch(Exception ex)
+                {
+                    asmLoadException = ex;
+                }
 
                 var newResult = new AssemblyReferenceInfo
                 {
+                    LoadException = asmLoadException,
                     SourceAssemblyFullPath = fullPath,
                     SourceAssemblyRelativePath = relativePath,
-                    SourceAssemblyName = assembly.GetName(),
-                    ReferencedAssemblies = assembly.GetReferencedAssemblies()
+                    SourceAssemblyName = assembly?.GetName(),
+                    ReferencedAssemblies = assembly?.GetReferencedAssemblies()
                 };
 
                 results.Add(newResult);
@@ -40,10 +52,13 @@ namespace DumpAsmRefs
 
     public class AssemblyReferenceInfo
     {
+        public Exception LoadException { get; set; }
+
         public string SourceAssemblyFullPath { get; set; }
         public string SourceAssemblyRelativePath { get; set; }
 
         public AssemblyName SourceAssemblyName { get; set; }
+
         public IReadOnlyList<AssemblyName> ReferencedAssemblies { get; set; }
     }
 }
