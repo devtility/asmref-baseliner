@@ -48,12 +48,22 @@ namespace DumpAsmRefs
             sb.Append("Assembly: ").AppendLine(asmRefInfo.SourceAssemblyName.ToString());
             sb.Append("Relative path: ").AppendLine(asmRefInfo.SourceAssemblyRelativePath);
             sb.AppendLine();
-            sb.Append("Referenced assemblies:   # count = ").AppendLine(asmRefInfo.ReferencedAssemblies.Count.ToString());
+            sb.Append("Referenced assemblies:   # count = ")
+                .AppendLine(asmRefInfo.ReferencedAssemblies?.Count.ToString() ?? "{unknown}");
 
-            foreach(var refdItem in asmRefInfo.ReferencedAssemblies.OrderBy(x => x.FullName))
+            if (asmRefInfo.LoadException != null)
             {
-                sb.Append("- ").AppendLine(refdItem.FullName);
+                sb.Append($"Assembly load exception: {asmRefInfo.LoadException.Message}");
             }
+
+            if (asmRefInfo.ReferencedAssemblies != null)
+            {
+                foreach (var refdItem in asmRefInfo.ReferencedAssemblies?.OrderBy(x => x.FullName))
+                {
+                    sb.Append("- ").AppendLine(refdItem.FullName);
+                }
+            }
+
             sb.AppendLine();
         }
     }
