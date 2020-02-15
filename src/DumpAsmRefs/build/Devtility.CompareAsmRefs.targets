@@ -21,8 +21,11 @@
 
   -->
   <PropertyGroup>
-    <!--<AsmRefAssemblyFile Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)netcoreapp2.1\DumpAmRefs.dll</AsmRefAssemblyFile>-->
-    <AsmRefAssemblyFile Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)net461\DumpAsmRefs.exe</AsmRefAssemblyFile>
+    <AsmRefAssemblyFile Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)..\lib\netcoreapp2.0\DumpAsmRefs.dll</AsmRefAssemblyFile>
+    <AsmRefAssemblyFile Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)..\lib\net461\DumpAsmRefs.exe</AsmRefAssemblyFile>
+
+    <AsmRefExecCommand Condition="'$(MSBuildRuntimeType)' == 'Core'">dotnet $(AsmRefAssemblyFile)</AsmRefExecCommand>
+    <AsmRefExecCommand Condition="'$(MSBuildRuntimeType)' != 'Core'">$(AsmRefAssemblyFile)</AsmRefExecCommand>
   </PropertyGroup>
   
   <UsingTask AssemblyFile="$(AsmRefAssemblyFile)" TaskName="CompareAsmRefReportFiles" />
@@ -66,7 +69,7 @@
     <Message Importance="normal" Text="Assembly reference exclude patterns: $(AsmRefExcludePatterns)" />
     <Message Importance="normal" Text="Assembly reference output file: $(AsmRefOutputFilePath)" />
     
-    <Exec Command="$(AsmRefAssemblyFile) -r:$(AsmRefRootSearchDir) -o:$(AsmRefOutputFilePath) -v:$(AsmRefLogLevel) $(AsmRefIncludePatterns) $(AsmRefExcludePatterns)" />
+    <Exec Command="$(AsmRefExecCommand) -r:$(AsmRefRootSearchDir) -o:$(AsmRefOutputFilePath) -v:$(AsmRefLogLevel) $(AsmRefIncludePatterns) $(AsmRefExcludePatterns)" />
   </Target>
 
   <!-- Comparison of baseline against new assembly reference report -->
