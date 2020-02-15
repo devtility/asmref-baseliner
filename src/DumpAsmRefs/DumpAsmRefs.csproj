@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
     <Authors>Devtility</Authors>
     <Company>Devtility</Company>
     <PackageId>Devtility.CompareAsmRefs</PackageId>
@@ -11,27 +11,32 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/devtility/asmref-baseliner</PackageProjectUrl>
     <RepositoryUrl>https://github.com/devtility/asmref-baseliner</RepositoryUrl>
-    <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
-
+    
+    <!--<BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>-->
 
     <MsExtCmdLinUtilsVersion>1.1.1</MsExtCmdLinUtilsVersion>
     <MsExtGlobbing>1.1.1</MsExtGlobbing>    
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="MSBuild\Devtility.CompareAsmRefs.targets" Pack="true" PackagePath="build" />
-    <None Include="$(NuGetPackageRoot)\Microsoft.Extensions.CommandLineUtils\$(MsExtCmdLinUtilsVersion)\lib\net451\Microsoft.Extensions.CommandLineUtils.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net461" Visible="false" />
-    <None Include="$(NuGetPackageRoot)\Microsoft.Extensions.FileSystemGlobbing\$(MsExtGlobbing)\lib\net45\Microsoft.Extensions.FileSystemGlobbing.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\net461" Visible="false" />
+    <None Include="build\Devtility.CompareAsmRefs.targets" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\" />
+    <None Include="buildMultiTargeting\Devtility.CompareAsmRefs.targets" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="buildMultiTargeting\" />
+
+    <None Include="$(NuGetPackageRoot)\Microsoft.Extensions.CommandLineUtils\$(MsExtCmdLinUtilsVersion)\lib\net451\Microsoft.Extensions.CommandLineUtils.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\net461" Visible="false" />
+    <None Include="$(NuGetPackageRoot)\Microsoft.Extensions.FileSystemGlobbing\$(MsExtGlobbing)\lib\net45\Microsoft.Extensions.FileSystemGlobbing.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\net461" Visible="false" />
+    
+    <None Include="$(NuGetPackageRoot)\Microsoft.Extensions.CommandLineUtils\$(MsExtCmdLinUtilsVersion)\lib\netstandard1.3\Microsoft.Extensions.CommandLineUtils.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\netcoreapp2.0" Visible="false" />
+    <None Include="$(NuGetPackageRoot)\Microsoft.Extensions.FileSystemGlobbing\$(MsExtGlobbing)\lib\netstandard1.3\Microsoft.Extensions.FileSystemGlobbing.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\netcoreapp2.0" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" Version="14.3.0" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="$(MsExtCmdLinUtilsVersion)" />
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="$(MsExtGlobbing)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    
+    <!-- Make sure packages don't end up in the nuget packages-->
+    <PackageReference Update="@(PackageReference)" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
