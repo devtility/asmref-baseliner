@@ -15,6 +15,9 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/devtility/asmref-baseliner</PackageProjectUrl>
     <RepositoryUrl>https://github.com/devtility/asmref-baseliner</RepositoryUrl>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     
     <!--<BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>-->
 

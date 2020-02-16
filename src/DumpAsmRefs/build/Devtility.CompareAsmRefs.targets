@@ -38,6 +38,7 @@
 
   <Target Name="_EnsureAsmRefFilePathsAreSet">
     <PropertyGroup>
+      <AsmRefIncludePatterns Condition="$(AsmRefIncludePatterns)==''">$(TargetName)*</AsmRefIncludePatterns>
       <AsmRefRootSearchDir Condition="$(AsmRefRootSearchDir)==''" >$(OutDir)</AsmRefRootSearchDir>
       <AsmRefOutputFilePath Condition="$(AsmRefOutputFilePath)==''" >$(MSBuildProjectDirectory)\$(OutDir)CurrentAsmRefs.txt</AsmRefOutputFilePath>
       <AsmRefBaselineFilePath Condition="$(AsmRefBaselineFilePath)==''" >$(MSBuildProjectDirectory)\AsmRefBaseline_$(MSBuildProjectName).txt</AsmRefBaselineFilePath>
