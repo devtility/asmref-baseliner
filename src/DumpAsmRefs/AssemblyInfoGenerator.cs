@@ -46,6 +46,8 @@ namespace DumpAsmRefs
             Justification = "The user has given us the file path to specify the assembly they want us to load")]
         protected virtual Assembly LoadAssembly(string fullFilePath)
         {
+            // Note: the earliest version of .NET Core that supports Assembly.LoadFrom is v2.0.
+            // See https://apisof.net/catalog/System.Reflection.Assembly.LoadFrom(String).
             return Assembly.LoadFrom(fullFilePath);
         }
     }
