@@ -45,7 +45,7 @@ namespace DumpAsmRefs
         {
             sb.AppendLine("---");
             sb.AppendLine();
-            sb.Append("Assembly: ").AppendLine(asmRefInfo.SourceAssemblyName.ToString());
+            sb.Append("Assembly: ").AppendLine(asmRefInfo.SourceAssemblyName?.ToString() ?? "{unknown}");
             sb.Append("Relative path: ").AppendLine(asmRefInfo.SourceAssemblyRelativePath);
             sb.AppendLine();
             sb.Append("Referenced assemblies:   # count = ")
