@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using DumpAsmRefs.Interfaces;
+using System;
 using System.Collections.Generic;
 
 namespace DumpAsmRefs
@@ -16,6 +17,11 @@ namespace DumpAsmRefs
     {
         public static int Main(string[] args)
         {
+            if (Environment.GetEnvironmentVariable("AsmRef_LaunchDebugger")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false)
+            {
+                System.Diagnostics.Debugger.Launch();
+            }
+
             var logger = new ConsoleLogger(Verbosity.Diagnostic);
             var parser = new CommandLineParser();
             if (parser.TryParse(logger, args, out var userArguments))
