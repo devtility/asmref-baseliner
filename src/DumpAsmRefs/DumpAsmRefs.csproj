@@ -18,11 +18,12 @@
 
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
     <!--<BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>-->
 
     <MsExtCmdLinUtilsVersion>1.1.1</MsExtCmdLinUtilsVersion>
-    <MsExtGlobbing>1.1.1</MsExtGlobbing>    
+    <MsExtGlobbing>1.1.1</MsExtGlobbing>
   </PropertyGroup>
 
   <ItemGroup>
