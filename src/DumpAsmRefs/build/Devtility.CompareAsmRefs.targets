@@ -5,6 +5,14 @@
 
   * DisableAsmRefBaselining - set to true to turn off these targets
 
+  * AsmRefIncludePatterns - a space-separated list of glob patterns specifying the files to
+        include in the report e.g. "ACME* SubDir1\**\*foo*.dll"
+        Defaults to the [Project target file name]*
+  
+  * AsmRefUpdateBaseline - true/false. Specifies whether the baseline file should be updated
+        with the new report when it is generated.
+        Defaults to false.
+
   * AsmRefOutputFilePath - the file path of the report generated for the current build.
         Defaults to "{output directory}\CurrentAsmRefs.txt"
 
@@ -18,6 +26,12 @@
   If the baseline file exists, the build will generate a new report file for the current
   build and compare it to the baseline file. The task will report an error if the current
   report is different from the baseline.
+  
+  You should then compare the baseline and new report to check whether the changes to the
+  referenced assemblies are correct.
+  If they are not correct , fix them.
+  If they are correct, update the baseline file. This can be done by building again with
+    /p:AsmRefUpdateBaseline=true.
 
   -->
   <PropertyGroup>
@@ -46,16 +60,32 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="_PostGenerateAndRefProcessing">
-    <!-- If the base line and current report exist, compare them -->
+  <Target Name="_PostGenerateAndRefProcessing" DependsOnTargets="_AsmRefCheckFileExistence">
+
+    <Warning Condition="$(AsmRefOutputFileExists) != 'true'"
+             Text='The assembly reference output report does not exist. Assembly reference baseline comparison will not be performed. File path: $(AsmRefOutputFilePath)' />
+
+    <!-- Compare the base line and current reports if they both exist and the update flag is not set -->
     <CallTarget
       Targets="_CompareAsmRefReportsOnBuild"
-      Condition="Exists($(AsmRefOutputFilePath)) AND Exists($(AsmRefBaselineFilePath))" />
+      Condition="$(AsmRefOutputFileExists) == 'true' AND $(AsmRefBaseLineFileExists) == 'true' AND $(AsmRefUpdateBaseline) != 'true' " />
+
+    <!-- Update the baseline if both files exist and the update flag is set -->
+    <CallTarget
+      Targets="_UpdateAsmRefBaselineFile"
+      Condition="$(AsmRefOutputFileExists) == 'true' AND $(AsmRefBaselineFileExists) == 'true' AND $(AsmRefUpdateBaseline) == 'true' " />
 
     <!-- If the base line report doesn't exist but the current report does, set the current as the baseline -->
     <CallTarget
       Targets="_PublishAsmRefBaselineFile"
-      Condition="Exists($(AsmRefOutputFilePath)) AND !Exists($(AsmRefBaselineFilePath))" />
+      Condition="$(AsmRefOutputFileExists) == 'true' AND $(AsmRefBaselineFileExists) != 'true'" />
+  </Target>
+
+  <Target Name="_AsmRefCheckFileExistence">
+    <PropertyGroup>
+      <AsmRefBaseLineFileExists Condition="$(AsmRefBaselineFilePath) != '' AND Exists($(AsmRefBaselineFilePath))">true</AsmRefBaseLineFileExists>
+      <AsmRefOutputFileExists Condition="$(AsmRefOutputFilePath) != '' AND Exists($(AsmRefOutputFilePath))">true</AsmRefOutputFileExists>
+    </PropertyGroup>    
   </Target>
   
   <!-- New assembly reference report generation -->
@@ -72,29 +102,34 @@
     
     <Exec Command="$(AsmRefExecCommand) -r:$(AsmRefRootSearchDir) -o:$(AsmRefOutputFilePath) -v:$(AsmRefLogLevel) $(AsmRefIncludePatterns) $(AsmRefExcludePatterns)" />
   </Target>
-
+  
   <!-- Comparison of baseline against new assembly reference report -->
   <Target Name="_CompareAsmRefReportsOnBuild" >
-    <Message Importance="high" Text="Comparing assembly reference report files..." />
-    
-    <PropertyGroup>
-      <AsmRefBaseLineFileExists Condition="$(AsmRefBaselineFilePath)!=''">true</AsmRefBaseLineFileExists>
-      <AsmRefOutputFileExists Condition="$(AsmRefOutputFilePath)!=''">true</AsmRefOutputFileExists>
-    </PropertyGroup>
-
-    <Warning Condition="$(AsmRefBaseLineFileExists) != 'true'" Text='Property "AsmRefBaselineFilePath" is not set. Assembly reference baseline comparison will not be performed.' />
-    <Warning Condition="$(AsmRefOutputFileExists) != 'true'" Text='Property "AsmRefOutputFilePath" is not set. Assembly reference baseline comparison will not be performed.' />
-
-    <CompareAsmRefReportFiles Condition="$(AsmRefBaseLineFileExists) == 'true' AND $(AsmRefOutputFileExists) == 'true'"
-                        BaselineReportFilePath="$(AsmRefBaselineFilePath)"
-                        CurrentReportFilePath="$(AsmRefOutputFilePath)" />
+    <Message Importance="high" Text="Comparing assembly reference report files..." />   
+    <CompareAsmRefReportFiles
+      Condition="'$(AsmRefBaseLineFileExists)' == 'true' AND '$(AsmRefOutputFileExists)' == 'true' AND '$(AsmRefUpdateBaseline)' != 'true' "
+      BaselineReportFilePath="$(AsmRefBaselineFilePath)"
+      CurrentReportFilePath="$(AsmRefOutputFilePath)" />
   </Target>
 
   <Target Name="_PublishAsmRefBaselineFile">
     <Message Importance="high" Text="Publishing the baseline assembly reference file to $(AsmRefBaselineFilePath)" />
     <Move
       SourceFiles="$(AsmRefOutputFilePath)"
-      DestinationFiles="$(AsmRefBaselineFilePath)" />
+      DestinationFiles="$(AsmRefBaselineFilePath)" 
+      OverwriteReadOnlyFiles="true"
+      />
   </Target>
-  
+
+  <Target Name="_UpdateAsmRefBaselineFile">
+    <Message Importance="high" Text="Updating the baseline assembly reference file at $(AsmRefBaselineFilePath)" />
+    <Copy
+      SourceFiles="$(AsmRefOutputFilePath)"
+      DestinationFiles="$(AsmRefBaselineFilePath)"
+      OverwriteReadOnlyFiles="true"
+      Retries="5"
+      RetryDelayMilliseconds="100"
+      />
+  </Target>
+
 </Project>
