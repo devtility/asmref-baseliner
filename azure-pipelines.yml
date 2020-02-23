@@ -49,6 +49,14 @@ steps:
       **\Microsoft.Extensions**
     TargetFolder: '$(Build.ArtifactStagingDirectory)\binaries'
 
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin\$(buildConfiguration)'
+    Contents: |
+      **\*.nupkg
+      **\*.snupkg
+    TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
+
 - task: VSTest@2
   inputs:
     platform: '$(buildPlatform)'
@@ -61,6 +69,12 @@ steps:
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
     artifact: 'binaries'
+    publishLocation: 'pipeline'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)\packages'
+    artifact: 'packages'
     publishLocation: 'pipeline'
 
 - task: SonarCloudPublish@1
