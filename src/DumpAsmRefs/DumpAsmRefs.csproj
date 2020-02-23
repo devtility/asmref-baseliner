@@ -9,17 +9,27 @@
     
     <Authors>Devtility</Authors>
     <Company>Devtility</Company>
-    <PackageId>Devtility.CompareAsmRefs</PackageId>
-    <Version>0.1</Version>
-    <Copyright>(c) Devtility 2020</Copyright>
+    <Version>0.7</Version>
+    <PackageVersion>0.7.0-rc</PackageVersion>
+
+    <PackageId>Devtility.CheckAsmRefs</PackageId>
+    <Copyright>Copyright © Devtility 2020</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/devtility/asmref-baseliner</PackageProjectUrl>
     <RepositoryUrl>https://github.com/devtility/asmref-baseliner</RepositoryUrl>
+    <PackageTags>build;MSBuild</PackageTags>
+    <DevelopmentDependency>true</DevelopmentDependency>
 
+    <PackageDescription>This package provides a build-time check that the set of referenced assemblies and the versions of those references have not changed from the previous build.
+
+This helps avoid accidental changes that can cause failures at runtime e.g.
+* by referencing a newer version of an assembly that is not supported by the minimum framework version targeted by the application
+* by adding a reference to an assembly that is not packaged with the application</PackageDescription>
+    
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-
+    
     <!--<BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>-->
 
     <MsExtCmdLinUtilsVersion>1.1.1</MsExtCmdLinUtilsVersion>
@@ -27,8 +37,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="build\Devtility.CompareAsmRefs.targets" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\" />
-    <None Include="buildMultiTargeting\Devtility.CompareAsmRefs.targets" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="buildMultiTargeting\" />
+    <None Include="build\Devtility.CheckAsmRefs.targets" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="build\" />
+    <None Include="buildMultiTargeting\Devtility.CheckAsmRefs.targets" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="buildMultiTargeting\" />
 
     <None Include="$(NuGetPackageRoot)\Microsoft.Extensions.CommandLineUtils\$(MsExtCmdLinUtilsVersion)\lib\net451\Microsoft.Extensions.CommandLineUtils.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\net461" Visible="false" />
     <None Include="$(NuGetPackageRoot)\Microsoft.Extensions.FileSystemGlobbing\$(MsExtGlobbing)\lib\net45\Microsoft.Extensions.FileSystemGlobbing.dll" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\net461" Visible="false" />
