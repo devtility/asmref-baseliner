@@ -3,7 +3,7 @@
   <!--
   The following properties control the execution of the targets:
 
-  * DisableAsmRefBaselining - set to true to turn off these targets
+  * AsmRefDisableBaselining - set to true to turn off these targets
 
   * AsmRefIncludePatterns - a space-separated list of glob patterns specifying the files to
         include in the report e.g. "ACME* SubDir1\**\*foo*.dll"
@@ -14,7 +14,7 @@
         Defaults to false.
 
   * AsmRefOutputFilePath - the file path of the report generated for the current build.
-        Defaults to "{output directory}\CurrentAsmRefs.txt"
+        Defaults to "{output directory}\AsmRef_{project name}_Latest.txt"
 
   * AsmRefBaselineFilePath - the file path of the baseline file to compare against.
         Defaults to "{project file directory}\AsmRefBaseline_[ProjectName].txt"
@@ -44,7 +44,7 @@
   
   <UsingTask AssemblyFile="$(AsmRefAssemblyFile)" TaskName="CompareAsmRefReportFiles" />
 
-  <Target Name="CheckAsmRefWorkflow" AfterTargets="Build" Condition="$(DisableAsmRefBaselining) != 'true' " >
+  <Target Name="CheckAsmRefWorkflow" AfterTargets="Build" Condition="$(AsmRefDisableBaselining) != 'true' " >
     <CallTarget Targets="_EnsureAsmRefFilePathsAreSet" />
     <CallTarget Targets="_GenerateAsmRefReportOnBuild" />
     <CallTarget Targets="_PostGenerateAndRefProcessing" />
@@ -54,8 +54,8 @@
     <PropertyGroup>
       <AsmRefIncludePatterns Condition="$(AsmRefIncludePatterns)==''">$(TargetName)*</AsmRefIncludePatterns>
       <AsmRefRootSearchDir Condition="$(AsmRefRootSearchDir)==''" >$(OutDir)</AsmRefRootSearchDir>
-      <AsmRefOutputFilePath Condition="$(AsmRefOutputFilePath)==''" >$(MSBuildProjectDirectory)\$(OutDir)CurrentAsmRefs.txt</AsmRefOutputFilePath>
-      <AsmRefBaselineFilePath Condition="$(AsmRefBaselineFilePath)==''" >$(MSBuildProjectDirectory)\AsmRefBaseline_$(MSBuildProjectName).txt</AsmRefBaselineFilePath>
+      <AsmRefOutputFilePath Condition="$(AsmRefOutputFilePath)==''" >$(MSBuildProjectDirectory)\$(OutDir)AsmRef_$(MSBuildProjectName)_Latest.txt</AsmRefOutputFilePath>
+      <AsmRefBaselineFilePath Condition="$(AsmRefBaselineFilePath)==''" >$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline.txt</AsmRefBaselineFilePath>
       <AsmRefLogLevel Condition="$(AsmRefLogLevel)==''" >Normal</AsmRefLogLevel>
     </PropertyGroup>
   </Target>
@@ -111,7 +111,7 @@
     <Error Condition="$(AsmRefBaselineFilePath) == '' " Text="AsmRef: AsmRefBaselineFilePath property has not been set" />
     <Error Condition="!Exists($(AsmRefBaselineFilePath))" Text="AsmRef: Baseline file does not exist: $(AsmRefBaselineFilePath)" />
     <Error Condition="$(AsmRefUpdateBaseline) == 'true'" Text="AsmRef: Should not be comparing files since AsmRefUpdateBaseline is true" />
-    
+        
     <CompareAsmRefReportFiles
       BaselineReportFilePath="$(AsmRefBaselineFilePath)"
       CurrentReportFilePath="$(AsmRefOutputFilePath)" />

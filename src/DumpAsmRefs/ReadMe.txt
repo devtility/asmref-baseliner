@@ -1,6 +1,6 @@
 ﻿TODO
 ------------------------------------
-* support .NET Core and .NET FX
+* DONE: support .NET Core and .NET FX
 * correct file-system case-sensitivity comparison
 
 * parameter validation
