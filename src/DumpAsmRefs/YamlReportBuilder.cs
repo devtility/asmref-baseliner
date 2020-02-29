@@ -1,23 +1,22 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using DumpAsmRefs.Interfaces;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace DumpAsmRefs
 {
-    internal class TextFileReportBuilder : IReportBuilder
+    internal class YamlReportBuilder : IReportBuilder
     {
         #region IReportBuilder implementation
 
-        public string Generate(FileSearchResult fileSearchResult, IEnumerable<AssemblyReferenceInfo> assemblyReferenceInfos)
+        public string Generate(AsmRefResult report)
         {
             var sb = new StringBuilder();
 
-            WriteHeader(sb, fileSearchResult);
+            WriteHeader(sb, report.InputCriteria);
 
-            foreach (var item in assemblyReferenceInfos.OrderBy(x => x.SourceAssemblyRelativePath))
+            foreach (var item in report.AssemblyReferenceInfos.OrderBy(x => x.SourceAssemblyRelativePath))
             {
                 WriteSingleAssemblyInfo(sb, item);
             }
@@ -30,7 +29,7 @@ namespace DumpAsmRefs
 
         private static readonly string[] NotItemsStringArray = new string[] { "none" } ;
 
-        private static void WriteHeader(StringBuilder sb, FileSearchResult fileSearchResult)
+        private static void WriteHeader(StringBuilder sb, InputCriteria fileSearchResult)
         {
             sb.AppendLine("---");
             sb.AppendLine();

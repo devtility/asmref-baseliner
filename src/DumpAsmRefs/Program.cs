@@ -3,6 +3,7 @@
 using DumpAsmRefs.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DumpAsmRefs
 {
@@ -28,7 +29,7 @@ namespace DumpAsmRefs
             {
                 logger.Verbosity = userArguments.Verbosity;
                 return Execute(userArguments, new AssemblyFileLocator(),
-                    new AssemblyInfoGenerator(), new TextFileReportBuilder(), 
+                    new AssemblyInfoGenerator(), new YamlReportBuilder(), 
                     new FileSystemAbstraction(), logger);
             }
 
@@ -40,20 +41,24 @@ namespace DumpAsmRefs
         {
             logger.Verbosity = userArguments.Verbosity;
             logger.LogDebug(UIStrings.Matching_RootDirectory, userArguments.RootDirectory);
-            var searchResult = fileLocator.Search(userArguments.RootDirectory, userArguments.IncludePatterns, userArguments.ExcludePatterns);
+            var matchingPaths = fileLocator.Search(userArguments.RootDirectory, userArguments.IncludePatterns, userArguments.ExcludePatterns);
 
-            if (searchResult.RelativeFilePaths.Count == 0)
+            if (!matchingPaths.Any())
             {
                 logger.LogWarning(UIStrings.Matching_NoFiles);
                 return (int)ExitCodes.NoMatchingFiles;
             }
 
-            logger.LogInfo(UIStrings.Matching_MatchesFound, searchResult.RelativeFilePaths.Count);
-            DebugDumpList(UIStrings.Matching_ResultListHeader, searchResult.RelativeFilePaths, logger);
+            var inputs = new InputCriteria(userArguments.RootDirectory, userArguments.IncludePatterns,
+                userArguments.ExcludePatterns, matchingPaths);
 
-            var asmInfo = assemblyInfoGenerator.Fetch(searchResult.BaseDirectory, searchResult.RelativeFilePaths);
+            logger.LogInfo(UIStrings.Matching_MatchesFound, inputs.RelativeFilePaths.Count);
+            DebugDumpList(UIStrings.Matching_ResultListHeader, inputs.RelativeFilePaths, logger);
 
-            var data = reportBuilder.Generate(searchResult, asmInfo);
+            var asmInfo = assemblyInfoGenerator.Fetch(inputs.BaseDirectory, inputs.RelativeFilePaths);
+
+            var result = new AsmRefResult(inputs, asmInfo);
+            var data = reportBuilder.Generate(result);
 
             fileSystem.WriteAllText(userArguments.OutputFileFullPath, data);
             logger.LogInfo(UIStrings.Program_ReportFileWritten, userArguments.OutputFileFullPath);

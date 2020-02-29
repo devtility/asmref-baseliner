@@ -6,6 +6,9 @@ namespace DumpAsmRefs.Interfaces
 {
     internal interface IFileLocator
     {
-        FileSearchResult Search(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns);
+        /// <summary>
+        /// Returns a list of matching relative file paths
+        /// </summary>
+        IEnumerable<string> Search(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns);
     }
 }
