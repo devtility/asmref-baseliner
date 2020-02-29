@@ -6,6 +6,7 @@ using FluentAssertions;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace DumpAsmRefs.Tests
@@ -31,15 +32,12 @@ namespace DumpAsmRefs.Tests
             var userArgs = new UserArguments("c:\\root", new string[] { "include1" },
                 new string[] { "exclude1" }, "outfile.txt", Verbosity.Detailed);
 
-            var fileSearchResult = new FileSearchResult("c:\\root",
-                userArgs.IncludePatterns, userArgs.ExcludePatterns,
-                new string[] { "file1.txt", "\\sub\\file2.txt"});
-
+            var matchingFiles = new string[] { "file1.txt", "\\sub\\file2.txt" };
             fileLocator.Setup(x => x.Search(userArgs.RootDirectory,
-                userArgs.IncludePatterns, userArgs.ExcludePatterns)).Returns(fileSearchResult);
+                userArgs.IncludePatterns, userArgs.ExcludePatterns)).Returns(matchingFiles);
 
             var asmRefInfo = Array.Empty<AssemblyReferenceInfo>();
-            asmInfoGenerator.Setup(x => x.Fetch(fileSearchResult.BaseDirectory, fileSearchResult.RelativeFilePaths))
+            asmInfoGenerator.Setup(x => x.Fetch(userArgs.RootDirectory, matchingFiles))
                 .Returns(asmRefInfo);
 
             // Execute
@@ -52,10 +50,10 @@ namespace DumpAsmRefs.Tests
             fileLocator.Verify(x => x.Search(userArgs.RootDirectory, userArgs.IncludePatterns, userArgs.ExcludePatterns),
                 Times.Once);
 
-            asmInfoGenerator.Verify(x => x.Fetch(fileSearchResult.BaseDirectory, fileSearchResult.RelativeFilePaths),
+            asmInfoGenerator.Verify(x => x.Fetch(userArgs.RootDirectory, matchingFiles),
                 Times.Once);
 
-            reportBuilder.Verify(x => x.Generate(fileSearchResult, asmRefInfo), Times.Once);
+            reportBuilder.Verify(x => x.Generate(It.IsAny<AsmRefResult>()), Times.Once);
 
             fileSystem.Verify(x => x.WriteAllText(userArgs.OutputFileFullPath, It.IsAny<string>()), Times.Once);
         }
@@ -72,12 +70,8 @@ namespace DumpAsmRefs.Tests
             var userArgs = new UserArguments("c:\\root", new string[] { "include1" },
                 new string[] { "exclude1" }, "outfile.txt", Verbosity.Detailed);
 
-            var fileSearchResult = new FileSearchResult("c:\\root",
-                userArgs.IncludePatterns, userArgs.ExcludePatterns,
-                Array.Empty<string>());
-
             fileLocator.Setup(x => x.Search(userArgs.RootDirectory,
-                userArgs.IncludePatterns, userArgs.ExcludePatterns)).Returns(fileSearchResult);
+                userArgs.IncludePatterns, userArgs.ExcludePatterns)).Returns(Enumerable.Empty<string>());
 
             // Execute
             var result = Program.Execute(userArgs, fileLocator.Object, asmInfoGenerator.Object,
@@ -92,8 +86,7 @@ namespace DumpAsmRefs.Tests
             asmInfoGenerator.Verify(x => x.Fetch(It.IsAny<string>(),
                 It.IsAny<IEnumerable<string>>()), Times.Never);
                 
-            reportBuilder.Verify(x => x.Generate(It.IsAny<FileSearchResult>(),
-                It.IsAny<IEnumerable<AssemblyReferenceInfo>>()), Times.Never);
+            reportBuilder.Verify(x => x.Generate(It.IsAny<AsmRefResult>()), Times.Never);
 
             fileSystem.Verify(x => x.WriteAllText(userArgs.OutputFileFullPath, It.IsAny<string>()), Times.Never);
         }

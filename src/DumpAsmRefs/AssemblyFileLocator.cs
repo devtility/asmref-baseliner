@@ -40,15 +40,14 @@ namespace DumpAsmRefs
 
         #region IFileLocator interfaces 
 
-        public FileSearchResult Search(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
+        public IEnumerable<string> Search(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
         {
             var baseDirectoryInfo = directoryWrapperFactoryMethod(baseDirectory);
             var matchingPaths = SearchForFiles(baseDirectoryInfo, includePatterns, excludePatterns)
                 .Where(IsAssembly)
                 .ToArray();
 
-            var results = new FileSearchResult(baseDirectory, includePatterns, excludePatterns, matchingPaths);
-            return results;
+            return matchingPaths;
         }
 
         #endregion

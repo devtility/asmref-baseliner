@@ -28,9 +28,7 @@ namespace DumpAsmRefs.Tests
 
             // Checks
             result.Should().NotBeNull();
-            result.IncludePatterns.Should().BeEquivalentTo(includePatterns);
-            result.ExcludePatterns.Should().BeEquivalentTo(excludePatterns);
-            result.RelativeFilePaths.Should().BeEquivalentTo(
+            result.Should().BeEquivalentTo(
                 "aaa1.dll",
                 "Xaaa1.dll",
                 "sub1/aaa2.dll",

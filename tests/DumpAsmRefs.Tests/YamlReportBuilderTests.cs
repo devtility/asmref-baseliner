@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
+using DumpAsmRefs.Interfaces;
 using FluentAssertions;
 using System;
 using System.Collections.Generic;
@@ -9,19 +10,20 @@ using Xunit;
 
 namespace DumpAsmRefs.Tests
 {
-    public class TextFileReportBuilderTests
+    public class YamlReportBuilderTests
     {
         [Fact]
         public void ReportHeader_ContainsSearchData()
         {
-            var fileSearchResult = new FileSearchResult("BASE DIR",
+            var inputs = new InputCriteria("BASE DIR",
                 new string[] { "include1", "include2" },
                 new string[] { "exclude1", "exclude2" },
                 new string[] { "path1", "path2"});
 
-            var testSubject = new TextFileReportBuilder();
+            var report = new AsmRefResult(inputs, Enumerable.Empty<AssemblyReferenceInfo>());
+            var testSubject = new YamlReportBuilder();
 
-            var result = testSubject.Generate(fileSearchResult, Enumerable.Empty<AssemblyReferenceInfo>());
+            var result = testSubject.Generate(report);
 
             // Check report contents
             result.Should().Contain("BASE DIR");
@@ -35,7 +37,7 @@ namespace DumpAsmRefs.Tests
         [Fact]
         public void ReportBody_ContainsAsmData()
         {
-            var fileSearchResult = new FileSearchResult("BASE DIR", new string[] { "include1" },
+            var inputs = new InputCriteria("BASE DIR", new string[] { "include1" },
                 new string[] { "exclude1"}, new string[] { "path1" });
 
             var asmRefInfos = new AssemblyReferenceInfo[]
@@ -66,9 +68,11 @@ namespace DumpAsmRefs.Tests
                 }
             };
 
-            var testSubject = new TextFileReportBuilder();
+            var report = new AsmRefResult(inputs, asmRefInfos);
 
-            var result = testSubject.Generate(fileSearchResult, asmRefInfos);
+            var testSubject = new YamlReportBuilder();
+
+            var result = testSubject.Generate(report);
 
             // Check report contents
             result.Should().Contain("asmName1");

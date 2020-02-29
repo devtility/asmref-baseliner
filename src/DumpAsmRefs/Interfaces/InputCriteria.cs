@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace DumpAsmRefs
 {
-    public class FileSearchResult
+    public class InputCriteria
     {
-        public FileSearchResult(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns, string[] relativeFilePaths)
+        public InputCriteria(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns, IEnumerable<string> relativeFilePaths)
         {
             BaseDirectory = baseDirectory;
             IncludePatterns = new List<string>(includePatterns ?? Enumerable.Empty<string>());
