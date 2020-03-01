@@ -49,6 +49,7 @@ Exclude patterns:
             var data = @"
 Assembly: DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null
 Relative path: src/DumpAsmRefs/bin/Debug/net461/DumpAsmRefs.exe
+Assembly load exception: a load exception. xxx
 
 Referenced assemblies:   # count = 2
 - Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
@@ -60,6 +61,7 @@ Referenced assemblies:   # count = 2
 
             actual.SourceAssemblyName.Should().Be("DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null");
             actual.SourceAssemblyRelativePath.Should().Be("src/DumpAsmRefs/bin/Debug/net461/DumpAsmRefs.exe");
+            actual.LoadException.Should().Be("a load exception. xxx");
 
             actual.ReferencedAssemblies.Should().BeEquivalentTo(
                 "Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
@@ -127,6 +129,44 @@ Referenced assemblies:   # count = 1
             refs[1].ReferencedAssemblies.Should().NotBeNull();
             refs[1].ReferencedAssemblies.ToArray()[0].Should().Be("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
             refs[1].ReferencedAssemblies.Count().Should().Be(1);
+        }
+
+        [Fact]
+        public void Roundtrip_BuildReportThenReload()
+        {
+            var inputs = new InputCriteria("BASE DIR", new string[] { "include1" },
+                new string[] { "exclude1" }, new string[] { "exclude2" });
+
+            var asmRefInfos = new AssemblyReferenceInfo[]
+            {
+                new AssemblyReferenceInfo()
+                {
+                    LoadException = null,
+                    SourceAssemblyName = "asmName1",
+                    SourceAssemblyRelativePath = "relative path1",
+                    ReferencedAssemblies = new string[]{ "asm 1_1", "asm 1_2" }
+                },
+                new AssemblyReferenceInfo()
+                {
+                    LoadException = "exception message",
+                    SourceAssemblyName = "asmName2",
+                    SourceAssemblyRelativePath = "relative path2",
+                    ReferencedAssemblies = new string[] { "asm 2_1", "asm 2_2" }
+                }
+            };
+
+            var asmResult = new AsmRefResult(inputs, asmRefInfos);
+
+            // Build report
+            var reportBuilder = new YamlReportBuilder();
+            string data = reportBuilder.Generate(asmResult);
+
+            // Reload report
+            var loader = new YamlReportLoader();
+            var actual = loader.Load(data);
+
+            // Assert
+            actual.AssemblyReferenceInfos.Should().BeEquivalentTo(asmResult.AssemblyReferenceInfos);
         }
     }
 }

@@ -6,6 +6,7 @@ namespace DumpAsmRefs
 {    
     public class AssemblyReferenceInfo
     {
+        [YamlDotNet.Serialization.YamlMember(Alias = "Assembly load exception")]
         public string LoadException { get; set; }
 
         public string SourceAssemblyFullPath { get; set; }
