@@ -3,6 +3,7 @@
 using DumpAsmRefs.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace DumpAsmRefs
@@ -33,8 +34,8 @@ namespace DumpAsmRefs
                     LoadException = asmLoadException,
                     SourceAssemblyFullPath = fullPath,
                     SourceAssemblyRelativePath = relativePath,
-                    SourceAssemblyName = assembly?.GetName(),
-                    ReferencedAssemblies = assembly?.GetReferencedAssemblies()
+                    SourceAssemblyName = assembly?.GetName().FullName,
+                    ReferencedAssemblies = assembly?.GetReferencedAssemblies().Select(ra => ra.FullName).ToArray()
                 };
 
                 results.Add(newResult);
@@ -59,8 +60,8 @@ namespace DumpAsmRefs
         public string SourceAssemblyFullPath { get; set; }
         public string SourceAssemblyRelativePath { get; set; }
 
-        public AssemblyName SourceAssemblyName { get; set; }
+        public string SourceAssemblyName { get; set; }
 
-        public IReadOnlyList<AssemblyName> ReferencedAssemblies { get; set; }
+        public IReadOnlyList<string> ReferencedAssemblies { get; set; }
     }
 }

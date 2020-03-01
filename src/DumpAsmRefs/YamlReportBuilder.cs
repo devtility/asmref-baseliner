@@ -10,13 +10,13 @@ namespace DumpAsmRefs
     {
         #region IReportBuilder implementation
 
-        public string Generate(AsmRefResult report)
+        public string Generate(AsmRefResult asmRefResult)
         {
             var sb = new StringBuilder();
 
-            WriteHeader(sb, report.InputCriteria);
+            WriteHeader(sb, asmRefResult.InputCriteria);
 
-            foreach (var item in report.AssemblyReferenceInfos.OrderBy(x => x.SourceAssemblyRelativePath))
+            foreach (var item in asmRefResult.AssemblyReferenceInfos.OrderBy(x => x.SourceAssemblyRelativePath))
             {
                 WriteSingleAssemblyInfo(sb, item);
             }
@@ -57,9 +57,9 @@ namespace DumpAsmRefs
 
             if (asmRefInfo.ReferencedAssemblies != null)
             {
-                foreach (var refdItem in asmRefInfo.ReferencedAssemblies?.OrderBy(x => x.FullName))
+                foreach (var refdItem in asmRefInfo.ReferencedAssemblies?.OrderBy(x => x))
                 {
-                    sb.Append("- ").AppendLine(refdItem.FullName);
+                    sb.Append("- ").AppendLine(refdItem);
                 }
             }
 

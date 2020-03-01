@@ -46,23 +46,23 @@ namespace DumpAsmRefs.Tests
                 {
                     LoadException = null,
                     SourceAssemblyFullPath = "full path1",
-                    SourceAssemblyName = new System.Reflection.AssemblyName("asmName1"),
+                    SourceAssemblyName = "asmName1",
                     SourceAssemblyRelativePath = "relative path1",
-                    ReferencedAssemblies = CreateAssemblyNameList("asm 1_1", "asm 1_2")
+                    ReferencedAssemblies = new string[]{ "asm 1_1", "asm 1_2" }
                 },
                 new AssemblyReferenceInfo()
                 {
                     LoadException = null,
                     SourceAssemblyFullPath = "full path2",
-                    SourceAssemblyName = new System.Reflection.AssemblyName("asmName2"),
+                    SourceAssemblyName = "asmName2",
                     SourceAssemblyRelativePath = "relative path2",
-                    ReferencedAssemblies = CreateAssemblyNameList("asm 2_1", "asm 2_2")
+                    ReferencedAssemblies = new string[] { "asm 2_1", "asm 2_2" }
                 },
                 new AssemblyReferenceInfo()
                 {
                     LoadException = new BadImageFormatException("image format exception"),
                     SourceAssemblyFullPath = "full path3",
-                    SourceAssemblyName = new System.Reflection.AssemblyName("asmName3"),
+                    SourceAssemblyName = "asmName3",
                     SourceAssemblyRelativePath = "relative path3",
                     ReferencedAssemblies = null
                 }
@@ -95,8 +95,5 @@ namespace DumpAsmRefs.Tests
             result.Should().NotContain("full path2");
             result.Should().NotContain("full path3");
         }
-
-        private static IReadOnlyList<AssemblyName> CreateAssemblyNameList(params string[] names)
-            => names.Select(n => new AssemblyName(n)).ToArray();
     }
 }
