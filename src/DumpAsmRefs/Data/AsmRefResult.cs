@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DumpAsmRefs.Interfaces
+namespace DumpAsmRefs
 {
     public class AsmRefResult
     {

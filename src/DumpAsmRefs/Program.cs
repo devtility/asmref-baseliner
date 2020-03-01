@@ -52,7 +52,7 @@ namespace DumpAsmRefs
             var inputs = new InputCriteria(userArguments.RootDirectory, userArguments.IncludePatterns,
                 userArguments.ExcludePatterns, matchingPaths);
 
-            logger.LogInfo(UIStrings.Matching_MatchesFound, inputs.RelativeFilePaths.Count);
+            logger.LogInfo(UIStrings.Matching_MatchesFound, inputs.RelativeFilePaths.Count());
             DebugDumpList(UIStrings.Matching_ResultListHeader, inputs.RelativeFilePaths, logger);
 
             var asmInfo = assemblyInfoGenerator.Fetch(inputs.BaseDirectory, inputs.RelativeFilePaths);
