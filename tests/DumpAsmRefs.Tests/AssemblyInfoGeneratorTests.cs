@@ -26,7 +26,7 @@ namespace DumpAsmRefs.Tests
             result.Count.Should().Be(1);
 
             result[0].SourceAssemblyFullPath.Should().Be("c:\\foo\\system.dll");
-            result[0].SourceAssemblyName.FullName.Should().Be(objectAssembly.GetName().FullName);
+            result[0].SourceAssemblyName.Should().Be(objectAssembly.GetName().FullName);
 
             result[0].ReferencedAssemblies.Should().NotBeNull();
             result[0].ReferencedAssemblies.Should().BeEmpty();
@@ -53,7 +53,7 @@ namespace DumpAsmRefs.Tests
             result.Count.Should().Be(1);
 
             result[0].SourceAssemblyFullPath.Should().Be("c:\\foo.dll");
-            result[0].SourceAssemblyName.Name.Should().Contain("foo");
+            result[0].SourceAssemblyName.Should().Contain("foo");
             result[0].SourceAssemblyName.ToString().Should().Contain("Culture=neutral, PublicKeyToken=null");
 
             CheckReferencedAssemblies(result[0], typesInRefAssemblies);
@@ -126,9 +126,7 @@ namespace DumpAsmRefs.Tests
 
             result.LoadException.Should().BeNull();
 
-            result.ReferencedAssemblies.Select(ra => ra.FullName)
-                .Should()
-                .BeEquivalentTo(refAsmFullNames);
+            result.ReferencedAssemblies.Should().BeEquivalentTo(refAsmFullNames);
         }
 
         private class TestableAssemblyInfoGenerator : AssemblyInfoGenerator
