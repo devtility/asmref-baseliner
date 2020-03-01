@@ -92,6 +92,7 @@ namespace DumpAsmRefs.Tests
             // Set up unloadable assembly
             var exceptionFilePath = "c:\\invalid1.dll";
             var expectedException = new BadImageFormatException("foo");
+            var expectedLoadExceptionText = "System.BadImageFormatException: foo";
             testSubject.FilePathToExceptionToThrowMap[exceptionFilePath] = expectedException;
 
             // Set up valid assemblies
@@ -111,7 +112,7 @@ namespace DumpAsmRefs.Tests
             CheckReferencedAssemblies(result[0], typeof(System.Collections.CollectionBase));
 
             result[1].SourceAssemblyFullPath.Should().Be("c:\\invalid1.dll");
-            result[1].LoadException.Should().Be(expectedException);
+            result[1].LoadException.Should().Be(expectedLoadExceptionText);
             result[1].ReferencedAssemblies.Should().BeNull();
 
             result[2].SourceAssemblyFullPath.Should().Be("c:\\valid2.dll");

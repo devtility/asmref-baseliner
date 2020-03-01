@@ -7,6 +7,11 @@ namespace DumpAsmRefs
 {
     public class InputCriteria
     {
+        // Required by the YamlDotNet deserializer
+        public InputCriteria()
+        {
+        }
+
         public InputCriteria(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns, IEnumerable<string> relativeFilePaths)
         {
             BaseDirectory = baseDirectory;
@@ -15,9 +20,16 @@ namespace DumpAsmRefs
             RelativeFilePaths = new List<string>(relativeFilePaths ?? Enumerable.Empty<string>());
         }
 
-        public string BaseDirectory { get; }
-        public IReadOnlyList<string> IncludePatterns { get; }
-        public IReadOnlyList<string> ExcludePatterns { get; }
-        public IReadOnlyList<string> RelativeFilePaths { get; }
+        [YamlDotNet.Serialization.YamlMember(Alias = "Base directory")]
+        public string BaseDirectory { get; set;  }
+
+        [YamlDotNet.Serialization.YamlMember(Alias = "Include patterns")]
+        public IEnumerable<string> IncludePatterns { get; set; }
+
+        [YamlDotNet.Serialization.YamlMember(Alias = "Exclude patterns")]
+        public IEnumerable<string> ExcludePatterns { get; set; }
+
+        [YamlDotNet.Serialization.YamlIgnore]
+        public IEnumerable<string> RelativeFilePaths { get; set; }
     }
 }

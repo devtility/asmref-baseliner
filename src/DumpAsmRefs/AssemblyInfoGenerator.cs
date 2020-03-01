@@ -31,7 +31,7 @@ namespace DumpAsmRefs
 
                 var newResult = new AssemblyReferenceInfo
                 {
-                    LoadException = asmLoadException,
+                    LoadException = GetLoadExceptionText(asmLoadException),
                     SourceAssemblyFullPath = fullPath,
                     SourceAssemblyRelativePath = relativePath,
                     SourceAssemblyName = assembly?.GetName().FullName,
@@ -51,17 +51,8 @@ namespace DumpAsmRefs
             // See https://apisof.net/catalog/System.Reflection.Assembly.LoadFrom(String).
             return Assembly.LoadFrom(fullFilePath);
         }
-    }
 
-    public class AssemblyReferenceInfo
-    {
-        public Exception LoadException { get; set; }
-
-        public string SourceAssemblyFullPath { get; set; }
-        public string SourceAssemblyRelativePath { get; set; }
-
-        public string SourceAssemblyName { get; set; }
-
-        public IReadOnlyList<string> ReferencedAssemblies { get; set; }
+        public static string GetLoadExceptionText(Exception ex) =>
+            ex == null ? null : $"{ex.GetType().FullName}: {ex.Message}";
     }
 }

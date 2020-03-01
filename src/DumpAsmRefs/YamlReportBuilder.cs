@@ -36,7 +36,7 @@ namespace DumpAsmRefs
             sb.Append("# Base directory: ").AppendLine(fileSearchResult.BaseDirectory);
             sb.Append("# Include patterns: ").AppendLine(string.Join(", ", fileSearchResult.IncludePatterns ?? NotItemsStringArray));
             sb.Append("# Exclude patterns: ").AppendLine(string.Join(", ", fileSearchResult.ExcludePatterns ?? NotItemsStringArray));
-            sb.Append("# Number of matches: ").AppendLine(fileSearchResult.RelativeFilePaths.Count.ToString());
+            sb.Append("# Number of matches: ").AppendLine(fileSearchResult.RelativeFilePaths.Count().ToString());
             sb.AppendLine();
         }
 
@@ -48,11 +48,11 @@ namespace DumpAsmRefs
             sb.Append("Relative path: ").AppendLine(asmRefInfo.SourceAssemblyRelativePath);
             sb.AppendLine();
             sb.Append("Referenced assemblies:   # count = ")
-                .AppendLine(asmRefInfo.ReferencedAssemblies?.Count.ToString() ?? "{unknown}");
+                .AppendLine(asmRefInfo.ReferencedAssemblies?.Count().ToString() ?? "{unknown}");
 
             if (asmRefInfo.LoadException != null)
             {
-                sb.Append($"Assembly load exception: {asmRefInfo.LoadException.Message}");
+                sb.Append($"Assembly load exception: {asmRefInfo.LoadException}");
             }
 
             if (asmRefInfo.ReferencedAssemblies != null)
