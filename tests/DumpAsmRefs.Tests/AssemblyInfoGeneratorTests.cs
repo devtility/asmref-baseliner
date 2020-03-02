@@ -92,7 +92,7 @@ namespace DumpAsmRefs.Tests
             // Set up unloadable assembly
             var exceptionFilePath = "c:\\invalid1.dll";
             var expectedException = new BadImageFormatException("foo");
-            var expectedLoadExceptionText = "System.BadImageFormatException: foo";
+            var expectedLoadExceptionText = "System.BadImageFormatException. foo";
             testSubject.FilePathToExceptionToThrowMap[exceptionFilePath] = expectedException;
 
             // Set up valid assemblies
