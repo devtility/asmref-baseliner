@@ -53,6 +53,6 @@ namespace DumpAsmRefs
         }
 
         public static string GetLoadExceptionText(Exception ex) =>
-            ex == null ? null : $"{ex.GetType().FullName}: {ex.Message}";
+            ex == null ? null : $"{ex.GetType().FullName}. {ex.Message}";
     }
 }

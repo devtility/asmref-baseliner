@@ -47,14 +47,14 @@ namespace DumpAsmRefs
             sb.Append("Assembly: ").AppendLine(asmRefInfo.SourceAssemblyName?.ToString() ?? "{unknown}");
             sb.Append("Relative path: ").AppendLine(asmRefInfo.SourceAssemblyRelativePath);
             sb.AppendLine();
-            sb.Append("Referenced assemblies:   # count = ")
-                .AppendLine(asmRefInfo.ReferencedAssemblies?.Count().ToString() ?? "{unknown}");
-
             if (asmRefInfo.LoadException != null)
             {
                 sb.Append($"Assembly load exception: {asmRefInfo.LoadException}");
+                sb.AppendLine();
             }
 
+            sb.Append("Referenced assemblies:   # count = ")
+                .AppendLine(asmRefInfo.ReferencedAssemblies?.Count().ToString() ?? "{unknown}");
             if (asmRefInfo.ReferencedAssemblies != null)
             {
                 foreach (var refdItem in asmRefInfo.ReferencedAssemblies?.OrderBy(x => x))

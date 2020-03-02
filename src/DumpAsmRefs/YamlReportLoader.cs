@@ -40,7 +40,7 @@ namespace DumpAsmRefs
                 }
             }
 
-            var result = new AsmRefResult(inputCriteria, asmRefSections);
+            var result = new AsmRefResult(inputCriteria ?? new InputCriteria(), asmRefSections);
             return result;
         }
 
