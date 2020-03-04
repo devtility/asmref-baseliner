@@ -9,6 +9,7 @@ namespace DumpAsmRefs
         [YamlDotNet.Serialization.YamlMember(Alias = "Assembly load exception")]
         public string LoadException { get; set; }
 
+        [YamlDotNet.Serialization.YamlIgnore]
         public string SourceAssemblyFullPath { get; set; }
 
         [YamlDotNet.Serialization.YamlMember(Alias = "Relative path")]
