@@ -1,8 +1,10 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using DumpAsmRefs.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace DumpAsmRefs
@@ -37,6 +39,8 @@ namespace DumpAsmRefs
         {
             WriteDocumentStart();
 
+            WriteBoilerplateHeader();
+
             WriteComment("Base directory: " + inputCriteria.BaseDirectory);
             if (inputCriteria.IncludePatterns != null)
             {
@@ -49,6 +53,20 @@ namespace DumpAsmRefs
 
             WriteComment("Number of matches: " + inputCriteria.RelativeFilePaths.Count().ToString());
             WriteSpacer();
+        }
+
+        private void WriteBoilerplateHeader()
+        {
+            var versionAtt = this.GetType().Assembly
+                .GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false).FirstOrDefault() as AssemblyFileVersionAttribute;
+
+            var versionText = versionAtt?.Version.ToString() ?? "{unknown}";
+
+            var header = string.Format(UIStrings.Report_HeaderInstructions,
+                DateTime.UtcNow.ToString("o"),
+                versionText
+                );
+            sb.AppendLine(header);
         }
 
         private void WriteSingleAssemblyInfo(AssemblyReferenceInfo asmRefInfo)
@@ -77,7 +95,6 @@ namespace DumpAsmRefs
         private void WriteDocumentStart()
         {
             sb.AppendLine(DocumentSeparator);
-            sb.AppendLine();
         }
 
         private void WriteStreamEnd()

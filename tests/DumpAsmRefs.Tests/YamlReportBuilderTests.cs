@@ -2,6 +2,8 @@
 
 using FluentAssertions;
 using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -34,6 +36,13 @@ namespace DumpAsmRefs.Tests
             // Check report contents
             result.StartsWith(YamlReportBuilder.DocumentSeparator).Should().BeTrue();
 
+            // Check boilerplate header content
+            var expectedVersion = testSubject.GetType().Assembly
+                .GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false).First() as AssemblyFileVersionAttribute;
+            result.Should().Contain("v" + expectedVersion.Version.ToString());
+            result.Should().Contain("https://github.com/devtility/asmref-baseliner/");
+
+            // Check search criteria
             result.Should().Contain("# Base directory: BASE DIR");
             result.Should().Contain("- include1");
             result.Should().Contain("- include2");
@@ -121,10 +130,8 @@ namespace DumpAsmRefs.Tests
         }
 
         private static void CheckExpectedNumberOfDocs(string report, int expected)
-        {
-            var docCount = report.Split(new string[] { YamlReportBuilder.DocumentSeparator }, System.StringSplitOptions.None).Length - 1;
-            docCount.Should().Be(expected);
-        }
+            => Regex.Matches(report, "^---\r?$", RegexOptions.Multiline)
+                .Count.Should().Be(expected);
 
         private static void CheckStartsWithDocSeparator(string report)
             => report.StartsWith(YamlReportBuilder.DocumentSeparator).Should().BeTrue();
