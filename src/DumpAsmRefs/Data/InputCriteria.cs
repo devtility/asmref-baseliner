@@ -20,7 +20,7 @@ namespace DumpAsmRefs
             RelativeFilePaths = new List<string>(relativeFilePaths ?? Enumerable.Empty<string>());
         }
 
-        [YamlDotNet.Serialization.YamlMember(Alias = "Base directory")]
+        [YamlDotNet.Serialization.YamlIgnore]
         public string BaseDirectory { get; set;  }
 
         [YamlDotNet.Serialization.YamlMember(Alias = "Include patterns")]

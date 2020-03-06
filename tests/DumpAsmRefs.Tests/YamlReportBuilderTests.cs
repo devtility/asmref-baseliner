@@ -3,16 +3,24 @@
 using FluentAssertions;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DumpAsmRefs.Tests
 {
     public class YamlReportBuilderTests
     {
+        private readonly ITestOutputHelper output;
+
+        public YamlReportBuilderTests(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
         [Fact]
         public void ReportHeader_ContainsSearchData()
         {
             var inputs = new InputCriteria("BASE DIR",
-                new string[] { "include1", "include2" },
+                new string[] { "include2", "include1" },
                 new string[] { "exclude1", "exclude2" },
                 new string[] { "path1", "path2"});
 
@@ -21,13 +29,24 @@ namespace DumpAsmRefs.Tests
 
             var result = testSubject.Generate(report);
 
+            output.WriteLine(result);
+
             // Check report contents
-            result.Should().Contain("BASE DIR");
-            result.Should().Contain("include1");
-            result.Should().Contain("include2");
-            result.Should().Contain("exclude1");
-            result.Should().Contain("exclude1");
+            result.StartsWith(YamlReportBuilder.DocumentSeparator).Should().BeTrue();
+
+            result.Should().Contain("# Base directory: BASE DIR");
+            result.Should().Contain("- include1");
+            result.Should().Contain("- include2");
+            result.Should().Contain("- exclude1");
+            result.Should().Contain("- exclude2");
             result.Should().Contain("2"); // number of matches - specific paths are not listed in the header
+
+            // Chck ordering
+            result.IndexOf("- include1").Should().BeLessThan(result.IndexOf("- include2"));
+
+            CheckExpectedNumberOfDocs(result, 1);
+            CheckStartsWithDocSeparator(result);
+            CheckEndsWithStreamTermiator(result);
         }
 
         [Fact]
@@ -70,6 +89,8 @@ namespace DumpAsmRefs.Tests
 
             var result = testSubject.Generate(report);
 
+            output.WriteLine(result);
+
             // Check report contents
             result.Should().Contain("asmName1");
             result.Should().Contain("relative path1");
@@ -90,6 +111,25 @@ namespace DumpAsmRefs.Tests
             result.Should().NotContain("full path1");
             result.Should().NotContain("full path2");
             result.Should().NotContain("full path3");
+
+            // Cound the number of documents:
+            // Expected = 1 for the header, + 1 per assembly
+            CheckExpectedNumberOfDocs(result, 4);
+
+            CheckStartsWithDocSeparator(result);
+            CheckEndsWithStreamTermiator(result);
         }
+
+        private static void CheckExpectedNumberOfDocs(string report, int expected)
+        {
+            var docCount = report.Split(new string[] { YamlReportBuilder.DocumentSeparator }, System.StringSplitOptions.None).Length - 1;
+            docCount.Should().Be(expected);
+        }
+
+        private static void CheckStartsWithDocSeparator(string report)
+            => report.StartsWith(YamlReportBuilder.DocumentSeparator).Should().BeTrue();
+
+        private static void CheckEndsWithStreamTermiator(string report)
+            => report.TrimEnd().EndsWith(YamlReportBuilder.StreamTerminator).Should().BeTrue();
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using DumpAsmRefs.Interfaces;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -8,62 +9,96 @@ namespace DumpAsmRefs
 {
     internal class YamlReportBuilder : IReportBuilder
     {
+        public const string DocumentSeparator = "---";
+        public const string StreamTerminator = "...";
+
+        private StringBuilder sb;
+
         #region IReportBuilder implementation
 
         public string Generate(AsmRefResult asmRefResult)
         {
-            var sb = new StringBuilder();
+            sb = new StringBuilder();
 
-            WriteHeader(sb, asmRefResult.InputCriteria);
+            WriteHeader(asmRefResult.InputCriteria);
 
             foreach (var item in asmRefResult.AssemblyReferenceInfos.OrderBy(x => x.SourceAssemblyRelativePath))
             {
-                WriteSingleAssemblyInfo(sb, item);
+                WriteSingleAssemblyInfo(item);
             }
 
-            sb.AppendLine("...");
+            WriteStreamEnd();
             return sb.ToString();
         }
 
         #endregion
 
-        private static readonly string[] NotItemsStringArray = new string[] { "none" } ;
-
-        private static void WriteHeader(StringBuilder sb, InputCriteria fileSearchResult)
+        private void WriteHeader(InputCriteria inputCriteria)
         {
-            sb.AppendLine("---");
-            sb.AppendLine();
-            sb.Append("# Base directory: ").AppendLine(fileSearchResult.BaseDirectory);
-            sb.Append("# Include patterns: ").AppendLine(string.Join(", ", fileSearchResult.IncludePatterns ?? NotItemsStringArray));
-            sb.Append("# Exclude patterns: ").AppendLine(string.Join(", ", fileSearchResult.ExcludePatterns ?? NotItemsStringArray));
-            sb.Append("# Number of matches: ").AppendLine(fileSearchResult.RelativeFilePaths.Count().ToString());
+            WriteDocumentStart();
+
+            WriteComment("Base directory: " + inputCriteria.BaseDirectory);
+            if (inputCriteria.IncludePatterns != null)
+            {
+                WriteList("Include patterns", inputCriteria.IncludePatterns.OrderBy(x => x));
+            }
+            if (inputCriteria.ExcludePatterns != null)
+            {
+                WriteList("Exclude patterns", inputCriteria.ExcludePatterns.OrderBy(x => x));
+            }
+
+            WriteComment("Number of matches: " + inputCriteria.RelativeFilePaths.Count().ToString());
+            WriteSpacer();
+        }
+
+        private void WriteSingleAssemblyInfo(AssemblyReferenceInfo asmRefInfo)
+        {
+            WriteDocumentStart();
+
+            WriteProperty("Assembly", asmRefInfo.SourceAssemblyName?.ToString() ?? "{unknown}");
+            WriteProperty("Relative path", asmRefInfo.SourceAssemblyRelativePath);
+            WriteSpacer();
+
+            if (asmRefInfo.LoadException != null)
+            {
+                WriteProperty("Assembly load exception", asmRefInfo.LoadException);
+                WriteSpacer();
+            }
+
+            if (asmRefInfo.ReferencedAssemblies != null)
+            {
+                WriteList("Referenced assemblies", asmRefInfo.ReferencedAssemblies);
+                WriteComment($"Number of references: {asmRefInfo.ReferencedAssemblies.Count()}");
+            }
+
+            WriteSpacer();
+        }
+
+        private void WriteDocumentStart()
+        {
+            sb.AppendLine(DocumentSeparator);
             sb.AppendLine();
         }
 
-        private static void WriteSingleAssemblyInfo(StringBuilder sb, AssemblyReferenceInfo asmRefInfo)
+        private void WriteStreamEnd()
+            => sb.AppendLine(StreamTerminator);
+
+        private void WriteComment(string text)
+            => sb.AppendLine("# " + text);
+
+        private void WriteSpacer()
+            => sb.AppendLine();
+
+        private void WriteProperty(string propertyName, string value)
+            => sb.Append(propertyName).Append(": ").AppendLine(value);
+
+        private void WriteList(string propertyName, IEnumerable<string> values)
         {
-            sb.AppendLine("---");
-            sb.AppendLine();
-            sb.Append("Assembly: ").AppendLine(asmRefInfo.SourceAssemblyName?.ToString() ?? "{unknown}");
-            sb.Append("Relative path: ").AppendLine(asmRefInfo.SourceAssemblyRelativePath);
-            sb.AppendLine();
-            if (asmRefInfo.LoadException != null)
+            sb.Append(propertyName).AppendLine(":");
+            foreach (var item in values?.OrderBy(x => x))
             {
-                sb.Append($"Assembly load exception: {asmRefInfo.LoadException}");
-                sb.AppendLine();
+                sb.Append("- ").AppendLine(item);
             }
-
-            sb.Append("Referenced assemblies:   # count = ")
-                .AppendLine(asmRefInfo.ReferencedAssemblies?.Count().ToString() ?? "{unknown}");
-            if (asmRefInfo.ReferencedAssemblies != null)
-            {
-                foreach (var refdItem in asmRefInfo.ReferencedAssemblies?.OrderBy(x => x))
-                {
-                    sb.Append("- ").AppendLine(refdItem);
-                }
-            }
-
-            sb.AppendLine();
         }
     }
 }

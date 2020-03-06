@@ -12,7 +12,7 @@ namespace DumpAsmRefs.Tests
         public void Deserialize_InputCriteria()
         {
             var data = @"
-Base directory: d:\repos\devtility\asmref-baseliner
+# Base directory: d:\repos\devtility\asmref-baseliner
 Include patterns:
 - src\DumpAsmRefs\bin\Debug\net461\DumpAsmRefs.exe
 Exclude patterns:
@@ -23,7 +23,7 @@ Exclude patterns:
 
             actual.Should().NotBeNull();
 
-            actual.BaseDirectory.Should().Be(@"d:\repos\devtility\asmref-baseliner");
+            actual.BaseDirectory.Should().BeNull();
             actual.IncludePatterns.Should().BeEquivalentTo(@"src\DumpAsmRefs\bin\Debug\net461\DumpAsmRefs.exe");
             actual.ExcludePatterns.Should().BeNull();
         }
@@ -73,7 +73,7 @@ Referenced assemblies:   # count = 2
         {
             var data = @"---
 
-Base directory: d:\repos\devtility\asmref-baseliner
+# Base directory: d:\repos\devtility\asmref-baseliner
 Include patterns:
 - src\DumpAsmRefs\bin\Debug\net461\DumpAsmRefs.exe
 Exclude patterns:
@@ -105,7 +105,7 @@ Referenced assemblies:   # count = 1
             var result = testSubject.Load(data);
 
             result.Should().NotBeNull();
-            result.InputCriteria.BaseDirectory.Should().Be(@"d:\repos\devtility\asmref-baseliner");
+            result.InputCriteria.BaseDirectory.Should().BeNull();
             result.InputCriteria.IncludePatterns.Should().BeEquivalentTo(@"src\DumpAsmRefs\bin\Debug\net461\DumpAsmRefs.exe");
             result.InputCriteria.ExcludePatterns.Should().BeEquivalentTo(@"src\**.dll", @"xxx\yyy.dll");
 
