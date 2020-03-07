@@ -10,7 +10,7 @@ using Xunit;
 
 namespace DumpAsmRefs.Tests
 {
-    public class YamlReportComparerTests
+    public class SimpleYamlReportComparerTests
     {
         [Fact]
         public void MissingFiles_Throws()
@@ -19,7 +19,7 @@ namespace DumpAsmRefs.Tests
             fileSystem.Setup(x => x.FileExists("existingFile")).Returns(true);
             fileSystem.Setup(x => x.FileExists("missingFile")).Returns(false);
 
-            var testSubject = new YamlReportComparer(fileSystem.Object);
+            var testSubject = new SimpleYamlReportComparer(fileSystem.Object);
 
             // Missing baseline
             Action act = () => testSubject.AreSame("missingFile", "existingFile");
@@ -53,7 +53,7 @@ bbb ccc
             dummyFS.AddFile("file1", contents1);
             dummyFS.AddFile("file2", contents2);
 
-            var testSubject = new YamlReportComparer(dummyFS);
+            var testSubject = new SimpleYamlReportComparer(dummyFS);
             testSubject.AreSame("file1", "file1").Should().BeTrue();
             testSubject.AreSame("file1", "file2").Should().BeTrue();
         }
@@ -71,7 +71,7 @@ AAA";
             dummyFS.AddFile("file1", contents1);
             dummyFS.AddFile("file2", contents2);
 
-            var testSubject = new YamlReportComparer(dummyFS);
+            var testSubject = new SimpleYamlReportComparer(dummyFS);
             testSubject.AreSame("file2", "file2").Should().BeTrue();
             testSubject.AreSame("file1", "file2").Should().BeFalse();
         }
@@ -80,20 +80,20 @@ AAA";
         public void LineProcessing()
         {
             // Text, no comments
-            YamlReportComparer.GetProcessedLine("12 3").Should().Be("12 3");
-            YamlReportComparer.GetProcessedLine("AAAbbbb   ").Should().Be("AAAbbbb");
+            SimpleYamlReportComparer.GetProcessedLine("12 3").Should().Be("12 3");
+            SimpleYamlReportComparer.GetProcessedLine("AAAbbbb   ").Should().Be("AAAbbbb");
 
             // Whitespace
-            YamlReportComparer.GetProcessedLine(null).Should().BeNull();
-            YamlReportComparer.GetProcessedLine("").Should().BeNull();
-            YamlReportComparer.GetProcessedLine("\t \n").Should().BeNull();
+            SimpleYamlReportComparer.GetProcessedLine(null).Should().BeNull();
+            SimpleYamlReportComparer.GetProcessedLine("").Should().BeNull();
+            SimpleYamlReportComparer.GetProcessedLine("\t \n").Should().BeNull();
 
             // Whitespace with comment
-            YamlReportComparer.GetProcessedLine("  # comment").Should().BeNull();
-            YamlReportComparer.GetProcessedLine("\t# comment  ").Should().BeNull();
+            SimpleYamlReportComparer.GetProcessedLine("  # comment").Should().BeNull();
+            SimpleYamlReportComparer.GetProcessedLine("\t# comment  ").Should().BeNull();
 
             // Text with comment
-            YamlReportComparer.GetProcessedLine(" 123  # comment").Should().Be(" 123");
+            SimpleYamlReportComparer.GetProcessedLine(" 123  # comment").Should().Be(" 123");
         }
     }
 }

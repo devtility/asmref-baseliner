@@ -6,16 +6,22 @@ using System.Collections.Generic;
 
 namespace DumpAsmRefs
 {
-    internal class YamlReportComparer
+    /// <summary>
+    /// Simple YAML comparer.
+    /// </summary>
+    /// <remarks>
+    /// Ignores comments but otherwise expects the text to be identical
+    /// </remarks>
+    internal class SimpleYamlReportComparer
     {
         private readonly IFileSystem fileSystem;
 
-        public YamlReportComparer()
+        public SimpleYamlReportComparer()
             : this(new FileSystemAbstraction())
         {
         }
 
-        internal YamlReportComparer(IFileSystem fileSystem)
+        internal SimpleYamlReportComparer(IFileSystem fileSystem)
         {
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
