@@ -9,6 +9,7 @@ namespace DumpAsmRefs.Tests
     public class VersionComparerTests
     {
         [Theory]
+        [InlineData(VersionComparisonStrictness.Any)]
         [InlineData(VersionComparisonStrictness.Major)]
         [InlineData(VersionComparisonStrictness.MajorMinor)]
         [InlineData(VersionComparisonStrictness.MajorMinorBuild)]
@@ -30,17 +31,28 @@ namespace DumpAsmRefs.Tests
             VersionComparer.AreVersionsEqual(version, null, strictness).Should().Be(false);
         }
 
+        [Fact]
+        public void CompareVersions_NullNonNullAreSame_ForStrictnessAny()
+        {
+            var version = new Version("1.0");
+            VersionComparer.AreVersionsEqual(null, version, VersionComparisonStrictness.Any).Should().Be(true);
+            VersionComparer.AreVersionsEqual(version, null, VersionComparisonStrictness.Any).Should().Be(true);
+        }
+
         [Theory]
+        [InlineData("1.2", VersionComparisonStrictness.Any)]
         [InlineData("1.2", VersionComparisonStrictness.Major)]
         [InlineData("1.2", VersionComparisonStrictness.MajorMinor)]
         [InlineData("1.2", VersionComparisonStrictness.MajorMinorBuild)]
         [InlineData("1.2", VersionComparisonStrictness.Strict)]
 
+        [InlineData("1.2.3", VersionComparisonStrictness.Any)]
         [InlineData("1.2.3", VersionComparisonStrictness.Major)]
         [InlineData("1.2.3", VersionComparisonStrictness.MajorMinor)]
         [InlineData("1.2.3", VersionComparisonStrictness.MajorMinorBuild)]
         [InlineData("1.2.3", VersionComparisonStrictness.Strict)]
 
+        [InlineData("1.2.3.4", VersionComparisonStrictness.Any)]
         [InlineData("1.2.3.4", VersionComparisonStrictness.Major)]
         [InlineData("1.2.3.4", VersionComparisonStrictness.MajorMinor)]
         [InlineData("1.2.3.4", VersionComparisonStrictness.MajorMinorBuild)]
@@ -49,21 +61,25 @@ namespace DumpAsmRefs.Tests
             => CompareAndCheck(version, version, strictness, true);
 
         [Theory]
+        [InlineData("1.2", "1.3", VersionComparisonStrictness.Any, true)]
         [InlineData("1.2", "1.3", VersionComparisonStrictness.Major, true)]
         [InlineData("1.2", "1.3", VersionComparisonStrictness.MajorMinor, false)]
         [InlineData("1.2", "1.3", VersionComparisonStrictness.MajorMinorBuild, false)]
         [InlineData("1.2", "1.3", VersionComparisonStrictness.Strict, false)]
 
+        [InlineData("1.2", "1.2.3", VersionComparisonStrictness.Any, true)]
         [InlineData("1.2", "1.2.3", VersionComparisonStrictness.Major, true)]
         [InlineData("1.2", "1.2.3", VersionComparisonStrictness.MajorMinor, true)]
         [InlineData("1.2", "1.2.3", VersionComparisonStrictness.MajorMinorBuild, false)]
         [InlineData("1.2", "1.2.3", VersionComparisonStrictness.Strict, false)]
 
+        [InlineData("1.2", "1.2.3.4", VersionComparisonStrictness.Any, true)]
         [InlineData("1.2", "1.2.3.4", VersionComparisonStrictness.Major, true)]
         [InlineData("1.2", "1.2.3.4", VersionComparisonStrictness.MajorMinor, true)]
         [InlineData("1.2", "1.2.3.4", VersionComparisonStrictness.MajorMinorBuild, false)]
         [InlineData("1.2", "1.2.3.4", VersionComparisonStrictness.Strict, false)]
 
+        [InlineData("9.1", "10.1", VersionComparisonStrictness.Any, true)]
         [InlineData("9.1", "10.1", VersionComparisonStrictness.Major, false)]
         [InlineData("9.1", "10.1", VersionComparisonStrictness.MajorMinor, false)]
         [InlineData("9.1", "10.1", VersionComparisonStrictness.MajorMinorBuild, false)]

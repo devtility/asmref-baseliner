@@ -13,13 +13,23 @@ namespace DumpAsmRefs
         Strict,
         Major,
         MajorMinor,
-        MajorMinorBuild
+        MajorMinorBuild,
+
+        /// <summary>
+        /// Versions will always be treated as equal, even if one is null
+        /// </summary>
+        Any
     }
 
     public static class VersionComparer
     {
         public static bool AreVersionsEqual(Version first, Version second, VersionComparisonStrictness strictness)
         {
+            if (strictness == VersionComparisonStrictness.Any)
+            {
+                return true;
+            }
+
             // If either version is null then they will only be equal if both are null
             if (first == null || second == null)
             {
