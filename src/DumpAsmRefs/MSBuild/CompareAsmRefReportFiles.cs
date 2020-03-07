@@ -29,7 +29,7 @@ namespace DumpAsmRefs
 
         public override bool Execute()
         {
-            var comparer = new YamlReportComparer(fileSystem);
+            var comparer = new SimpleYamlReportComparer(fileSystem);
 
             bool result = comparer.AreSame(BaseLineReportFilePath, CurrentReportFilePath);
 
