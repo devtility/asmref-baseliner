@@ -60,6 +60,10 @@ namespace DumpAsmRefs.Data
 
             var sb = new StringBuilder();
             var pt = assemblyName.GetPublicKeyToken();
+            if (pt == null)
+            {
+                return string.Empty;
+            }
             for (int i = 0; i < pt.Length; i++)
             {
                 sb.AppendFormat("{0:x2}", pt[i]);

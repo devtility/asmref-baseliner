@@ -9,11 +9,11 @@ namespace DumpAsmRefs
     {
         public AsmRefResult(InputCriteria inputCriteria, IEnumerable<AssemblyReferenceInfo> assemblyReferenceInfos)
         {
-            InputCriteria = inputCriteria ?? throw new ArgumentOutOfRangeException(nameof(inputCriteria));
+            InputCriteria = inputCriteria ?? throw new ArgumentNullException(nameof(inputCriteria));
 
             if (assemblyReferenceInfos == null)
             {
-                throw new ArgumentOutOfRangeException(nameof(assemblyReferenceInfos));
+                throw new ArgumentNullException(nameof(assemblyReferenceInfos));
             }
             AssemblyReferenceInfos = new List<AssemblyReferenceInfo>(assemblyReferenceInfos);
         }
