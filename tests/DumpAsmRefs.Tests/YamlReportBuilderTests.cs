@@ -44,14 +44,14 @@ namespace DumpAsmRefs.Tests
 
             // Check search criteria
             result.Should().Contain("# Base directory: BASE DIR");
-            result.Should().Contain("- include1");
-            result.Should().Contain("- include2");
-            result.Should().Contain("- exclude1");
-            result.Should().Contain("- exclude2");
+            result.Should().Contain("- 'include1'");
+            result.Should().Contain("- 'include2'");
+            result.Should().Contain("- 'exclude1'");
+            result.Should().Contain("- 'exclude2'");
             result.Should().Contain("2"); // number of matches - specific paths are not listed in the header
 
-            // Chck ordering
-            result.IndexOf("- include1").Should().BeLessThan(result.IndexOf("- include2"));
+            // Check ordering
+            result.IndexOf("- 'include1'").Should().BeLessThan(result.IndexOf("- 'include2'"));
 
             CheckExpectedNumberOfDocs(result, 1);
             CheckStartsWithDocSeparator(result);

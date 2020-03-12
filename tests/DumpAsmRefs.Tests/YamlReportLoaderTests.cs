@@ -134,8 +134,8 @@ Referenced assemblies:   # count = 1
         [Fact]
         public void Roundtrip_BuildReportThenReload()
         {
-            var inputs = new InputCriteria("BASE DIR", new string[] { "include1" },
-                new string[] { "exclude1" }, new string[] { "exclude2" });
+            var inputs = new InputCriteria("BASE DIR", new string[] { "**\\*Console*" },
+                new string[] { "**\\exclude1*" }, new string[] { "exclude2" });
 
             var asmRefInfos = new AssemblyReferenceInfo[]
             {
