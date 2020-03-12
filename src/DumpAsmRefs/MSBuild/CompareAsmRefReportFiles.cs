@@ -59,7 +59,7 @@ namespace DumpAsmRefs
 
         private bool TryGetStrictness(out VersionComparisonStrictness strictness)
         {
-            if (!System.Enum.TryParse(VersionStrictness, out strictness))
+            if (!System.Enum.TryParse(VersionStrictness, ignoreCase: true, out strictness))
             {
                 Log.LogError(UIStrings.CompareTask_InvalidStrictness, VersionStrictness ?? "{null}");
                 return false;

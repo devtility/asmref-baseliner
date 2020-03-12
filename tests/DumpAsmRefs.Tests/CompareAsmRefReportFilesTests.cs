@@ -9,6 +9,33 @@ namespace DumpAsmRefs.Tests
     public class CompareAsmRefReportFilesTests
     {
         [Fact]
+        public void Compare_InvalidStrictness_Fails()
+        {
+            var dummyFileSystem = new FakeFileSystem();
+
+            dummyFileSystem.AddFile("file1", "");
+            dummyFileSystem.AddFile("file2", "");
+
+            var buildEngine = new FakeBuildEngine();
+
+            var testSubject = new CompareAsmRefReportFiles(dummyFileSystem)
+            {
+                BaseLineReportFilePath = "file1",
+                CurrentReportFilePath = "file2",
+                VersionStrictness = "invalid strictness",
+                BuildEngine = buildEngine
+            };
+
+            // Test
+            bool result = testSubject.Execute();
+
+            // Check
+            result.Should().BeFalse();
+            buildEngine.ErrorEvents.Count.Should().Be(1);
+            buildEngine.ErrorEvents[0].Message.Contains("invalid strictness").Should().BeTrue();
+        }
+
+        [Fact]
         public void Compare_Same_NoError()
         {
             var dummyFileSystem = new FakeFileSystem();
@@ -50,7 +77,7 @@ Referenced assemblies:   # count = 1
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
-                VersionStrictness = "Strict",
+                VersionStrictness = "sTRICt",
                 BuildEngine = buildEngine
             };
 
@@ -61,8 +88,8 @@ Referenced assemblies:   # count = 1
             result.Should().BeTrue();
             buildEngine.ErrorEvents.Count.Should().Be(0);
             buildEngine.MessageEvents.Count.Should().Be(1);
-            buildEngine.MessageEvents[0].Message.Contains("AAA");
-            buildEngine.MessageEvents[0].Message.Contains("BBB");
+            buildEngine.MessageEvents[0].Message.Contains("file1").Should().BeTrue();
+            buildEngine.MessageEvents[0].Message.Contains("file2").Should().BeTrue();
         }
 
         [Fact]
@@ -112,6 +139,7 @@ Referenced assemblies:   # count = 1
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
+                VersionStrictness = "any",
                 BuildEngine = buildEngine
             };
 
@@ -121,8 +149,8 @@ Referenced assemblies:   # count = 1
             // Check
             result.Should().BeFalse();
             buildEngine.ErrorEvents.Count.Should().Be(1);
-            buildEngine.ErrorEvents[0].Message.Contains("AAA");
-            buildEngine.ErrorEvents[0].Message.Contains("BBB");
+            buildEngine.ErrorEvents[0].Message.Contains("file1").Should().BeTrue();
+            buildEngine.ErrorEvents[0].Message.Contains("file2").Should().BeTrue();
         }
     }
 }
