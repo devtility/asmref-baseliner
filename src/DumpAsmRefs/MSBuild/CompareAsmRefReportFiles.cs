@@ -10,6 +10,15 @@ namespace DumpAsmRefs
     {
         private readonly IFileSystem fileSystem;
 
+        [Required]
+        public string BaseLineReportFilePath { get; set; }
+
+        [Required]
+        public string CurrentReportFilePath { get; set; }
+
+        [Required]
+        public string VersionStrictness { get; set; }
+
         public CompareAsmRefReportFiles()
         {
             fileSystem = new FileSystemAbstraction();
@@ -21,17 +30,18 @@ namespace DumpAsmRefs
             this.fileSystem = fileSystem;
         }
 
-        [Required]
-        public string BaseLineReportFilePath { get; set; }
-
-        [Required]
-        public string CurrentReportFilePath { get; set; }
-
         public override bool Execute()
         {
-            var comparer = new SimpleYamlReportComparer(fileSystem);
+            AsmRefResult baseline = null, current = null;
+            if (!TryGetStrictness(out var strictness)
+                || !TryLoadReport(BaseLineReportFilePath, out baseline)
+                || !TryLoadReport(CurrentReportFilePath, out current))
+            {
+                return false;
+            }
 
-            bool result = comparer.AreSame(BaseLineReportFilePath, CurrentReportFilePath);
+            var comparer = new AsmRefResultComparer();
+            bool result = comparer.AreSame(baseline, current, strictness);
 
             if (result)
             {
@@ -45,6 +55,31 @@ namespace DumpAsmRefs
                     BaseLineReportFilePath, CurrentReportFilePath);
                 return false;
             }
+        }
+
+        private bool TryGetStrictness(out VersionComparisonStrictness strictness)
+        {
+            if (!System.Enum.TryParse(VersionStrictness, out strictness))
+            {
+                Log.LogError(UIStrings.CompareTask_InvalidStrictness, VersionStrictness ?? "{null}");
+                return false;
+            }
+            return true;
+        }
+
+        private bool TryLoadReport(string filePath, out AsmRefResult report)
+        {
+            if (!fileSystem.FileExists(filePath))
+            {
+                Log.LogError(UIStrings.CompareTask_Error_ReportNotFound, filePath);
+                report = null;
+                return false;
+            }
+
+            var reportData = fileSystem.ReadAllText(filePath);
+            var loader = new YamlReportLoader();
+            report = loader.Load(reportData);
+            return true;
         }
     }
 }

@@ -61,6 +61,24 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Report file does not exist.
+        /// </summary>
+        internal static string CompareTask_Error_ReportNotFound {
+            get {
+                return ResourceManager.GetString("CompareTask_Error_ReportNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Supplied VersionStrictness is invalid: {0}.
+        /// </summary>
+        internal static string CompareTask_InvalidStrictness {
+            get {
+                return ResourceManager.GetString("CompareTask_InvalidStrictness", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Referenced assemblies are different. Compare the baseline and current files to see the details. Baseline: {0}, Current: {1}.
         /// </summary>
         internal static string CompareTask_ReferencesAreDifferent {
