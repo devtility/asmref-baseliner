@@ -12,16 +12,37 @@ namespace DumpAsmRefs.Tests
         public void Compare_Same_NoError()
         {
             var dummyFileSystem = new FakeFileSystem();
-            const string reportContent1 = @"#foo
-123
-456
-# bar";
+            const string reportContent = @"---
 
-            const string reportContent2 = @"123
-456";
+# Base directory: d:\repos\devtility\asmref-baseliner
+Include patterns:
+- src\DumpAsmRefs\bin\Debug\net461\DumpAsmRefs.exe
+Exclude patterns:
+- src\**.dll
+- xxx\yyy.dll
+# Number of matches: 2
 
-            dummyFileSystem.AddFile("file1", reportContent1);
-            dummyFileSystem.AddFile("file2", reportContent2);
+---
+
+Assembly: DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null
+Relative path: src/DumpAsmRefs/bin/Debug/net461/DumpAsmRefs.exe
+
+Referenced assemblies:   # count = 2
+- Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+---
+
+Assembly: Assembly2, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null
+Relative path: asm2/bin/Debug/net461/assembly2.dll
+
+Referenced assemblies:   # count = 1
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+...";
+
+            dummyFileSystem.AddFile("file1", reportContent);
+            dummyFileSystem.AddFile("file2", reportContent);
 
             var buildEngine = new FakeBuildEngine();
 
@@ -29,6 +50,7 @@ namespace DumpAsmRefs.Tests
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
+                VersionStrictness = "Strict",
                 BuildEngine = buildEngine
             };
 
@@ -46,9 +68,43 @@ namespace DumpAsmRefs.Tests
         [Fact]
         public void Compare_Different_Error()
         {
+            var reportContent1 = @"---
+Include patterns:
+- src\DumpAsmRefs\bin\Debug\net461\DumpAsmRefs.exe
+Exclude patterns:
+- src\**.dll
+
+---
+
+Assembly: DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null
+Relative path: src/DumpAsmRefs/bin/Debug/net461/DumpAsmRefs.exe
+
+Referenced assemblies:   # count = 2
+- Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+...";
+
+            var reportContent2 = @"---
+
+Include patterns:
+- src\DumpAsmRefs\bin\Debug\net461\DumpAsmRefs.exe
+Exclude patterns:
+- src\**.dll
+
+---
+
+Assembly: DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null
+Relative path: src/DumpAsmRefs/bin/Debug/net461/DumpAsmRefs.exe
+
+Referenced assemblies:   # count = 1
+- Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+
+...";
+
             var dummyFileSystem = new FakeFileSystem();
-            dummyFileSystem.AddFile("file1", "AAA");
-            dummyFileSystem.AddFile("file2", "BBB");
+            dummyFileSystem.AddFile("file1", reportContent1);
+            dummyFileSystem.AddFile("file2", reportContent2);
 
             var buildEngine = new FakeBuildEngine();
 

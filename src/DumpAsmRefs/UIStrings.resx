@@ -117,6 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CompareTask_Error_ReportNotFound" xml:space="preserve">
+    <value>Report file does not exist</value>
+  </data>
+  <data name="CompareTask_InvalidStrictness" xml:space="preserve">
+    <value>Supplied VersionStrictness is invalid: {0}</value>
+    <comment>0 = invalid value, 1 = list of allowed values.</comment>
+  </data>
   <data name="CompareTask_ReferencesAreDifferent" xml:space="preserve">
     <value>Referenced assemblies are different. Compare the baseline and current files to see the details. Baseline: {0}, Current: {1}</value>
     <comment>0 = baseline file path, 1 = current file path</comment>
