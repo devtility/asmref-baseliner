@@ -107,15 +107,18 @@ namespace DumpAsmRefs
             => sb.AppendLine();
 
         private void WriteProperty(string propertyName, string value)
-            => sb.Append(propertyName).Append(": ").AppendLine(value);
+            => sb.Append(propertyName).Append(": ").AppendLine(Escape(value));
 
         private void WriteList(string propertyName, IEnumerable<string> values)
         {
             sb.Append(propertyName).AppendLine(":");
             foreach (var item in values?.OrderBy(x => x))
             {
-                sb.Append("- ").AppendLine(item);
+                sb.Append("- ").AppendLine(Escape(item));
             }
         }
+
+        private static string Escape(string value)
+            => $"'{value}'";
     }
 }
