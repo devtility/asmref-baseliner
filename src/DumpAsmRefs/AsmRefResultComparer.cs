@@ -1,18 +1,50 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using DumpAsmRefs.Data;
+using DumpAsmRefs.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace DumpAsmRefs
 {
-    public class AsmRefResultComparer
+    public class AsmRefResultComparer : IResultComparer
     {
         public bool AreSame(AsmRefResult first, AsmRefResult second, VersionComparisonStrictness comparisonStrictness)
         {
-            // TODO - check asm ref lists
-            return AreSame(first.InputCriteria, second.InputCriteria);
+            if (!AreSame(first.InputCriteria, second.InputCriteria))
+            {
+                return false;
+            }
+
+            if (first.AssemblyReferenceInfos.Count() != second.AssemblyReferenceInfos.Count())
+            {
+                return false;
+            }
+
+            var asmNameToAsmRefInfoMap = second.AssemblyReferenceInfos.ToDictionary(
+                    x => AssemblyInfo.Parse(x.SourceAssemblyName).Name,
+                    x => x);
+
+            foreach(var item in first.AssemblyReferenceInfos)
+            {
+                // We need to find a matching AsmRefInfo, based solely on the assembly name
+                // i.e. ignoring the version, public key etc
+                var itemAsmInfo = AssemblyInfo.Parse(item.SourceAssemblyName);
+
+                var match = asmNameToAsmRefInfoMap
+                    .FirstOrDefault(x => AreStringsSame(x.Key, itemAsmInfo.Name))
+                    .Value;
+                if (match == null) { return false; }
+
+                // Now check the whole reference, taking into account the version strictness
+                if (!AreSame(item, match, comparisonStrictness))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         internal static bool AreSame(InputCriteria input1, InputCriteria input2)

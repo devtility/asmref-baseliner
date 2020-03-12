@@ -30,8 +30,10 @@ namespace DumpAsmRefs.Tests
         [InlineData(new string[] { "aaa", "c", "bbb" }, new string[] { "bbb", "aaa", "c" }, true)] // same, order should not matter
         public void AreListsSame_NonNull(string[] list1, string[] list2, bool expected)
         {
+#pragma warning disable S2234 // Parameters should be passed in the correct order
             AsmRefResultComparer.AreListsSame(list1, list2).Should().Be(expected);
             AsmRefResultComparer.AreListsSame(list2, list1).Should().Be(expected);
+#pragma warning restore S2234 // Parameters should be passed in the correct order
         }
 
         [Fact]
@@ -192,6 +194,108 @@ namespace DumpAsmRefs.Tests
             AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
         }
 
+        [Fact]
+        public void AreSame_Report_EmptyLists()
+        {
+            var input1 = CreateWellKnownInputCriteria();
+            var input2 = CreateWellKnownInputCriteria();
+
+            var report1 = new AsmRefResult(input1, Array.Empty<AssemblyReferenceInfo>());
+            var report2 = new AsmRefResult(input2, Array.Empty<AssemblyReferenceInfo>());
+
+            var testSubject = new AsmRefResultComparer();
+            testSubject.AreSame(report1, report2, VersionComparisonStrictness.Strict)
+                .Should().BeTrue();
+        }
+
+        [Fact]
+        public void AreSame_Report_DifferentNumberOfSource()
+        {
+            var input1 = CreateWellKnownInputCriteria();
+            var input2 = CreateWellKnownInputCriteria();
+
+            var report1 = new AsmRefResult(input1, new AssemblyReferenceInfo[]
+                {
+                    CreateAsmRefInfo("DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null")
+                });
+
+            var report2 = new AsmRefResult(input2, new AssemblyReferenceInfo[]
+                {
+                    CreateAsmRefInfo("DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null"),
+                    CreateAsmRefInfo("Assembly2, Version=2.3.4.5, Culture=neutral, PublicKeyToken=null")
+                });
+
+            var testSubject = new AsmRefResultComparer();
+            testSubject.AreSame(report1, report2, VersionComparisonStrictness.Strict)
+                .Should().BeFalse();
+        }
+
+        [Theory]
+        [InlineData(VersionComparisonStrictness.Any, true)]
+        [InlineData(VersionComparisonStrictness.Major, true)]
+        [InlineData(VersionComparisonStrictness.MajorMinor, true)]
+        [InlineData(VersionComparisonStrictness.MajorMinorBuild, false)]
+        [InlineData(VersionComparisonStrictness.Strict, false)]
+        public void AreSame_Report_SourcesDifferByVersion(VersionComparisonStrictness comparisonStrictness, bool expected)
+        {
+            var input1 = CreateWellKnownInputCriteria();
+            var input2 = CreateWellKnownInputCriteria();
+
+            var report1 = new AsmRefResult(input1, new AssemblyReferenceInfo[]
+                {
+                    CreateAsmRefInfo("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null")
+                });
+
+            var report2 = new AsmRefResult(input2, new AssemblyReferenceInfo[]
+                {
+                    CreateAsmRefInfo("DumpAsmRefs, Version=1.2.8.9, Culture=neutral, PublicKeyToken=null"),
+                });
+
+            var testSubject = new AsmRefResultComparer();
+            testSubject.AreSame(report1, report2, comparisonStrictness)
+                .Should().Be(expected);
+        }
+
+        [Theory]
+        [InlineData(VersionComparisonStrictness.Any, true)]
+        [InlineData(VersionComparisonStrictness.Major, true)]
+        [InlineData(VersionComparisonStrictness.MajorMinor, true)]
+        [InlineData(VersionComparisonStrictness.MajorMinorBuild, false)]
+        [InlineData(VersionComparisonStrictness.Strict, false)]
+        public void AreSame_Report_SourcesDifferByRefdAsmVersion(VersionComparisonStrictness comparisonStrictness, bool expected)
+        {
+            var input1 = CreateWellKnownInputCriteria();
+            var input2 = CreateWellKnownInputCriteria();
+
+            var source1 = new AssemblyReferenceInfo
+            {
+                SourceAssemblyName = "DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null",
+                ReferencedAssemblies = new string[]
+                {
+                    "Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                    "System, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+                }
+            };
+
+            var source2 = new AssemblyReferenceInfo
+            {
+                SourceAssemblyName = "DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null",
+                ReferencedAssemblies = new string[]
+                {
+                    "Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                    "System, Version=1.2.8.9, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+                }
+            };
+
+            var report1 = new AsmRefResult(input1, new[] { source1 });
+
+            var report2 = new AsmRefResult(input2, new[] { source2 });
+
+            var testSubject = new AsmRefResultComparer();
+            testSubject.AreSame(report1, report2, comparisonStrictness)
+                .Should().Be(expected);
+        }
+
         private static bool CompareReports(InputCriteria first, InputCriteria second)
         {
             var report1 = new AsmRefResult(first, Enumerable.Empty<AssemblyReferenceInfo>());
@@ -217,6 +321,37 @@ namespace DumpAsmRefs.Tests
             };
 
             return asmRefInfo;
+        }
+
+        private static AssemblyReferenceInfo CreateAsmRefInfo(string sourceAssemblyName)
+        {
+            var asmRefInfo = new AssemblyReferenceInfo
+            {
+                SourceAssemblyFullPath = "should be ignored",
+                SourceAssemblyName = sourceAssemblyName,
+                SourceAssemblyRelativePath = "..\\..\\sub1\\DumpAsmRefs.dll",
+                LoadException = null,
+                ReferencedAssemblies = new string[]
+                {
+                    "Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                    "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+                }
+            };
+
+            return asmRefInfo;
+        }
+
+        private static InputCriteria CreateWellKnownInputCriteria()
+        {
+            var input = new InputCriteria
+            {
+                BaseDirectory = "c:\\wellknown\\basedir\\",
+                IncludePatterns = new string[] { "well known include1" },
+                ExcludePatterns = new string[] { "well known exclude1" },
+                RelativeFilePaths = new string[] { "wellknownpath1" }
+            };
+
+            return input;
         }
     }
 }
