@@ -50,12 +50,12 @@ namespace DumpAsmRefs
             }
 
             var inputs = new InputCriteria(userArguments.RootDirectory, userArguments.IncludePatterns,
-                userArguments.ExcludePatterns, matchingPaths);
+                userArguments.ExcludePatterns);
 
-            logger.LogInfo(UIStrings.Matching_MatchesFound, inputs.RelativeFilePaths.Count());
-            DebugDumpList(UIStrings.Matching_ResultListHeader, inputs.RelativeFilePaths, logger);
+            logger.LogInfo(UIStrings.Matching_MatchesFound, matchingPaths.Count());
+            DebugDumpList(UIStrings.Matching_ResultListHeader, matchingPaths, logger);
 
-            var asmInfo = assemblyInfoGenerator.Fetch(inputs.BaseDirectory, inputs.RelativeFilePaths);
+            var asmInfo = assemblyInfoGenerator.Fetch(inputs.BaseDirectory, matchingPaths);
 
             var result = new AsmRefResult(inputs, asmInfo);
             var data = reportBuilder.Generate(result);

@@ -86,8 +86,10 @@ namespace DumpAsmRefs.Tests
         [InlineData("9.1", "10.1", VersionComparisonStrictness.Strict, false)]
         public void CompareAndCheck_Symmetrical(string version1, string version2, VersionComparisonStrictness strictness, bool expected)
         {
+#pragma warning disable S2234 // Parameters should be passed in the correct order
             CompareAndCheck(version1, version2, strictness, expected);
             CompareAndCheck(version2, version1, strictness, expected);
+#pragma warning restore S2234 // Parameters should be passed in the correct order
         }
 
         private static void CompareAndCheck(string version1, string version2, VersionComparisonStrictness strictness, bool expected)
