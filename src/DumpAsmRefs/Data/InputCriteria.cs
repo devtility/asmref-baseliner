@@ -12,12 +12,11 @@ namespace DumpAsmRefs
         {
         }
 
-        public InputCriteria(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns, IEnumerable<string> relativeFilePaths)
+        public InputCriteria(string baseDirectory, IEnumerable<string> includePatterns, IEnumerable<string> excludePatterns)
         {
             BaseDirectory = baseDirectory;
             IncludePatterns = new List<string>(includePatterns ?? Enumerable.Empty<string>());
             ExcludePatterns = new List<string>(excludePatterns ?? Enumerable.Empty<string>());
-            RelativeFilePaths = new List<string>(relativeFilePaths ?? Enumerable.Empty<string>());
         }
 
         [YamlDotNet.Serialization.YamlIgnore]
@@ -28,8 +27,5 @@ namespace DumpAsmRefs
 
         [YamlDotNet.Serialization.YamlMember(Alias = "Exclude patterns")]
         public IEnumerable<string> ExcludePatterns { get; set; }
-
-        [YamlDotNet.Serialization.YamlIgnore]
-        public IEnumerable<string> RelativeFilePaths { get; set; }
     }
 }

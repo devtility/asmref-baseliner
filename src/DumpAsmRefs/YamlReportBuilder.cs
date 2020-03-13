@@ -22,7 +22,7 @@ namespace DumpAsmRefs
         {
             sb = new StringBuilder();
 
-            WriteHeader(asmRefResult.InputCriteria);
+            WriteHeader(asmRefResult.InputCriteria, asmRefResult.AssemblyReferenceInfos.Count());
 
             foreach (var item in asmRefResult.AssemblyReferenceInfos.OrderBy(x => x.SourceAssemblyRelativePath))
             {
@@ -35,7 +35,7 @@ namespace DumpAsmRefs
 
         #endregion
 
-        private void WriteHeader(InputCriteria inputCriteria)
+        private void WriteHeader(InputCriteria inputCriteria, int resultCount)
         {
             WriteDocumentStart();
 
@@ -51,7 +51,7 @@ namespace DumpAsmRefs
                 WriteList("Exclude patterns", inputCriteria.ExcludePatterns.OrderBy(x => x));
             }
 
-            WriteComment("Number of matches: " + inputCriteria.RelativeFilePaths.Count().ToString());
+            WriteComment($"Number of matches: {resultCount}");
             WriteSpacer();
         }
 

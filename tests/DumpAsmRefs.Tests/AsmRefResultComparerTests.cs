@@ -43,16 +43,14 @@ namespace DumpAsmRefs.Tests
             {
                 BaseDirectory = "base - should be ignored",
                 IncludePatterns = new string[] { "111" },
-                ExcludePatterns = new string[] { "222" },
-                RelativeFilePaths = new string[] { "any - should be ignored" }
+                ExcludePatterns = new string[] { "222" }
             };
 
             var input2 = new InputCriteria
             {
                 BaseDirectory = "XXX XXX",
                 IncludePatterns = new string[] { "111" },
-                ExcludePatterns = new string[] { "222" },
-                RelativeFilePaths = null
+                ExcludePatterns = new string[] { "222" }
             };
 
             AsmRefResultComparer.AreSame(input1, input2).Should().BeTrue();
@@ -66,16 +64,14 @@ namespace DumpAsmRefs.Tests
             {
                 BaseDirectory = "base - should be ignored",
                 IncludePatterns = new string[] { "incl1", "incl2" },
-                ExcludePatterns = new string[] { "excl1" },
-                RelativeFilePaths = new string[] { "any - should be ignored" }
+                ExcludePatterns = new string[] { "excl1" }
             };
 
             var input2 = new InputCriteria
             {
                 BaseDirectory = "XXX XXX",
                 IncludePatterns = new string[] { "incl1", "incl2", "incl3" },
-                ExcludePatterns = new string[] { "excl1" },
-                RelativeFilePaths = null
+                ExcludePatterns = new string[] { "excl1" }
             };
 
             AsmRefResultComparer.AreSame(input1, input2).Should().BeFalse();
@@ -89,16 +85,14 @@ namespace DumpAsmRefs.Tests
             {
                 BaseDirectory = "base - should be ignored",
                 IncludePatterns = new string[] { "incl1", "incl2" },
-                ExcludePatterns = new string[] { "excl1" },
-                RelativeFilePaths = new string[] { "any - should be ignored" }
+                ExcludePatterns = new string[] { "excl1" }
             };
 
             var input2 = new InputCriteria
             {
                 BaseDirectory = "XXX XXX",
                 IncludePatterns = new string[] { "incl1", "incl2" },
-                ExcludePatterns = new string[] { "excl1", "EXCL2" },
-                RelativeFilePaths = null
+                ExcludePatterns = new string[] { "excl1", "EXCL2" }
             };
 
             AsmRefResultComparer.AreSame(input1, input2).Should().BeFalse();
@@ -347,8 +341,7 @@ namespace DumpAsmRefs.Tests
             {
                 BaseDirectory = "c:\\wellknown\\basedir\\",
                 IncludePatterns = new string[] { "well known include1" },
-                ExcludePatterns = new string[] { "well known exclude1" },
-                RelativeFilePaths = new string[] { "wellknownpath1" }
+                ExcludePatterns = new string[] { "well known exclude1" }
             };
 
             return input;

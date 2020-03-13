@@ -23,8 +23,7 @@ namespace DumpAsmRefs.Tests
         {
             var inputs = new InputCriteria("BASE DIR",
                 new string[] { "include2", "include1" },
-                new string[] { "exclude1", "exclude2" },
-                new string[] { "path1", "path2"});
+                new string[] { "exclude1", "exclude2" });
 
             var report = new AsmRefResult(inputs, Enumerable.Empty<AssemblyReferenceInfo>());
             var testSubject = new YamlReportBuilder();
@@ -62,7 +61,7 @@ namespace DumpAsmRefs.Tests
         public void ReportBody_ContainsAsmData()
         {
             var inputs = new InputCriteria("BASE DIR", new string[] { "include1" },
-                new string[] { "exclude1"}, new string[] { "path1" });
+                new string[] { "exclude1"});
 
             var asmRefInfos = new AssemblyReferenceInfo[]
             {
