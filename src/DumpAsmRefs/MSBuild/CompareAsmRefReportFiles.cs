@@ -32,10 +32,9 @@ namespace DumpAsmRefs
 
         public override bool Execute()
         {
-            AsmRefResult baseline = null, current = null;
             if (!TryGetStrictness(out var strictness)
-                || !TryLoadReport(BaseLineReportFilePath, out baseline)
-                || !TryLoadReport(CurrentReportFilePath, out current))
+                || !TryLoadReport(BaseLineReportFilePath, out var baseline)
+                || !TryLoadReport(CurrentReportFilePath, out var current))
             {
                 return false;
             }
@@ -61,9 +60,11 @@ namespace DumpAsmRefs
         {
             if (!System.Enum.TryParse(VersionStrictness, ignoreCase: true, out strictness))
             {
-                Log.LogError(UIStrings.CompareTask_InvalidStrictness, VersionStrictness ?? "{null}");
+                var allowedValues = string.Join(", ", System.Enum.GetNames(typeof(VersionComparisonStrictness)));
+                Log.LogError(UIStrings.CompareTask_InvalidStrictness, VersionStrictness ?? "{null}", allowedValues);
                 return false;
             }
+            Log.LogMessage(UIStrings.CompareTask_ComparisonStrictness, strictness);
             return true;
         }
 

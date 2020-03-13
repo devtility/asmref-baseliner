@@ -61,6 +61,15 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assembly version comparison strictness: {0}.
+        /// </summary>
+        internal static string CompareTask_ComparisonStrictness {
+            get {
+                return ResourceManager.GetString("CompareTask_ComparisonStrictness", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Report file does not exist.
         /// </summary>
         internal static string CompareTask_Error_ReportNotFound {
@@ -70,7 +79,7 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Supplied VersionStrictness is invalid: {0}.
+        ///   Looks up a localized string similar to Supplied VersionStrictness is invalid: {0}. Allowed values: {1}.
         /// </summary>
         internal static string CompareTask_InvalidStrictness {
             get {

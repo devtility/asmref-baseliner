@@ -87,9 +87,10 @@ Referenced assemblies:   # count = 1
             // Check
             result.Should().BeTrue();
             buildEngine.ErrorEvents.Count.Should().Be(0);
-            buildEngine.MessageEvents.Count.Should().Be(1);
-            buildEngine.MessageEvents[0].Message.Contains("file1").Should().BeTrue();
-            buildEngine.MessageEvents[0].Message.Contains("file2").Should().BeTrue();
+            buildEngine.MessageEvents.Count.Should().Be(2);
+            buildEngine.MessageEvents[0].Message.Contains("Strict").Should().BeTrue();
+            buildEngine.MessageEvents[1].Message.Contains("file1").Should().BeTrue();
+            buildEngine.MessageEvents[1].Message.Contains("file2").Should().BeTrue();
         }
 
         [Fact]
