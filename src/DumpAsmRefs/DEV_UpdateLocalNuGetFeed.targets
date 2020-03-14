@@ -1,0 +1,61 @@
+<Project>
+  <!-- Targets to help with development on local machine.
+       Automatically updates a local file-based NuGet feed if the following property is set:
+         "AsmRefLocalNuGetFeed"
+  -->
+
+  <Target Name="SkippingUpdateLocalNugetFeed"
+          Condition=" $(AsmRefLocalNuGetFeed) == '' AND '$(IsInnerBuild)' != 'true'"
+          AfterTargets="Pack" >
+    <Message Importance="high" Text="Skipping updating the local NuGet feed: property 'AsmRefLocalNuGetFeed' is not set" />
+  </Target>
+
+  <Target Name="UpdateLocalNugetFeed"
+          Condition=" $(AsmRefLocalNuGetFeed) != '' AND '$(IsInnerBuild)' != 'true'"
+          AfterTargets="Pack" DependsOnTargets="LocateNewPackages" >
+
+    <Error Condition=" !Exists($(AsmRefLocalNuGetFeed))" 
+           Text="The directory specified in AsmRefLocalNuGetFeed does not exist. Value: $(AsmRefLocalNuGetFeed)" />
+
+    <CallTarget Targets="_DoUpdateLocalNugetFeed"
+            Condition="@(AsmRefNewPackages) != '' " />
+
+    <Message Importance="high" Text="*** No new targets files found - skipping update of local NuGet package feed"
+            Condition="@(AsmRefNewPackages) == '' " />
+    
+  </Target>
+  
+  <Target Name="LocateNewPackages">
+    <!-- Check for new package files -->
+    <ItemGroup>
+      <AsmRefNewPackages Include="$(PackageOutputAbsolutePath)\*.*nupkg" />
+    </ItemGroup>  
+  </Target>  
+    
+  <Target Name="_DoUpdateLocalNugetFeed">
+    
+    <ItemGroup>
+      <AsmRefLocalNuGetFiles Include="$(AsmRefLocalNuGetFeed)\$(PackageId)*.*nupkg" />
+      <AsmRefNuGetCacheFiles Include="$(NUGET_PACKAGES)\$(PackageId)\**\*.*" />
+    </ItemGroup>
+
+    <!-- Delete any matching packages from the local NuGet feed -->
+    <Message Importance="high" Text="*** Deleting files from local NuGet feed: $(AsmRefLocalNuGetFeed):" />
+    <Message Importance="high" Condition =" @(AsmRefLocalNuGetFiles) != '' " Text="     %(AsmRefLocalNuGetFiles.Identity)" />
+    <Message Importance="high" Condition =" @(AsmRefLocalNuGetFiles) == '' " Text="{none}"/>
+    <Delete Files="@(AsmRefLocalNuGetFiles)" />
+   
+    <!-- Delete any machine packages from the local machine NuGet cache -->
+    <Message Importance="high" Text="*** Deleting files from local NuGet cache: $(NUGET_PACKAGES)\$(PackageId):" />
+    <Message Importance="high" Condition =" @(AsmRefNuGetCacheFiles) != '' " Text="     %(AsmRefNuGetCacheFiles.Identity)" />
+    <Message Importance="high" Condition =" @(AsmRefNuGetCacheFiles) == '' " Text="{none}"/>
+    <Delete Files="@(AsmRefNuGetCacheFiles)" />
+       
+    <!-- Copy the new packages to the local machine NuGet cache -->
+    <Message Importance="high" Text="*** Copying new package to the local NuGet feed: $(AsmRefLocalNuGetFeed):" />
+    <Message Importance="high" Text="     %(AsmRefNewPackages.Identity)" />
+    <Copy SourceFiles="@(AsmRefNewPackages)" DestinationFolder="$(AsmRefLocalNuGetFeed)" />
+  
+  </Target>
+  
+</Project>
