@@ -61,15 +61,6 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assembly version comparison strictness: {0}.
-        /// </summary>
-        internal static string CompareTask_ComparisonStrictness {
-            get {
-                return ResourceManager.GetString("CompareTask_ComparisonStrictness", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Report file does not exist.
         /// </summary>
         internal static string CompareTask_Error_ReportNotFound {
@@ -79,11 +70,11 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Supplied VersionStrictness is invalid: {0}. Allowed values: {1}.
+        ///   Looks up a localized string similar to Supplied VersionCompatibility is invalid: {0}. Allowed values: {1}.
         /// </summary>
-        internal static string CompareTask_InvalidStrictness {
+        internal static string CompareTask_InvalidVersionCompat {
             get {
-                return ResourceManager.GetString("CompareTask_InvalidStrictness", resourceCulture);
+                return ResourceManager.GetString("CompareTask_InvalidVersionCompat", resourceCulture);
             }
         }
         
@@ -102,6 +93,15 @@ namespace DumpAsmRefs {
         internal static string CompareTask_ReferencesAreSame {
             get {
                 return ResourceManager.GetString("CompareTask_ReferencesAreSame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assembly version compatibility level: {0}.
+        /// </summary>
+        internal static string CompareTask_VersionCompat {
+            get {
+                return ResourceManager.GetString("CompareTask_VersionCompat", resourceCulture);
             }
         }
         

@@ -4,6 +4,6 @@ namespace DumpAsmRefs.Interfaces
 {
     public interface IResultComparer
     {
-        bool AreSame(AsmRefResult first, AsmRefResult second, VersionComparisonStrictness comparisonStrictness);
+        bool AreSame(AsmRefResult first, AsmRefResult second, VersionCompatibility versionCompatibility);
     }
 }

@@ -8,7 +8,7 @@ namespace DumpAsmRefs
     /// The level of strictness of to use when deciding if two versions should
     /// vbe considered equal
     /// </summary>
-    public enum VersionComparisonStrictness
+    public enum VersionCompatibility
     {
         Strict,
         Major,
@@ -23,9 +23,9 @@ namespace DumpAsmRefs
 
     public static class VersionComparer
     {
-        public static bool AreVersionsEqual(Version first, Version second, VersionComparisonStrictness strictness)
+        public static bool AreVersionsEqual(Version first, Version second, VersionCompatibility versionCompatibility)
         {
-            if (strictness == VersionComparisonStrictness.Any)
+            if (versionCompatibility == VersionCompatibility.Any)
             {
                 return true;
             }
@@ -36,16 +36,16 @@ namespace DumpAsmRefs
                 return first == second;
             }
 
-            switch (strictness)
+            switch (versionCompatibility)
             {
-                case VersionComparisonStrictness.Major:
+                case VersionCompatibility.Major:
                     return first.Major == second.Major;
 
-                case VersionComparisonStrictness.MajorMinor:
+                case VersionCompatibility.MajorMinor:
                     return first.Major == second.Major &&
                         first.Minor == second.Minor;
 
-                case VersionComparisonStrictness.MajorMinorBuild:
+                case VersionCompatibility.MajorMinorBuild:
                     return first.Major == second.Major &&
                         first.Minor == second.Minor &&
                         first.Build == second.Build;
