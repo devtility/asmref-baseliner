@@ -50,7 +50,12 @@
     <Message Importance="high" Condition =" @(AsmRefNuGetCacheFiles) != '' " Text="     %(AsmRefNuGetCacheFiles.Identity)" />
     <Message Importance="high" Condition =" @(AsmRefNuGetCacheFiles) == '' " Text="{none}"/>
     <Delete Files="@(AsmRefNuGetCacheFiles)" />
-       
+
+    <ItemGroup>
+      <AsmRefNuGetPackageDirs Include="$([System.IO.Directory]::GetDirectories(&quot;$(NUGET_PACKAGES)\$(PackageId)&quot;))" />
+    </ItemGroup>
+    <RemoveDir Directories="@(AsmRefNuGetPackageDirs)" />
+    
     <!-- Copy the new packages to the local machine NuGet cache -->
     <Message Importance="high" Text="*** Copying new package to the local NuGet feed: $(AsmRefLocalNuGetFeed):" />
     <Message Importance="high" Text="     %(AsmRefNewPackages.Identity)" />
