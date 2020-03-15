@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="DEV_UpdateLocalNuGetFeed.targets"/>
+  <Import Project="DEV_UpdateLocalNuGetFeed.targets" />
   
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -25,8 +25,8 @@
     <PackageDescription>This package provides a build-time check that the set of referenced assemblies and the versions of those references have not changed from the previous build.
 
 This helps avoid accidental changes that can cause failures at runtime e.g.
-* by referencing a newer version of an assembly that is not supported by the minimum framework version targeted by the application
-* by adding a reference to an assembly that is not packaged with the application</PackageDescription>
+* referencing a newer version of an assembly that is not supported by the minimum framework version targeted by the application
+* adding a reference to an assembly that is not packaged with the application</PackageDescription>
     
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
