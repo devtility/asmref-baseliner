@@ -9,7 +9,7 @@ namespace DumpAsmRefs.Tests
     public class CompareAsmRefReportFilesTests
     {
         [Fact]
-        public void Compare_InvalidStrictness_Fails()
+        public void Compare_InvalidVersionCompatibility_Fails()
         {
             var dummyFileSystem = new FakeFileSystem();
 
@@ -22,7 +22,7 @@ namespace DumpAsmRefs.Tests
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
-                VersionStrictness = "invalid strictness",
+                VersionCompatibility = "invalid compat level",
                 BuildEngine = buildEngine
             };
 
@@ -32,7 +32,7 @@ namespace DumpAsmRefs.Tests
             // Check
             result.Should().BeFalse();
             buildEngine.ErrorEvents.Count.Should().Be(1);
-            buildEngine.ErrorEvents[0].Message.Contains("invalid strictness").Should().BeTrue();
+            buildEngine.ErrorEvents[0].Message.Contains("invalid compat level").Should().BeTrue();
         }
 
         [Fact]
@@ -77,7 +77,7 @@ Referenced assemblies:   # count = 1
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
-                VersionStrictness = "sTRICt",
+                VersionCompatibility = "sTRICt",
                 BuildEngine = buildEngine
             };
 
@@ -140,7 +140,7 @@ Referenced assemblies:   # count = 1
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
-                VersionStrictness = "any",
+                VersionCompatibility = "any",
                 BuildEngine = buildEngine
             };
 

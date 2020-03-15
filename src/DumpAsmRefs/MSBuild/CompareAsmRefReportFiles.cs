@@ -17,7 +17,7 @@ namespace DumpAsmRefs
         public string CurrentReportFilePath { get; set; }
 
         [Required]
-        public string VersionStrictness { get; set; }
+        public string VersionCompatibility { get; set; }
 
         public CompareAsmRefReportFiles()
         {
@@ -32,7 +32,7 @@ namespace DumpAsmRefs
 
         public override bool Execute()
         {
-            if (!TryGetStrictness(out var strictness)
+            if (!TryGetVersionCompatibility(out var versionCompatibility)
                 || !TryLoadReport(BaseLineReportFilePath, out var baseline)
                 || !TryLoadReport(CurrentReportFilePath, out var current))
             {
@@ -40,7 +40,7 @@ namespace DumpAsmRefs
             }
 
             var comparer = new AsmRefResultComparer();
-            bool result = comparer.AreSame(baseline, current, strictness);
+            bool result = comparer.AreSame(baseline, current, versionCompatibility);
 
             if (result)
             {
@@ -56,15 +56,15 @@ namespace DumpAsmRefs
             }
         }
 
-        private bool TryGetStrictness(out VersionComparisonStrictness strictness)
+        private bool TryGetVersionCompatibility(out VersionCompatibility versionCompatibility)
         {
-            if (!System.Enum.TryParse(VersionStrictness, ignoreCase: true, out strictness))
+            if (!System.Enum.TryParse(VersionCompatibility, ignoreCase: true, out versionCompatibility))
             {
-                var allowedValues = string.Join(", ", System.Enum.GetNames(typeof(VersionComparisonStrictness)));
-                Log.LogError(UIStrings.CompareTask_InvalidStrictness, VersionStrictness ?? "{null}", allowedValues);
+                var allowedValues = string.Join(", ", System.Enum.GetNames(typeof(VersionCompatibility)));
+                Log.LogError(UIStrings.CompareTask_InvalidVersionCompat, VersionCompatibility ?? "{null}", allowedValues);
                 return false;
             }
-            Log.LogMessage(UIStrings.CompareTask_ComparisonStrictness, strictness);
+            Log.LogMessage(UIStrings.CompareTask_VersionCompat, versionCompatibility);
             return true;
         }
 

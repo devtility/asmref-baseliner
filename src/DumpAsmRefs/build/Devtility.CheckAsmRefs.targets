@@ -59,7 +59,7 @@
       <AsmRefLogLevel Condition="$(AsmRefLogLevel)==''" >Normal</AsmRefLogLevel>
 
       <!-- Options: Any, Major, MajorMinor, MajorMinorBuild, Strict -->
-      <AsmRefVersionStrictness Condition="$(AsmRefVersionStrictness)==''">Strict</AsmRefVersionStrictness>
+      <AsmRefVersionCompatibility Condition="$(AsmRefVersionCompatibility)==''">Strict</AsmRefVersionCompatibility>
     </PropertyGroup>
   </Target>
 
@@ -114,12 +114,12 @@
     <Error Condition="$(AsmRefBaselineFilePath) == '' " Text="AsmRef: AsmRefBaselineFilePath property has not been set" />
     <Error Condition="!Exists($(AsmRefBaselineFilePath))" Text="AsmRef: Baseline file does not exist: $(AsmRefBaselineFilePath)" />
     <Error Condition="$(AsmRefUpdateBaseline) == 'true'" Text="AsmRef: Should not be comparing files since AsmRefUpdateBaseline is true" />
-    <Error Condition="$(AsmRefVersionStrictness) == '' " Text="AsmRef: AsmRefVersionStrictness property has not been set" />
+    <Error Condition="$(AsmRefVersionCompatibility) == '' " Text="AsmRef: AsmRefVersionCompatibility property has not been set" />
 
     <CompareAsmRefReportFiles
       BaselineReportFilePath="$(AsmRefBaselineFilePath)"
       CurrentReportFilePath="$(AsmRefOutputFilePath)"
-      VersionStrictness="$(AsmRefVersionStrictness)"/>
+      VersionCompatibility="$(AsmRefVersionCompatibility)"/>
   </Target>
 
   <Target Name="_PublishAsmRefBaselineFile">

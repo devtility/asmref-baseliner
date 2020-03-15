@@ -117,15 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CompareTask_ComparisonStrictness" xml:space="preserve">
-    <value>Assembly version comparison strictness: {0}</value>
-    <comment>0 = comparison strictness value</comment>
-  </data>
   <data name="CompareTask_Error_ReportNotFound" xml:space="preserve">
     <value>Report file does not exist</value>
   </data>
-  <data name="CompareTask_InvalidStrictness" xml:space="preserve">
-    <value>Supplied VersionStrictness is invalid: {0}. Allowed values: {1}</value>
+  <data name="CompareTask_InvalidVersionCompat" xml:space="preserve">
+    <value>Supplied VersionCompatibility is invalid: {0}. Allowed values: {1}</value>
     <comment>0 = invalid value, 1 = list of allowed values.</comment>
   </data>
   <data name="CompareTask_ReferencesAreDifferent" xml:space="preserve">
@@ -135,6 +131,10 @@
   <data name="CompareTask_ReferencesAreSame" xml:space="preserve">
     <value>Referenced assemblies have not changed. Baseline: {0}, Current: {1}</value>
     <comment>0 = baseline file path, 1 = current file path</comment>
+  </data>
+  <data name="CompareTask_VersionCompat" xml:space="preserve">
+    <value>Assembly version compatibility level: {0}</value>
+    <comment>0 = version compatibility level value</comment>
   </data>
   <data name="Matching_MatchesFound" xml:space="preserve">
     <value>Found {0} matches</value>

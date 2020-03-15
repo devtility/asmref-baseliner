@@ -105,7 +105,7 @@ namespace DumpAsmRefs.Tests
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
 
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
         }
 
         [Fact]
@@ -113,12 +113,12 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
 
             // 1. Different
             ref1.SourceAssemblyFullPath = "path 1";
             ref2.SourceAssemblyFullPath = "path 2";
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
         }
 
         [Fact]
@@ -126,15 +126,15 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
 
             // 1. Different
             ref1.SourceAssemblyName = "modified name";
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeFalse();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeFalse();
 
             // 2. Same
             ref2.SourceAssemblyName = "modified name";
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
         }
 
         [Fact]
@@ -142,15 +142,15 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
 
             // 1. Different
             ref1.SourceAssemblyRelativePath = "modified path";
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeFalse();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeFalse();
 
             // 2. Same
             ref2.SourceAssemblyRelativePath = "modified path";
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
         }
 
         [Fact]
@@ -158,15 +158,15 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
 
             // 1. Different
             ref1.ReferencedAssemblies = new string[] { "mod1", "mod2" };
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeFalse();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeFalse();
 
             // 2. Same
             ref2.ReferencedAssemblies = new string[] { "mod1", "mod2" };
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
         }
 
         [Fact]
@@ -174,18 +174,18 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
 
             ref1.ReferencedAssemblies = null;
             ref2.ReferencedAssemblies = null;
 
             // 1. Differ by exception
             ref1.LoadException = "exc1";
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeFalse();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeFalse();
 
             // 2. Same exception info
             ref2.LoadException = "exc1";
-            AsmRefResultComparer.AreSame(ref1, ref2, VersionComparisonStrictness.Strict).Should().BeTrue();
+            AsmRefResultComparer.AreSame(ref1, ref2, VersionCompatibility.Strict).Should().BeTrue();
         }
 
         [Fact]
@@ -198,7 +198,7 @@ namespace DumpAsmRefs.Tests
             var report2 = new AsmRefResult(input2, Array.Empty<AssemblyReferenceInfo>());
 
             var testSubject = new AsmRefResultComparer();
-            testSubject.AreSame(report1, report2, VersionComparisonStrictness.Strict)
+            testSubject.AreSame(report1, report2, VersionCompatibility.Strict)
                 .Should().BeTrue();
         }
 
@@ -220,17 +220,17 @@ namespace DumpAsmRefs.Tests
                 });
 
             var testSubject = new AsmRefResultComparer();
-            testSubject.AreSame(report1, report2, VersionComparisonStrictness.Strict)
+            testSubject.AreSame(report1, report2, VersionCompatibility.Strict)
                 .Should().BeFalse();
         }
 
         [Theory]
-        [InlineData(VersionComparisonStrictness.Any, true)]
-        [InlineData(VersionComparisonStrictness.Major, true)]
-        [InlineData(VersionComparisonStrictness.MajorMinor, true)]
-        [InlineData(VersionComparisonStrictness.MajorMinorBuild, false)]
-        [InlineData(VersionComparisonStrictness.Strict, false)]
-        public void AreSame_Report_SourcesDifferByVersion(VersionComparisonStrictness comparisonStrictness, bool expected)
+        [InlineData(VersionCompatibility.Any, true)]
+        [InlineData(VersionCompatibility.Major, true)]
+        [InlineData(VersionCompatibility.MajorMinor, true)]
+        [InlineData(VersionCompatibility.MajorMinorBuild, false)]
+        [InlineData(VersionCompatibility.Strict, false)]
+        public void AreSame_Report_SourcesDifferByVersion(VersionCompatibility versionCompatibility, bool expected)
         {
             var input1 = CreateWellKnownInputCriteria();
             var input2 = CreateWellKnownInputCriteria();
@@ -246,17 +246,17 @@ namespace DumpAsmRefs.Tests
                 });
 
             var testSubject = new AsmRefResultComparer();
-            testSubject.AreSame(report1, report2, comparisonStrictness)
+            testSubject.AreSame(report1, report2, versionCompatibility)
                 .Should().Be(expected);
         }
 
         [Theory]
-        [InlineData(VersionComparisonStrictness.Any, true)]
-        [InlineData(VersionComparisonStrictness.Major, true)]
-        [InlineData(VersionComparisonStrictness.MajorMinor, true)]
-        [InlineData(VersionComparisonStrictness.MajorMinorBuild, false)]
-        [InlineData(VersionComparisonStrictness.Strict, false)]
-        public void AreSame_Report_SourcesDifferByRefdAsmVersion(VersionComparisonStrictness comparisonStrictness, bool expected)
+        [InlineData(VersionCompatibility.Any, true)]
+        [InlineData(VersionCompatibility.Major, true)]
+        [InlineData(VersionCompatibility.MajorMinor, true)]
+        [InlineData(VersionCompatibility.MajorMinorBuild, false)]
+        [InlineData(VersionCompatibility.Strict, false)]
+        public void AreSame_Report_SourcesDifferByRefdAsmVersion(VersionCompatibility versionCompatibility, bool expected)
         {
             var input1 = CreateWellKnownInputCriteria();
             var input2 = CreateWellKnownInputCriteria();
@@ -286,7 +286,7 @@ namespace DumpAsmRefs.Tests
             var report2 = new AsmRefResult(input2, new[] { source2 });
 
             var testSubject = new AsmRefResultComparer();
-            testSubject.AreSame(report1, report2, comparisonStrictness)
+            testSubject.AreSame(report1, report2, versionCompatibility)
                 .Should().Be(expected);
         }
 
@@ -296,7 +296,7 @@ namespace DumpAsmRefs.Tests
             var report2 = new AsmRefResult(second, Enumerable.Empty<AssemblyReferenceInfo>());
 
             var testSubject = new AsmRefResultComparer();
-            return testSubject.AreSame(report1, report2, VersionComparisonStrictness.Strict);
+            return testSubject.AreSame(report1, report2, VersionCompatibility.Strict);
         }
 
         private static AssemblyReferenceInfo CreateWellKnownAsmRefInfo()
