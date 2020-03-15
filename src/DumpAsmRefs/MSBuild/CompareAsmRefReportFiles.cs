@@ -64,7 +64,7 @@ namespace DumpAsmRefs
                 Log.LogError(UIStrings.CompareTask_InvalidVersionCompat, VersionCompatibility ?? "{null}", allowedValues);
                 return false;
             }
-            Log.LogMessage(UIStrings.CompareTask_VersionCompat, versionCompatibility);
+            Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_VersionCompat, versionCompatibility);
             return true;
         }
 

@@ -79,7 +79,9 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Referenced assemblies are different. Compare the baseline and current files to see the details. Baseline: {0}, Current: {1}.
+        ///   Looks up a localized string similar to Referenced assemblies are different. Compare the baseline and current files to see the details.
+        ///    Baseline: {0}
+        ///    Current: {1}.
         /// </summary>
         internal static string CompareTask_ReferencesAreDifferent {
             get {
@@ -88,7 +90,9 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Referenced assemblies have not changed. Baseline: {0}, Current: {1}.
+        ///   Looks up a localized string similar to Referenced assemblies have not changed.
+        ///    Baseline: {0}
+        ///    Current: {1}.
         /// </summary>
         internal static string CompareTask_ReferencesAreSame {
             get {

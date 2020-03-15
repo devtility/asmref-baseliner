@@ -125,11 +125,15 @@
     <comment>0 = invalid value, 1 = list of allowed values.</comment>
   </data>
   <data name="CompareTask_ReferencesAreDifferent" xml:space="preserve">
-    <value>Referenced assemblies are different. Compare the baseline and current files to see the details. Baseline: {0}, Current: {1}</value>
+    <value>Referenced assemblies are different. Compare the baseline and current files to see the details.
+    Baseline: {0}
+    Current: {1}</value>
     <comment>0 = baseline file path, 1 = current file path</comment>
   </data>
   <data name="CompareTask_ReferencesAreSame" xml:space="preserve">
-    <value>Referenced assemblies have not changed. Baseline: {0}, Current: {1}</value>
+    <value>Referenced assemblies have not changed.
+    Baseline: {0}
+    Current: {1}</value>
     <comment>0 = baseline file path, 1 = current file path</comment>
   </data>
   <data name="CompareTask_VersionCompat" xml:space="preserve">
