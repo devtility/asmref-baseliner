@@ -104,8 +104,8 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-
             var options = new ComparisonOptions(VersionCompatibility.Strict);
+
             AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
         }
 
