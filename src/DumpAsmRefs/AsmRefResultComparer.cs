@@ -22,6 +22,10 @@ namespace DumpAsmRefs
                 return false;
             }
 
+            var sourceAsmNames = first.AssemblyReferenceInfos
+                .Select(x => AssemblyInfo.Parse(x.SourceAssemblyName).Name)
+                .ToArray();
+
             var asmNameToAsmRefInfoMap = second.AssemblyReferenceInfos.ToDictionary(
                     x => AssemblyInfo.Parse(x.SourceAssemblyName).Name,
                     x => x);
@@ -36,6 +40,8 @@ namespace DumpAsmRefs
                     .FirstOrDefault(x => AreStringsSame(x.Key, itemAsmInfo.Name))
                     .Value;
                 if (match == null) { return false; }
+
+                // TODO: the IgnoreSourcePublicKeyToken only applies to source assemblies
 
                 // Now check the whole reference, taking into account the version compatibility level
                 if (!AreSame(item, match, options))
@@ -58,8 +64,8 @@ namespace DumpAsmRefs
 
         internal static bool AreSame(AssemblyReferenceInfo ref1, AssemblyReferenceInfo ref2, ComparisonOptions options)
         {
-            // SourceAssemblyFullPath is ignored for the purposes of this comparison (it's
-            // absolute so can vary from machine to machine)
+            // SourceAssemblyFullPath is ignored for the purposes of this comparison
+            // (it's absolute so can vary from machine to machine)
 
             // First check the simple strings
             if (!(AreStringsSame(ref1.SourceAssemblyRelativePath, ref2.SourceAssemblyRelativePath)
@@ -104,7 +110,7 @@ namespace DumpAsmRefs
         internal static bool AreSame(AssemblyInfo first, AssemblyInfo second, ComparisonOptions options)
             => AreStringsSame(first.Name, second.Name)
                 && AreStringsSame(first.CultureName, second.CultureName)
-                && AreStringsSame(first.PublicKeyToken, second.PublicKeyToken)
+                && (options.IgnoreSourcePublicKeyToken || AreStringsSame(first.PublicKeyToken, second.PublicKeyToken))
                 && VersionComparer.AreVersionsEqual(first.Version, second.Version, options.VersionCompatibility);
 
         internal static bool AreListsSame(IEnumerable<string> list1, IEnumerable<string> list2)
