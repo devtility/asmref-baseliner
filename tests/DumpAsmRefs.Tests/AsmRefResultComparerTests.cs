@@ -305,29 +305,6 @@ namespace DumpAsmRefs.Tests
                 .Should().Be(expected);
         }
 
-        [Theory]
-        [InlineData(false, false)]
-        [InlineData(true, true)]
-        public void AreSame_Report_IgnoreSourcesPublicKeyToken(bool ignoreSourcePublicKeyToken, bool expected)
-        {
-            //var input1 = CreateWellKnownInputCriteria();
-            //var input2 = CreateWellKnownInputCriteria();
-
-            //var report1 = new AsmRefResult(input1, new AssemblyReferenceInfo[]
-            //    {
-            //        CreateAsmRefInfo("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null")
-            //    });
-
-            //var report2 = new AsmRefResult(input2, new AssemblyReferenceInfo[]
-            //    {
-            //        CreateAsmRefInfo("DumpAsmRefs, Version=1.2.8.9, Culture=neutral, PublicKeyToken=null"),
-            //    });
-
-            //var testSubject = new AsmRefResultComparer();
-            //testSubject.AreSame(report1, report2, VersionCompatibility.Any, ignoreSourcePublicKeyToken)
-            //    .Should().Be(expected);
-        }
-
         private static bool CompareReports(InputCriteria first, InputCriteria second)
         {
             var report1 = new AsmRefResult(first, Enumerable.Empty<AssemblyReferenceInfo>());
