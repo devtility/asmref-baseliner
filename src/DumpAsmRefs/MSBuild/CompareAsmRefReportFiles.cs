@@ -40,7 +40,9 @@ namespace DumpAsmRefs
             }
 
             var comparer = new AsmRefResultComparer();
-            bool result = comparer.AreSame(baseline, current, versionCompatibility);
+            var options = new ComparisonOptions(versionCompatibility);
+
+            bool result = comparer.AreSame(baseline, current, options);
 
             if (result)
             {

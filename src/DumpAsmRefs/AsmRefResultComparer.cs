@@ -10,7 +10,7 @@ namespace DumpAsmRefs
 {
     public class AsmRefResultComparer : IResultComparer
     {
-        public bool AreSame(AsmRefResult first, AsmRefResult second, VersionCompatibility versionCompatibility)
+        public bool AreSame(AsmRefResult first, AsmRefResult second, ComparisonOptions options)
         {
             if (!AreSame(first.InputCriteria, second.InputCriteria))
             {
@@ -38,7 +38,7 @@ namespace DumpAsmRefs
                 if (match == null) { return false; }
 
                 // Now check the whole reference, taking into account the version compatibility level
-                if (!AreSame(item, match, versionCompatibility))
+                if (!AreSame(item, match, options))
                 {
                     return false;
                 }
@@ -56,7 +56,7 @@ namespace DumpAsmRefs
                 && AreListsSame(input1.ExcludePatterns, input2.ExcludePatterns);
         }
 
-        internal static bool AreSame(AssemblyReferenceInfo ref1, AssemblyReferenceInfo ref2, VersionCompatibility versionCompatibility)
+        internal static bool AreSame(AssemblyReferenceInfo ref1, AssemblyReferenceInfo ref2, ComparisonOptions options)
         {
             // SourceAssemblyFullPath is ignored for the purposes of this comparison (it's
             // absolute so can vary from machine to machine)
@@ -71,7 +71,7 @@ namespace DumpAsmRefs
             // Then check the source assembly name, taking into account version compatibility level
             var firstAsmInfo = AssemblyInfo.Parse(ref1.SourceAssemblyName);
             var secondAsmInfo = AssemblyInfo.Parse(ref2.SourceAssemblyName);
-            if (!AreSame(firstAsmInfo, secondAsmInfo, versionCompatibility))
+            if (!AreSame(firstAsmInfo, secondAsmInfo, options))
             {
                 return false;
             }
@@ -93,7 +93,7 @@ namespace DumpAsmRefs
                     return false;
                 }
 
-                if (!AreSame(firstItem, secondByName, versionCompatibility))
+                if (!AreSame(firstItem, secondByName, options))
                 {
                     return false;
                 }
@@ -101,11 +101,11 @@ namespace DumpAsmRefs
             return true;
         }
 
-        internal static bool AreSame(AssemblyInfo first, AssemblyInfo second, VersionCompatibility versionCompatibility)
+        internal static bool AreSame(AssemblyInfo first, AssemblyInfo second, ComparisonOptions options)
             => AreStringsSame(first.Name, second.Name)
                 && AreStringsSame(first.CultureName, second.CultureName)
                 && AreStringsSame(first.PublicKeyToken, second.PublicKeyToken)
-                && VersionComparer.AreVersionsEqual(first.Version, second.Version, versionCompatibility);
+                && VersionComparer.AreVersionsEqual(first.Version, second.Version, options.VersionCompatibility);
 
         internal static bool AreListsSame(IEnumerable<string> list1, IEnumerable<string> list2)
         {
