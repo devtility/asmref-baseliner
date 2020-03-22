@@ -11,8 +11,8 @@
     
     <Authors>Devtility</Authors>
     <Company>Devtility</Company>
-    <Version>0.8</Version>
-    <PackageVersion>0.8.0-rc</PackageVersion>
+    <Version>0.9</Version>
+    <PackageVersion>0.9.0-rc</PackageVersion>
 
     <PackageId>Devtility.CheckAsmRefs</PackageId>
     <Copyright>Copyright © Devtility 2020</Copyright>
