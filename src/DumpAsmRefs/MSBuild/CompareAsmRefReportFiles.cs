@@ -21,6 +21,9 @@ namespace DumpAsmRefs
         [Required]
         public string VersionCompatibility { get; set; }
 
+        [Required]
+        public bool IgnoreSourcePublicKeyToken { get; set; }
+
         public CompareAsmRefReportFiles()
             : this(new FileSystemAbstraction(), new YamlReportLoader(),  new AsmRefResultComparer()) { }
 
@@ -40,8 +43,9 @@ namespace DumpAsmRefs
             {
                 return false;
             }
+            Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_IgnoreSourcePublicKeyToken, IgnoreSourcePublicKeyToken);
 
-            var options = new ComparisonOptions(versionCompatibility);
+            var options = new ComparisonOptions(versionCompatibility, IgnoreSourcePublicKeyToken);
 
             bool result = comparer.AreSame(baseline, current, options);
 
