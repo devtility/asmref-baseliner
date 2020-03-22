@@ -37,13 +37,18 @@ namespace DumpAsmRefs
 
         public override bool Execute()
         {
-            if (!TryGetVersionCompatibility(out var versionCompatibility)
-                || !TryLoadReport(BaseLineReportFilePath, out var baseline)
+            Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_ComparisonSettingsHeaderText);
+            if (!TryGetVersionCompatibility(out var versionCompatibility))
+            {
+                return false;    
+            }
+            Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_IgnoreSourcePublicKeyToken, IgnoreSourcePublicKeyToken);
+
+            if (!TryLoadReport(BaseLineReportFilePath, out var baseline)
                 || !TryLoadReport(CurrentReportFilePath, out var current))
             {
                 return false;
             }
-            Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_IgnoreSourcePublicKeyToken, IgnoreSourcePublicKeyToken);
 
             var options = new ComparisonOptions(versionCompatibility, IgnoreSourcePublicKeyToken);
 

@@ -61,6 +61,15 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Comparison settings:.
+        /// </summary>
+        internal static string CompareTask_ComparisonSettingsHeaderText {
+            get {
+                return ResourceManager.GetString("CompareTask_ComparisonSettingsHeaderText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Report file does not exist.
         /// </summary>
         internal static string CompareTask_Error_ReportNotFound {
@@ -70,7 +79,7 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ignoring source assembly public key tokens: {0}.
+        ///   Looks up a localized string similar to     Ignore source assembly public key tokens: {0}.
         /// </summary>
         internal static string CompareTask_IgnoreSourcePublicKeyToken {
             get {
@@ -110,7 +119,7 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assembly version compatibility level: {0}.
+        ///   Looks up a localized string similar to     Assembly version compatibility level: {0}.
         /// </summary>
         internal static string CompareTask_VersionCompat {
             get {
