@@ -25,8 +25,8 @@ namespace DumpAsmRefs.Tests
             result.Should().NotBeNull();
             result.Count.Should().Be(1);
 
-            result[0].SourceAssemblyFullPath.Should().Be("c:\\foo\\system.dll");
-            result[0].SourceAssemblyName.Should().Be(objectAssembly.GetName().FullName);
+            result[0].FullPath.Should().Be("c:\\foo\\system.dll");
+            result[0].AssemblyName.Should().Be(objectAssembly.GetName().FullName);
 
             result[0].ReferencedAssemblies.Should().NotBeNull();
             result[0].ReferencedAssemblies.Should().BeEmpty();
@@ -52,9 +52,9 @@ namespace DumpAsmRefs.Tests
             result.Should().NotBeNull();
             result.Count.Should().Be(1);
 
-            result[0].SourceAssemblyFullPath.Should().Be("c:\\foo.dll");
-            result[0].SourceAssemblyName.Should().Contain("foo");
-            result[0].SourceAssemblyName.ToString().Should().Contain("Culture=neutral, PublicKeyToken=null");
+            result[0].FullPath.Should().Be("c:\\foo.dll");
+            result[0].AssemblyName.Should().Contain("foo");
+            result[0].AssemblyName.ToString().Should().Contain("Culture=neutral, PublicKeyToken=null");
 
             CheckReferencedAssemblies(result[0], typesInRefAssemblies);
         }
@@ -75,8 +75,8 @@ namespace DumpAsmRefs.Tests
             result.Should().NotBeNull();
             result.Count.Should().Be(2);
 
-            result[0].SourceAssemblyFullPath.Should().Be("c:\\asm1.dll");
-            result[1].SourceAssemblyFullPath.Should().Be("c:\\asm2.dll");
+            result[0].FullPath.Should().Be("c:\\asm1.dll");
+            result[1].FullPath.Should().Be("c:\\asm2.dll");
 
             CheckReferencedAssemblies(result[0], typeof(object));
             CheckReferencedAssemblies(result[1], typeof(object), typeof(Xunit.ClassDataAttribute));
@@ -108,18 +108,18 @@ namespace DumpAsmRefs.Tests
             result.Should().NotBeNull();
             result.Count.Should().Be(3);
 
-            result[0].SourceAssemblyFullPath.Should().Be("c:\\valid1.dll");
+            result[0].FullPath.Should().Be("c:\\valid1.dll");
             CheckReferencedAssemblies(result[0], typeof(System.Collections.CollectionBase));
 
-            result[1].SourceAssemblyFullPath.Should().Be("c:\\invalid1.dll");
+            result[1].FullPath.Should().Be("c:\\invalid1.dll");
             result[1].LoadException.Should().Be(expectedLoadExceptionText);
             result[1].ReferencedAssemblies.Should().BeNull();
 
-            result[2].SourceAssemblyFullPath.Should().Be("c:\\valid2.dll");
+            result[2].FullPath.Should().Be("c:\\valid2.dll");
             CheckReferencedAssemblies(result[2], typeof(System.Collections.CollectionBase));
         }
 
-        private static void CheckReferencedAssemblies(AssemblyReferenceInfo result, params Type[] typesInRefAssemblies)
+        private static void CheckReferencedAssemblies(SourceAssemblyInfo result, params Type[] typesInRefAssemblies)
         {
             var refAsmFullNames = typesInRefAssemblies.Select(t => t.Assembly.GetName().FullName)
                 .Distinct()

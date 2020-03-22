@@ -6,6 +6,6 @@ namespace DumpAsmRefs.Interfaces
 {
     internal interface IAssemblyInfoGenerator
     {
-        IList<AssemblyReferenceInfo> Fetch(string baseDirectory, IEnumerable<string> relativeFilePaths);
+        IList<SourceAssemblyInfo> Fetch(string baseDirectory, IEnumerable<string> relativeFilePaths);
     }
 }

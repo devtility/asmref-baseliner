@@ -22,7 +22,7 @@ namespace DumpAsmRefs
             parser.Consume<StreamStart>();
 
             InputCriteria inputCriteria = null;
-            var asmRefSections = new List<AssemblyReferenceInfo>();
+            var asmRefSections = new List<SourceAssemblyInfo>();
 
             // Read header document
             if (parser.Accept<DocumentStart>(out _))
@@ -33,7 +33,7 @@ namespace DumpAsmRefs
             // Any other docs should contain info about a single assembly and its references
             while (parser.Accept<DocumentStart>(out _))
             {
-                var asmRefSection = deserializer.Deserialize<AssemblyReferenceInfo>(parser);
+                var asmRefSection = deserializer.Deserialize<SourceAssemblyInfo>(parser);
                 if (asmRefSection != null)
                 {
                     asmRefSections.Add(asmRefSection);

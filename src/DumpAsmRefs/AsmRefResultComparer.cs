@@ -17,24 +17,24 @@ namespace DumpAsmRefs
                 return false;
             }
 
-            if (first.AssemblyReferenceInfos.Count() != second.AssemblyReferenceInfos.Count())
+            if (first.SourceAssemblyInfos.Count() != second.SourceAssemblyInfos.Count())
             {
                 return false;
             }
 
-            var sourceAssemblyNames = first.AssemblyReferenceInfos
-                .Select(x => AssemblyIdentifier.Parse(x.SourceAssemblyName).Name)
+            var sourceAssemblyNames = first.SourceAssemblyInfos
+                .Select(x => AssemblyIdentifier.Parse(x.AssemblyName).Name)
                 .ToArray();
 
-            var asmNameToAsmRefInfoMap = second.AssemblyReferenceInfos.ToDictionary(
-                    x => AssemblyIdentifier.Parse(x.SourceAssemblyName).Name,
+            var asmNameToAsmRefInfoMap = second.SourceAssemblyInfos.ToDictionary(
+                    x => AssemblyIdentifier.Parse(x.AssemblyName).Name,
                     x => x);
 
-            foreach(var item in first.AssemblyReferenceInfos)
+            foreach(var item in first.SourceAssemblyInfos)
             {
                 // We need to find a matching AsmRefInfo, based solely on the assembly name
                 // i.e. ignoring the version, public key etc
-                var itemAsmInfo = AssemblyIdentifier.Parse(item.SourceAssemblyName);
+                var itemAsmInfo = AssemblyIdentifier.Parse(item.AssemblyName);
 
                 var match = asmNameToAsmRefInfoMap
                     .FirstOrDefault(x => AreStringsSame(x.Key, itemAsmInfo.Name))
@@ -42,7 +42,7 @@ namespace DumpAsmRefs
                 if (match == null) { return false; }
 
                 // Now check the whole reference, taking into account the version compatibility level
-                if (!IsSameAssemblyReferenceInfo(item, match, options, sourceAssemblyNames))
+                if (!IsSameSourceAssemblyInfo(item, match, options, sourceAssemblyNames))
                 {
                     return false;
                 }
@@ -60,22 +60,22 @@ namespace DumpAsmRefs
                 && AreListsSame(input1.ExcludePatterns, input2.ExcludePatterns);
         }
 
-        internal static bool IsSameAssemblyReferenceInfo(AssemblyReferenceInfo ref1, AssemblyReferenceInfo ref2, ComparisonOptions options,
+        internal static bool IsSameSourceAssemblyInfo(SourceAssemblyInfo ref1, SourceAssemblyInfo ref2, ComparisonOptions options,
             IEnumerable<string> sourceAssemblyNames)
         {
             // SourceAssemblyFullPath is ignored for the purposes of this comparison
             // (it's absolute so can vary from machine to machine)
 
             // First check the simple strings
-            if (!(AreStringsSame(ref1.SourceAssemblyRelativePath, ref2.SourceAssemblyRelativePath)
+            if (!(AreStringsSame(ref1.RelativePath, ref2.RelativePath)
                 && AreStringsSame(ref1.LoadException, ref2.LoadException)))
             {
                 return false;
             }
 
             // Then check the source assembly name, taking into account version compatibility level
-            var firstAsmInfo = AssemblyIdentifier.Parse(ref1.SourceAssemblyName);
-            var secondAsmInfo = AssemblyIdentifier.Parse(ref2.SourceAssemblyName);
+            var firstAsmInfo = AssemblyIdentifier.Parse(ref1.AssemblyName);
+            var secondAsmInfo = AssemblyIdentifier.Parse(ref2.AssemblyName);
             if (!SourceAssembliesMatch(firstAsmInfo, secondAsmInfo, options))
             {
                 return false;

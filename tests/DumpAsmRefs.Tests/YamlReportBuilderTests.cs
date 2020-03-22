@@ -25,7 +25,7 @@ namespace DumpAsmRefs.Tests
                 new string[] { "include2", "include1" },
                 new string[] { "exclude1", "exclude2" });
 
-            var report = new AsmRefResult(inputs, Enumerable.Empty<AssemblyReferenceInfo>());
+            var report = new AsmRefResult(inputs, Enumerable.Empty<SourceAssemblyInfo>());
             var testSubject = new YamlReportBuilder();
 
             var result = testSubject.Generate(report);
@@ -63,30 +63,30 @@ namespace DumpAsmRefs.Tests
             var inputs = new InputCriteria("BASE DIR", new string[] { "include1" },
                 new string[] { "exclude1"});
 
-            var asmRefInfos = new AssemblyReferenceInfo[]
+            var asmRefInfos = new SourceAssemblyInfo[]
             {
-                new AssemblyReferenceInfo()
+                new SourceAssemblyInfo()
                 {
                     LoadException = null,
-                    SourceAssemblyFullPath = "full path1",
-                    SourceAssemblyName = "asmName1",
-                    SourceAssemblyRelativePath = "relative path1",
+                    FullPath = "full path1",
+                    AssemblyName = "asmName1",
+                    RelativePath = "relative path1",
                     ReferencedAssemblies = new string[]{ "asm 1_1", "asm 1_2" }
                 },
-                new AssemblyReferenceInfo()
+                new SourceAssemblyInfo()
                 {
                     LoadException = null,
-                    SourceAssemblyFullPath = "full path2",
-                    SourceAssemblyName = "asmName2",
-                    SourceAssemblyRelativePath = "relative path2",
+                    FullPath = "full path2",
+                    AssemblyName = "asmName2",
+                    RelativePath = "relative path2",
                     ReferencedAssemblies = new string[] { "asm 2_1", "asm 2_2" }
                 },
-                new AssemblyReferenceInfo()
+                new SourceAssemblyInfo()
                 {
                     LoadException = "image format exception",
-                    SourceAssemblyFullPath = "full path3",
-                    SourceAssemblyName = "asmName3",
-                    SourceAssemblyRelativePath = "relative path3",
+                    FullPath = "full path3",
+                    AssemblyName = "asmName3",
+                    RelativePath = "relative path3",
                     ReferencedAssemblies = null
                 }
             };

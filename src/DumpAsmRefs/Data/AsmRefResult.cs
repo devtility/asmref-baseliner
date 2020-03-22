@@ -7,19 +7,19 @@ namespace DumpAsmRefs
 {
     public class AsmRefResult
     {
-        public AsmRefResult(InputCriteria inputCriteria, IEnumerable<AssemblyReferenceInfo> assemblyReferenceInfos)
+        public AsmRefResult(InputCriteria inputCriteria, IEnumerable<SourceAssemblyInfo> sourceAssemblyInfos)
         {
             InputCriteria = inputCriteria ?? throw new ArgumentNullException(nameof(inputCriteria));
 
-            if (assemblyReferenceInfos == null)
+            if (sourceAssemblyInfos == null)
             {
-                throw new ArgumentNullException(nameof(assemblyReferenceInfos));
+                throw new ArgumentNullException(nameof(sourceAssemblyInfos));
             }
-            AssemblyReferenceInfos = new List<AssemblyReferenceInfo>(assemblyReferenceInfos);
+            SourceAssemblyInfos = new List<SourceAssemblyInfo>(sourceAssemblyInfos);
         }
 
         public InputCriteria InputCriteria { get; }
 
-        public IEnumerable<AssemblyReferenceInfo> AssemblyReferenceInfos { get; }
+        public IEnumerable<SourceAssemblyInfo> SourceAssemblyInfos { get; }
     }
 }
