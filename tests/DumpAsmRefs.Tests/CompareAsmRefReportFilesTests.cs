@@ -1,7 +1,9 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
+using DumpAsmRefs.Interfaces;
 using DumpAsmRefs.Tests.Infrastructure;
 using FluentAssertions;
+using Moq;
 using Xunit;
 
 namespace DumpAsmRefs.Tests
@@ -12,13 +14,15 @@ namespace DumpAsmRefs.Tests
         public void Compare_InvalidVersionCompatibility_Fails()
         {
             var dummyFileSystem = new FakeFileSystem();
+            var mockLoader = new Mock<IReportLoader>();
+            var mockComparer = new Mock<IResultComparer>();
 
             dummyFileSystem.AddFile("file1", "");
             dummyFileSystem.AddFile("file2", "");
 
             var buildEngine = new FakeBuildEngine();
 
-            var testSubject = new CompareAsmRefReportFiles(dummyFileSystem)
+            var testSubject = new CompareAsmRefReportFiles(dummyFileSystem, mockLoader.Object, mockComparer.Object)
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
@@ -36,7 +40,7 @@ namespace DumpAsmRefs.Tests
         }
 
         [Fact]
-        public void Compare_Same_NoError()
+        public void Compare_EndToEnd_Same_NoError()
         {
             var dummyFileSystem = new FakeFileSystem();
             const string reportContent = @"---
@@ -73,7 +77,8 @@ Referenced assemblies:   # count = 1
 
             var buildEngine = new FakeBuildEngine();
 
-            var testSubject = new CompareAsmRefReportFiles(dummyFileSystem)
+            var testSubject = new CompareAsmRefReportFiles(dummyFileSystem, 
+                new YamlReportLoader(), new AsmRefResultComparer())
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
@@ -94,7 +99,7 @@ Referenced assemblies:   # count = 1
         }
 
         [Fact]
-        public void Compare_Different_Error()
+        public void Compare_EndToEnd_Different_Error()
         {
             var reportContent1 = @"---
 Include patterns:
@@ -136,7 +141,8 @@ Referenced assemblies:   # count = 1
 
             var buildEngine = new FakeBuildEngine();
 
-            var testSubject = new CompareAsmRefReportFiles(dummyFileSystem)
+            var testSubject = new CompareAsmRefReportFiles(dummyFileSystem,
+                new YamlReportLoader(), new AsmRefResultComparer())
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",

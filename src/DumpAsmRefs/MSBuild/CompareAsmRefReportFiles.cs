@@ -9,6 +9,8 @@ namespace DumpAsmRefs
     public class CompareAsmRefReportFiles : Task
     {
         private readonly IFileSystem fileSystem;
+        private readonly IReportLoader loader;
+        private readonly IResultComparer comparer;
 
         [Required]
         public string BaseLineReportFilePath { get; set; }
@@ -20,14 +22,14 @@ namespace DumpAsmRefs
         public string VersionCompatibility { get; set; }
 
         public CompareAsmRefReportFiles()
-        {
-            fileSystem = new FileSystemAbstraction();
-        }
+            : this(new FileSystemAbstraction(), new YamlReportLoader(),  new AsmRefResultComparer()) { }
 
         // Testing
-        internal CompareAsmRefReportFiles(IFileSystem fileSystem)
+        internal CompareAsmRefReportFiles(IFileSystem fileSystem, IReportLoader loader, IResultComparer comparer)
         {
             this.fileSystem = fileSystem;
+            this.loader = loader;
+            this.comparer = comparer;
         }
 
         public override bool Execute()
@@ -39,7 +41,6 @@ namespace DumpAsmRefs
                 return false;
             }
 
-            var comparer = new AsmRefResultComparer();
             var options = new ComparisonOptions(versionCompatibility);
 
             bool result = comparer.AreSame(baseline, current, options);
@@ -80,7 +81,6 @@ namespace DumpAsmRefs
             }
 
             var reportData = fileSystem.ReadAllText(filePath);
-            var loader = new YamlReportLoader();
             report = loader.Load(reportData);
             return true;
         }
