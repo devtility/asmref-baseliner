@@ -144,11 +144,11 @@ Referenced assemblies:   # count = 1
             // Check
             result.Should().BeTrue();
             buildEngine.ErrorEvents.Count.Should().Be(0);
-            buildEngine.MessageEvents.Count.Should().Be(3);
-            buildEngine.MessageEvents[0].Message.Contains(": Strict").Should().BeTrue();
-            buildEngine.MessageEvents[1].Message.Contains(": False").Should().BeTrue();
-            buildEngine.MessageEvents[2].Message.Contains("file1").Should().BeTrue();
-            buildEngine.MessageEvents[2].Message.Contains("file2").Should().BeTrue();
+            buildEngine.MessageEvents.Count.Should().Be(4);
+            buildEngine.MessageEvents[1].Message.Contains(": Strict").Should().BeTrue();
+            buildEngine.MessageEvents[2].Message.Contains(": False").Should().BeTrue();
+            buildEngine.MessageEvents[3].Message.Contains(": file1").Should().BeTrue();
+            buildEngine.MessageEvents[3].Message.Contains(": file2").Should().BeTrue();
         }
 
         [Fact]

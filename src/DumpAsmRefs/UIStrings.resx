@@ -117,11 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CompareTask_ComparisonSettingsHeaderText" xml:space="preserve">
+    <value>Comparison settings:</value>
+  </data>
   <data name="CompareTask_Error_ReportNotFound" xml:space="preserve">
     <value>Report file does not exist</value>
   </data>
   <data name="CompareTask_IgnoreSourcePublicKeyToken" xml:space="preserve">
-    <value>Ignoring source assembly public key tokens: {0}</value>
+    <value>    Ignore source assembly public key tokens: {0}</value>
   </data>
   <data name="CompareTask_InvalidVersionCompat" xml:space="preserve">
     <value>Supplied VersionCompatibility is invalid: {0}. Allowed values: {1}</value>
@@ -140,7 +143,7 @@
     <comment>0 = baseline file path, 1 = current file path</comment>
   </data>
   <data name="CompareTask_VersionCompat" xml:space="preserve">
-    <value>Assembly version compatibility level: {0}</value>
+    <value>    Assembly version compatibility level: {0}</value>
     <comment>0 = version compatibility level value</comment>
   </data>
   <data name="Matching_MatchesFound" xml:space="preserve">
