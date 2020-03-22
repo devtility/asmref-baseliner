@@ -22,6 +22,10 @@ namespace DumpAsmRefs
                 return false;
             }
 
+            var sourceAssemblyNames = first.AssemblyReferenceInfos
+                .Select(x => AssemblyInfo.Parse(x.SourceAssemblyName).Name)
+                .ToArray();
+
             var asmNameToAsmRefInfoMap = second.AssemblyReferenceInfos.ToDictionary(
                     x => AssemblyInfo.Parse(x.SourceAssemblyName).Name,
                     x => x);
@@ -38,7 +42,7 @@ namespace DumpAsmRefs
                 if (match == null) { return false; }
 
                 // Now check the whole reference, taking into account the version compatibility level
-                if (!AreSame(item, match, options))
+                if (!IsSameAssemblyReferenceInfo(item, match, options, sourceAssemblyNames))
                 {
                     return false;
                 }
@@ -56,10 +60,11 @@ namespace DumpAsmRefs
                 && AreListsSame(input1.ExcludePatterns, input2.ExcludePatterns);
         }
 
-        internal static bool AreSame(AssemblyReferenceInfo ref1, AssemblyReferenceInfo ref2, ComparisonOptions options)
+        internal static bool IsSameAssemblyReferenceInfo(AssemblyReferenceInfo ref1, AssemblyReferenceInfo ref2, ComparisonOptions options,
+            IEnumerable<string> sourceAssemblyNames)
         {
-            // SourceAssemblyFullPath is ignored for the purposes of this comparison (it's
-            // absolute so can vary from machine to machine)
+            // SourceAssemblyFullPath is ignored for the purposes of this comparison
+            // (it's absolute so can vary from machine to machine)
 
             // First check the simple strings
             if (!(AreStringsSame(ref1.SourceAssemblyRelativePath, ref2.SourceAssemblyRelativePath)
@@ -71,7 +76,7 @@ namespace DumpAsmRefs
             // Then check the source assembly name, taking into account version compatibility level
             var firstAsmInfo = AssemblyInfo.Parse(ref1.SourceAssemblyName);
             var secondAsmInfo = AssemblyInfo.Parse(ref2.SourceAssemblyName);
-            if (!AreSame(firstAsmInfo, secondAsmInfo, options))
+            if (!SourceAssembliesMatch(firstAsmInfo, secondAsmInfo, options))
             {
                 return false;
             }
@@ -85,15 +90,24 @@ namespace DumpAsmRefs
                 return false;
             }
 
-            foreach(var firstItem in firstAsmRefs)
+            foreach (var firstItem in firstAsmRefs)
             {
+                // Find the corresponding assembly by name
                 var secondByName = secondAsmRefs.FirstOrDefault(x => AreStringsSame(firstItem.Name, x.Name));
                 if (secondByName == null)
                 {
                     return false;
                 }
 
-                if (!AreSame(firstItem, secondByName, options))
+                var isSourceAssembly = sourceAssemblyNames.Contains(firstItem.Name);
+                if (isSourceAssembly)
+                {
+                    if (!SourceAssembliesMatch(firstItem, secondByName, options))
+                    {
+                        return false;
+                    }
+                }
+                else if (!NonSourceAssembliesMatch(firstItem, secondByName, options))
                 {
                     return false;
                 }
@@ -101,10 +115,16 @@ namespace DumpAsmRefs
             return true;
         }
 
-        internal static bool AreSame(AssemblyInfo first, AssemblyInfo second, ComparisonOptions options)
+        internal static bool NonSourceAssembliesMatch(AssemblyInfo first, AssemblyInfo second, ComparisonOptions options)
             => AreStringsSame(first.Name, second.Name)
                 && AreStringsSame(first.CultureName, second.CultureName)
                 && AreStringsSame(first.PublicKeyToken, second.PublicKeyToken)
+                && VersionComparer.AreVersionsEqual(first.Version, second.Version, options.VersionCompatibility);
+
+        internal static bool SourceAssembliesMatch(AssemblyInfo first, AssemblyInfo second, ComparisonOptions options)
+            => AreStringsSame(first.Name, second.Name)
+                && AreStringsSame(first.CultureName, second.CultureName)
+                && (options.IgnoreSourcePublicKeyToken || AreStringsSame(first.PublicKeyToken, second.PublicKeyToken))
                 && VersionComparer.AreVersionsEqual(first.Version, second.Version, options.VersionCompatibility);
 
         internal static bool AreListsSame(IEnumerable<string> list1, IEnumerable<string> list2)
