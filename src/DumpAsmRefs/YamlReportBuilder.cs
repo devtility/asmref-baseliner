@@ -22,9 +22,9 @@ namespace DumpAsmRefs
         {
             sb = new StringBuilder();
 
-            WriteHeader(asmRefResult.InputCriteria, asmRefResult.AssemblyReferenceInfos.Count());
+            WriteHeader(asmRefResult.InputCriteria, asmRefResult.SourceAssemblyInfos.Count());
 
-            foreach (var item in asmRefResult.AssemblyReferenceInfos.OrderBy(x => x.SourceAssemblyRelativePath))
+            foreach (var item in asmRefResult.SourceAssemblyInfos.OrderBy(x => x.RelativePath))
             {
                 WriteSingleAssemblyInfo(item);
             }
@@ -69,12 +69,12 @@ namespace DumpAsmRefs
             sb.AppendLine(header);
         }
 
-        private void WriteSingleAssemblyInfo(AssemblyReferenceInfo asmRefInfo)
+        private void WriteSingleAssemblyInfo(SourceAssemblyInfo asmRefInfo)
         {
             WriteDocumentStart();
 
-            WriteProperty("Assembly", asmRefInfo.SourceAssemblyName?.ToString() ?? "{unknown}");
-            WriteProperty("Relative path", asmRefInfo.SourceAssemblyRelativePath);
+            WriteProperty("Assembly", asmRefInfo.AssemblyName?.ToString() ?? "{unknown}");
+            WriteProperty("Relative path", asmRefInfo.RelativePath);
             WriteSpacer();
 
             if (asmRefInfo.LoadException != null)

@@ -36,7 +36,7 @@ namespace DumpAsmRefs.Tests
             fileLocator.Setup(x => x.Search(userArgs.RootDirectory,
                 userArgs.IncludePatterns, userArgs.ExcludePatterns)).Returns(matchingFiles);
 
-            var asmRefInfo = Array.Empty<AssemblyReferenceInfo>();
+            var asmRefInfo = Array.Empty<SourceAssemblyInfo>();
             asmInfoGenerator.Setup(x => x.Fetch(userArgs.RootDirectory, matchingFiles))
                 .Returns(asmRefInfo);
 

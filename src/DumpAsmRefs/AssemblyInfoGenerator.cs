@@ -10,9 +10,9 @@ namespace DumpAsmRefs
 {
     public class AssemblyInfoGenerator : IAssemblyInfoGenerator
     {
-        public IList<AssemblyReferenceInfo> Fetch(string baseDirectory, IEnumerable<string> relativeFilePaths)
+        public IList<SourceAssemblyInfo> Fetch(string baseDirectory, IEnumerable<string> relativeFilePaths)
         {
-            var results = new List<AssemblyReferenceInfo>();
+            var results = new List<SourceAssemblyInfo>();
 
             foreach(var relativePath in relativeFilePaths)
             {
@@ -29,12 +29,12 @@ namespace DumpAsmRefs
                     asmLoadException = ex;
                 }
 
-                var newResult = new AssemblyReferenceInfo
+                var newResult = new SourceAssemblyInfo
                 {
                     LoadException = GetLoadExceptionText(asmLoadException),
-                    SourceAssemblyFullPath = fullPath,
-                    SourceAssemblyRelativePath = relativePath,
-                    SourceAssemblyName = assembly?.GetName().FullName,
+                    FullPath = fullPath,
+                    RelativePath = relativePath,
+                    AssemblyName = assembly?.GetName().FullName,
                     ReferencedAssemblies = assembly?.GetReferencedAssemblies().Select(ra => ra.FullName).ToArray()
                 };
 

@@ -4,19 +4,22 @@ using System.Collections.Generic;
 
 namespace DumpAsmRefs
 {    
-    public class AssemblyReferenceInfo
+    /// <summary>
+    /// Data class for a single analyzed assembly
+    /// </summary>
+    public class SourceAssemblyInfo
     {
         [YamlDotNet.Serialization.YamlMember(Alias = "Assembly load exception")]
         public string LoadException { get; set; }
 
         [YamlDotNet.Serialization.YamlIgnore]
-        public string SourceAssemblyFullPath { get; set; }
+        public string FullPath { get; set; }
 
         [YamlDotNet.Serialization.YamlMember(Alias = "Relative path")]
-        public string SourceAssemblyRelativePath { get; set; }
+        public string RelativePath { get; set; }
 
         [YamlDotNet.Serialization.YamlMember(Alias = "Assembly")]
-        public string SourceAssemblyName { get; set; }
+        public string AssemblyName { get; set; }
 
         [YamlDotNet.Serialization.YamlMember(Alias = "Referenced assemblies")]
         public IEnumerable<string> ReferencedAssemblies { get; set; }

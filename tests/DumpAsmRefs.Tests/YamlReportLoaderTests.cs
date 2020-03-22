@@ -55,12 +55,12 @@ Referenced assemblies:   # count = 2
 - Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 - System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
 ";
-            var actual = YamlReportLoader.Deserialize<AssemblyReferenceInfo>(data);
+            var actual = YamlReportLoader.Deserialize<SourceAssemblyInfo>(data);
 
             actual.Should().NotBeNull();
 
-            actual.SourceAssemblyName.Should().Be("DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null");
-            actual.SourceAssemblyRelativePath.Should().Be("src/DumpAsmRefs/bin/Debug/net461/DumpAsmRefs.exe");
+            actual.AssemblyName.Should().Be("DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null");
+            actual.RelativePath.Should().Be("src/DumpAsmRefs/bin/Debug/net461/DumpAsmRefs.exe");
             actual.LoadException.Should().Be("a load exception. xxx");
 
             actual.ReferencedAssemblies.Should().BeEquivalentTo(
@@ -109,23 +109,23 @@ Referenced assemblies:   # count = 1
             result.InputCriteria.IncludePatterns.Should().BeEquivalentTo(@"src\DumpAsmRefs\bin\Debug\net461\DumpAsmRefs.exe");
             result.InputCriteria.ExcludePatterns.Should().BeEquivalentTo(@"src\**.dll", @"xxx\yyy.dll");
 
-            result.AssemblyReferenceInfos.Should().NotBeNull();
+            result.SourceAssemblyInfos.Should().NotBeNull();
 
-            var refs = result.AssemblyReferenceInfos.ToArray();
+            var refs = result.SourceAssemblyInfos.ToArray();
 
             refs[0].LoadException.Should().BeNull();
-            refs[0].SourceAssemblyFullPath.Should().BeNull();
-            refs[0].SourceAssemblyRelativePath.Should().Be("src/DumpAsmRefs/bin/Debug/net461/DumpAsmRefs.exe");
-            refs[0].SourceAssemblyName.Should().Be("DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null");
+            refs[0].FullPath.Should().BeNull();
+            refs[0].RelativePath.Should().Be("src/DumpAsmRefs/bin/Debug/net461/DumpAsmRefs.exe");
+            refs[0].AssemblyName.Should().Be("DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null");
             refs[0].ReferencedAssemblies.Should().NotBeNull();
             refs[0].ReferencedAssemblies.ToArray()[0].Should().Be("Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
             refs[0].ReferencedAssemblies.ToArray()[1].Should().Be("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
             refs[0].ReferencedAssemblies.Count().Should().Be(2);
 
             refs[1].LoadException.Should().BeNull();
-            refs[1].SourceAssemblyFullPath.Should().BeNull();
-            refs[1].SourceAssemblyRelativePath.Should().Be("asm2/bin/Debug/net461/assembly2.dll");
-            refs[1].SourceAssemblyName.Should().Be("Assembly2, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
+            refs[1].FullPath.Should().BeNull();
+            refs[1].RelativePath.Should().Be("asm2/bin/Debug/net461/assembly2.dll");
+            refs[1].AssemblyName.Should().Be("Assembly2, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
             refs[1].ReferencedAssemblies.Should().NotBeNull();
             refs[1].ReferencedAssemblies.ToArray()[0].Should().Be("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
             refs[1].ReferencedAssemblies.Count().Should().Be(1);
@@ -137,20 +137,20 @@ Referenced assemblies:   # count = 1
             var inputs = new InputCriteria("BASE DIR", new string[] { "**\\*Console*" },
                 new string[] { "**\\exclude1*" });
 
-            var asmRefInfos = new AssemblyReferenceInfo[]
+            var asmRefInfos = new SourceAssemblyInfo[]
             {
-                new AssemblyReferenceInfo()
+                new SourceAssemblyInfo()
                 {
                     LoadException = null,
-                    SourceAssemblyName = "asmName1",
-                    SourceAssemblyRelativePath = "relative path1",
+                    AssemblyName = "asmName1",
+                    RelativePath = "relative path1",
                     ReferencedAssemblies = new string[]{ "asm 1_1", "asm 1_2" }
                 },
-                new AssemblyReferenceInfo()
+                new SourceAssemblyInfo()
                 {
                     LoadException = "exception message",
-                    SourceAssemblyName = "asmName2",
-                    SourceAssemblyRelativePath = "relative path2",
+                    AssemblyName = "asmName2",
+                    RelativePath = "relative path2",
                     ReferencedAssemblies = new string[] { "asm 2_1", "asm 2_2" }
                 }
             };
@@ -166,7 +166,7 @@ Referenced assemblies:   # count = 1
             var actual = loader.Load(data);
 
             // Assert
-            actual.AssemblyReferenceInfos.Should().BeEquivalentTo(asmResult.AssemblyReferenceInfos);
+            actual.SourceAssemblyInfos.Should().BeEquivalentTo(asmResult.SourceAssemblyInfos);
         }
     }
 }
