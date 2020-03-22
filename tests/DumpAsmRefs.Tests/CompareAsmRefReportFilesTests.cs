@@ -4,6 +4,7 @@ using DumpAsmRefs.Interfaces;
 using DumpAsmRefs.Tests.Infrastructure;
 using FluentAssertions;
 using Moq;
+using System;
 using Xunit;
 
 namespace DumpAsmRefs.Tests
@@ -37,6 +38,57 @@ namespace DumpAsmRefs.Tests
             result.Should().BeFalse();
             buildEngine.ErrorEvents.Count.Should().Be(1);
             buildEngine.ErrorEvents[0].Message.Contains("invalid compat level").Should().BeTrue();
+        }
+
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(false, false)]
+        public void Compare_ComparerReturnsTrue_TaskSucceeds(bool comparerReturnValue, bool expectedTaskResult)
+        {
+            var dummyFileSystem = new FakeFileSystem();
+            var mockLoader = new Mock<IReportLoader>(MockBehavior.Strict);
+            var mockComparer = new Mock<IResultComparer>(MockBehavior.Strict);
+
+            dummyFileSystem.AddFile("c:\\file1.txt", "aaa");
+            dummyFileSystem.AddFile("c:\\file2.txt", "bbb");
+
+            var result1 = new AsmRefResult(new InputCriteria(), Array.Empty<SourceAssemblyInfo>());
+            var result2 = new AsmRefResult(new InputCriteria(), Array.Empty<SourceAssemblyInfo>());
+
+            mockLoader.Setup(l => l.Load("aaa")).Returns(result1);
+            mockLoader.Setup(l => l.Load("bbb")).Returns(result2);
+
+            ComparisonOptions actualOptions = null;
+            mockComparer.Setup(c => c.AreSame(result1, result2, It.IsAny<ComparisonOptions>()))
+                .Callback((AsmRefResult r1, AsmRefResult r2, ComparisonOptions options) => actualOptions = options)
+                .Returns(comparerReturnValue);
+
+            var buildEngine = new FakeBuildEngine();
+
+            var testSubject = new CompareAsmRefReportFiles(dummyFileSystem,
+                mockLoader.Object, mockComparer.Object)
+            {
+                BaseLineReportFilePath = "c:\\file1.txt",
+                CurrentReportFilePath = "c:\\file2.txt",
+                VersionCompatibility = "MajorMinorBuild",
+                IgnoreSourcePublicKeyToken = true,
+                BuildEngine = buildEngine
+            };
+
+            testSubject.Execute().Should().Be(expectedTaskResult);
+            mockLoader.VerifyAll();
+            mockComparer.VerifyAll();
+            actualOptions.VersionCompatibility.Should().Be(VersionCompatibility.MajorMinorBuild);
+            actualOptions.IgnoreSourcePublicKeyToken.Should().BeTrue();
+
+            if (expectedTaskResult)
+            {
+                buildEngine.ErrorEvents.Should().BeEmpty();
+            }
+            else
+            {
+                buildEngine.ErrorEvents.Count.Should().Be(1);
+            }
         }
 
         [Fact]
@@ -92,10 +144,11 @@ Referenced assemblies:   # count = 1
             // Check
             result.Should().BeTrue();
             buildEngine.ErrorEvents.Count.Should().Be(0);
-            buildEngine.MessageEvents.Count.Should().Be(2);
-            buildEngine.MessageEvents[0].Message.Contains("Strict").Should().BeTrue();
-            buildEngine.MessageEvents[1].Message.Contains("file1").Should().BeTrue();
-            buildEngine.MessageEvents[1].Message.Contains("file2").Should().BeTrue();
+            buildEngine.MessageEvents.Count.Should().Be(3);
+            buildEngine.MessageEvents[0].Message.Contains(": Strict").Should().BeTrue();
+            buildEngine.MessageEvents[1].Message.Contains(": False").Should().BeTrue();
+            buildEngine.MessageEvents[2].Message.Contains("file1").Should().BeTrue();
+            buildEngine.MessageEvents[2].Message.Contains("file2").Should().BeTrue();
         }
 
         [Fact]

@@ -120,6 +120,9 @@
   <data name="CompareTask_Error_ReportNotFound" xml:space="preserve">
     <value>Report file does not exist</value>
   </data>
+  <data name="CompareTask_IgnoreSourcePublicKeyToken" xml:space="preserve">
+    <value>Ignoring source assembly public key tokens: {0}</value>
+  </data>
   <data name="CompareTask_InvalidVersionCompat" xml:space="preserve">
     <value>Supplied VersionCompatibility is invalid: {0}. Allowed values: {1}</value>
     <comment>0 = invalid value, 1 = list of allowed values.</comment>

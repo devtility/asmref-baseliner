@@ -19,6 +19,10 @@
   * AsmRefBaselineFilePath - the file path of the baseline file to compare against.
         Defaults to "{project file directory}\AsmRefBaseline_[ProjectName].txt"
 
+  * AsmRefIgnoreSourcePublicKeyToken - specifies whether the public key token should be taken
+       into account when comparing source assemblies (i.e. the assemblies being baselined)
+       Defaults to true.
+
   Workflow:
   If the baseline comparison file does not exist, the build will generate an initial file
   and save it as the baseline file (in the location indicated by $(AsmRefBaselineFilePath).
@@ -52,11 +56,12 @@
 
   <Target Name="_EnsureAsmRefFilePathsAreSet">
     <PropertyGroup>
-      <AsmRefIncludePatterns Condition="$(AsmRefIncludePatterns)==''">$(TargetName)*</AsmRefIncludePatterns>
-      <AsmRefRootSearchDir Condition="$(AsmRefRootSearchDir)==''" >$(OutDir)</AsmRefRootSearchDir>
-      <AsmRefOutputFilePath Condition="$(AsmRefOutputFilePath)==''" >$(MSBuildProjectDirectory)\$(OutDir)AsmRef_$(MSBuildProjectName)_Latest.txt</AsmRefOutputFilePath>
-      <AsmRefBaselineFilePath Condition="$(AsmRefBaselineFilePath)==''" >$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline.txt</AsmRefBaselineFilePath>
-      <AsmRefLogLevel Condition="$(AsmRefLogLevel)==''" >Normal</AsmRefLogLevel>
+      <AsmRefIncludePatterns Condition="$(AsmRefIncludePatterns) == '' ">$(TargetName)*</AsmRefIncludePatterns>
+      <AsmRefRootSearchDir Condition="$(AsmRefRootSearchDir) == '' " >$(OutDir)</AsmRefRootSearchDir>
+      <AsmRefOutputFilePath Condition="$(AsmRefOutputFilePath) == '' " >$(MSBuildProjectDirectory)\$(OutDir)AsmRef_$(MSBuildProjectName)_Latest.txt</AsmRefOutputFilePath>
+      <AsmRefBaselineFilePath Condition="$(AsmRefBaselineFilePath) == '' " >$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline.txt</AsmRefBaselineFilePath>
+      <AsmRefLogLevel Condition="$(AsmRefLogLevel) == '' " >Normal</AsmRefLogLevel>
+      <AsmRefIgnoreSourcePublicKeyToken Condition="$(AsmRefIgnoreSourcePublicKeyToken) == '' ">true</AsmRefIgnoreSourcePublicKeyToken>
 
       <!-- Options: Any, Major, MajorMinor, MajorMinorBuild, Strict -->
       <AsmRefVersionCompatibility Condition="$(AsmRefVersionCompatibility)==''">Strict</AsmRefVersionCompatibility>
@@ -119,7 +124,8 @@
     <CompareAsmRefReportFiles
       BaselineReportFilePath="$(AsmRefBaselineFilePath)"
       CurrentReportFilePath="$(AsmRefOutputFilePath)"
-      VersionCompatibility="$(AsmRefVersionCompatibility)"/>
+      VersionCompatibility="$(AsmRefVersionCompatibility)"
+      IgnoreSourcePublicKeyToken="$(AsmRefIgnoreSourcePublicKeyToken)" />
   </Target>
 
   <Target Name="_PublishAsmRefBaselineFile">

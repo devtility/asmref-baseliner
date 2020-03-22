@@ -70,6 +70,15 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ignoring source assembly public key tokens: {0}.
+        /// </summary>
+        internal static string CompareTask_IgnoreSourcePublicKeyToken {
+            get {
+                return ResourceManager.GetString("CompareTask_IgnoreSourcePublicKeyToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Supplied VersionCompatibility is invalid: {0}. Allowed values: {1}.
         /// </summary>
         internal static string CompareTask_InvalidVersionCompat {
