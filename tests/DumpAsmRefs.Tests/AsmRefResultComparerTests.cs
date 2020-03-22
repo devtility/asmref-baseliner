@@ -118,25 +118,40 @@ namespace DumpAsmRefs.Tests
 
         [InlineData("4.5", VersionCompatibility.Strict, false)]
         [InlineData("4.5", VersionCompatibility.Any, true)]
-        public void AreSame_AssemblyInfo_VersionCompatibility(string version, VersionCompatibility versionCompatibility, bool expected)
+        public void IsSameXXXAssembly_VersionCompatibility(string version, VersionCompatibility versionCompatibility, bool expected)
         {
             var input1 = AssemblyInfo.Parse($"DumpAsmRefs, Version={version}, Culture=neutral, PublicKeyToken=null");
             var input2 = AssemblyInfo.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
             var options = new ComparisonOptions(versionCompatibility, ignoreSourcePublicKeyToken: false);
 
-            AsmRefResultComparer.AreSame(input1, input2, options).Should().Be(expected);
+            // Source and non-source assembly should be handled the same currently
+            AsmRefResultComparer.SourceAssembliesMatch(input1, input2, options).Should().Be(expected);
+            AsmRefResultComparer.NonSourceAssembliesMatch(input1, input2, options).Should().Be(expected);
+        }
+
+        [Theory]
+        [InlineData(true, false)]
+        [InlineData(false, false)]
+        public void NonSourceAssembliesMatch_IgnoreSourcePublicKeyToken(bool ignoreSourcePublicKeyToken, bool expected)
+        {
+            // IgnoreSourcePublicKeyToken should not be used when comparing non-source assemblies
+            var input1 = AssemblyInfo.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
+            var input2 = AssemblyInfo.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+            var options = new ComparisonOptions(VersionCompatibility.Any, ignoreSourcePublicKeyToken);
+
+            AsmRefResultComparer.NonSourceAssembliesMatch(input1, input2, options).Should().Be(expected);
         }
 
         [Theory]
         [InlineData(true, true)]
         [InlineData(false, false)]
-        public void AreSame_AssemblyInfo_IgnoreSourcePublicKeyToken(bool ignoreSourcePublicKeyToken, bool expected)
+        public void SourceAssembliesMatch_IgnoreSourcePublicKeyToken(bool ignoreSourcePublicKeyToken, bool expected)
         {
             var input1 = AssemblyInfo.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
             var input2 = AssemblyInfo.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
             var options = new ComparisonOptions(VersionCompatibility.Any, ignoreSourcePublicKeyToken);
 
-            AsmRefResultComparer.AreSame(input1, input2, options).Should().Be(expected);
+            AsmRefResultComparer.SourceAssembliesMatch(input1, input2, options).Should().Be(expected);
         }
 
         [Theory]
@@ -144,103 +159,109 @@ namespace DumpAsmRefs.Tests
         [InlineData(VersionCompatibility.Strict, false)]
         [InlineData(VersionCompatibility.Any, true)]
         [InlineData(VersionCompatibility.Any, false)]
-        public void AreSame_AsmRefInfo_Same(VersionCompatibility versionCompatibility, bool ignoreSourcePublicKeyToken)
+        public void IsSameAssemblyReferenceInfo_Same(VersionCompatibility versionCompatibility, bool ignoreSourcePublicKeyToken)
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
             var options = new ComparisonOptions(versionCompatibility, ignoreSourcePublicKeyToken);
+            var sourceAsmNames = Array.Empty<string>();
 
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
         }
 
         [Fact]
-        public void AreSame_AsmRefInfo_SourceFullPath_IsIgnored()
+        public void IsSameAssemblyReferenceInfo_SourceFullPath_IsIgnored()
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
             var options = new ComparisonOptions(VersionCompatibility.Strict, false);
+            var sourceAsmNames = Array.Empty<string>();
 
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
 
             // 1. Different
             ref1.SourceAssemblyFullPath = "path 1";
             ref2.SourceAssemblyFullPath = "path 2";
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
         }
 
         [Fact]
-        public void AreSame_AsmRefInfo_SourceAssemblyName_Strict()
+        public void IsSameAssemblyReferenceInfo_SourceAssemblyName_Strict()
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
             var options = new ComparisonOptions(VersionCompatibility.Strict, false);
+            var sourceAsmNames = Array.Empty<string>();
 
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
 
             // 1. Different
             ref1.SourceAssemblyName = "modified name";
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeFalse();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeFalse();
 
             // 2. Same
             ref2.SourceAssemblyName = "modified name";
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
         }
 
         [Fact]
-        public void AreSame_AsmRefInfo_RelativePath()
+        public void IsSameAssemblyReferenceInfo_RelativePath()
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
             var options = new ComparisonOptions(VersionCompatibility.Strict, false);
+            var sourceAsmNames = Array.Empty<string>();
 
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
 
             // 1. Different
             ref1.SourceAssemblyRelativePath = "modified path";
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeFalse();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeFalse();
 
             // 2. Same
             ref2.SourceAssemblyRelativePath = "modified path";
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
         }
 
         [Fact]
-        public void AreSame_AsmRefInfo_ReferencedAssemblies_Strict()
+        public void IsSameAssemblyReferenceInfo_ReferencedAssemblies_Strict()
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
             var options = new ComparisonOptions(VersionCompatibility.Strict, false);
+            var sourceAsmNames = Array.Empty<string>();
 
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
 
             // 1. Different
             ref1.ReferencedAssemblies = new string[] { "mod1", "mod2" };
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeFalse();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeFalse();
 
             // 2. Same
             ref2.ReferencedAssemblies = new string[] { "mod1", "mod2" };
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
         }
 
         [Fact]
-        public void AreSame_AsmRefInfo_WithExceptions()
+        public void IsSameAssemblyReferenceInfo_WithExceptions()
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
             var options = new ComparisonOptions(VersionCompatibility.Strict, false);
+            var sourceAsmNames = Array.Empty<string>();
 
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
 
             ref1.ReferencedAssemblies = null;
             ref2.ReferencedAssemblies = null;
 
             // 1. Differ by exception
             ref1.LoadException = "exc1";
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeFalse();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeFalse();
 
             // 2. Same exception info
             ref2.LoadException = "exc1";
-            AsmRefResultComparer.AreSame(ref1, ref2, options).Should().BeTrue();
+            AsmRefResultComparer.IsSameAssemblyReferenceInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
         }
 
         [Fact]
