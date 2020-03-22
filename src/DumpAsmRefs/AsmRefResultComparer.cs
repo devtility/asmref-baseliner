@@ -23,18 +23,18 @@ namespace DumpAsmRefs
             }
 
             var sourceAssemblyNames = first.AssemblyReferenceInfos
-                .Select(x => AssemblyInfo.Parse(x.SourceAssemblyName).Name)
+                .Select(x => AssemblyIdentifier.Parse(x.SourceAssemblyName).Name)
                 .ToArray();
 
             var asmNameToAsmRefInfoMap = second.AssemblyReferenceInfos.ToDictionary(
-                    x => AssemblyInfo.Parse(x.SourceAssemblyName).Name,
+                    x => AssemblyIdentifier.Parse(x.SourceAssemblyName).Name,
                     x => x);
 
             foreach(var item in first.AssemblyReferenceInfos)
             {
                 // We need to find a matching AsmRefInfo, based solely on the assembly name
                 // i.e. ignoring the version, public key etc
-                var itemAsmInfo = AssemblyInfo.Parse(item.SourceAssemblyName);
+                var itemAsmInfo = AssemblyIdentifier.Parse(item.SourceAssemblyName);
 
                 var match = asmNameToAsmRefInfoMap
                     .FirstOrDefault(x => AreStringsSame(x.Key, itemAsmInfo.Name))
@@ -74,16 +74,16 @@ namespace DumpAsmRefs
             }
 
             // Then check the source assembly name, taking into account version compatibility level
-            var firstAsmInfo = AssemblyInfo.Parse(ref1.SourceAssemblyName);
-            var secondAsmInfo = AssemblyInfo.Parse(ref2.SourceAssemblyName);
+            var firstAsmInfo = AssemblyIdentifier.Parse(ref1.SourceAssemblyName);
+            var secondAsmInfo = AssemblyIdentifier.Parse(ref2.SourceAssemblyName);
             if (!SourceAssembliesMatch(firstAsmInfo, secondAsmInfo, options))
             {
                 return false;
             }
 
             // Finally, check the referenced assemblies, again taking into account version assembly compatibility level
-            var firstAsmRefs = ref1.ReferencedAssemblies?.Select(AssemblyInfo.Parse) ?? Enumerable.Empty<AssemblyInfo>();
-            var secondAsmRefs = ref2.ReferencedAssemblies?.Select(AssemblyInfo.Parse) ?? Enumerable.Empty<AssemblyInfo>();
+            var firstAsmRefs = ref1.ReferencedAssemblies?.Select(AssemblyIdentifier.Parse) ?? Enumerable.Empty<AssemblyIdentifier>();
+            var secondAsmRefs = ref2.ReferencedAssemblies?.Select(AssemblyIdentifier.Parse) ?? Enumerable.Empty<AssemblyIdentifier>();
 
             if (firstAsmRefs.Count() != secondAsmRefs.Count())
             {
@@ -115,13 +115,13 @@ namespace DumpAsmRefs
             return true;
         }
 
-        internal static bool NonSourceAssembliesMatch(AssemblyInfo first, AssemblyInfo second, ComparisonOptions options)
+        internal static bool NonSourceAssembliesMatch(AssemblyIdentifier first, AssemblyIdentifier second, ComparisonOptions options)
             => AreStringsSame(first.Name, second.Name)
                 && AreStringsSame(first.CultureName, second.CultureName)
                 && AreStringsSame(first.PublicKeyToken, second.PublicKeyToken)
                 && VersionComparer.AreVersionsEqual(first.Version, second.Version, options.VersionCompatibility);
 
-        internal static bool SourceAssembliesMatch(AssemblyInfo first, AssemblyInfo second, ComparisonOptions options)
+        internal static bool SourceAssembliesMatch(AssemblyIdentifier first, AssemblyIdentifier second, ComparisonOptions options)
             => AreStringsSame(first.Name, second.Name)
                 && AreStringsSame(first.CultureName, second.CultureName)
                 && (options.IgnoreSourcePublicKeyToken || AreStringsSame(first.PublicKeyToken, second.PublicKeyToken))

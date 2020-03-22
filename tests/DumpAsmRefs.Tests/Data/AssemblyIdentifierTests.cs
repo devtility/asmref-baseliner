@@ -7,20 +7,20 @@ using Xunit;
 
 namespace DumpAsmRefs.Tests.Data
 {
-    public class AssemblyInfoTests
+    public class AssemblyIdentifierTests
     {
         [Fact]
-        public void AssemblyInfo_Parsing_NullOrEmpty()
+        public void Parse_NullOrEmpty()
         {
             // Null/empty
-            AssemblyInfo.Parse(null).Should().BeNull();
-            AssemblyInfo.Parse("").Should().BeNull();
+            AssemblyIdentifier.Parse(null).Should().BeNull();
+            AssemblyIdentifier.Parse("").Should().BeNull();
         }
 
         [Fact]
-        public void AssemblyInfo_Parsing_NotStrongNamed()
+        public void Parse_NotStrongNamed()
         {
-            var result = AssemblyInfo.Parse("DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null");
+            var result = AssemblyIdentifier.Parse("DumpAsmRefs, Version=0.8.0.0, Culture=neutral, PublicKeyToken=null");
 
             result.Name.Should().Be("DumpAsmRefs");
             result.Version.Should().Be(new Version(0, 8, 0, 0));
@@ -29,9 +29,9 @@ namespace DumpAsmRefs.Tests.Data
         }
 
         [Fact]
-        public void AssemblyInfo_Parsing_StrongNamed()
+        public void Parse_StrongNamed()
         {
-            var result = AssemblyInfo.Parse("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            var result = AssemblyIdentifier.Parse("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
 
             result.Name.Should().Be("System");
             result.Version.Should().Be(new Version(4, 0, 0, 0));
