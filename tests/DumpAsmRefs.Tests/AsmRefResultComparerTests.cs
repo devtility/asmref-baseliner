@@ -120,8 +120,8 @@ namespace DumpAsmRefs.Tests
         [InlineData("4.5", VersionCompatibility.Any, true)]
         public void IsSameXXXAssembly_VersionCompatibility(string version, VersionCompatibility versionCompatibility, bool expected)
         {
-            var input1 = AssemblyInfo.Parse($"DumpAsmRefs, Version={version}, Culture=neutral, PublicKeyToken=null");
-            var input2 = AssemblyInfo.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
+            var input1 = AssemblyIdentifier.Parse($"DumpAsmRefs, Version={version}, Culture=neutral, PublicKeyToken=null");
+            var input2 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
             var options = new ComparisonOptions(versionCompatibility, ignoreSourcePublicKeyToken: false);
 
             // Source and non-source assembly should be handled the same currently
@@ -135,8 +135,8 @@ namespace DumpAsmRefs.Tests
         public void NonSourceAssembliesMatch_IgnoreSourcePublicKeyToken(bool ignoreSourcePublicKeyToken, bool expected)
         {
             // IgnoreSourcePublicKeyToken should not be used when comparing non-source assemblies
-            var input1 = AssemblyInfo.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
-            var input2 = AssemblyInfo.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+            var input1 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
+            var input2 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
             var options = new ComparisonOptions(VersionCompatibility.Any, ignoreSourcePublicKeyToken);
 
             AsmRefResultComparer.NonSourceAssembliesMatch(input1, input2, options).Should().Be(expected);
@@ -147,8 +147,8 @@ namespace DumpAsmRefs.Tests
         [InlineData(false, false)]
         public void SourceAssembliesMatch_IgnoreSourcePublicKeyToken(bool ignoreSourcePublicKeyToken, bool expected)
         {
-            var input1 = AssemblyInfo.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
-            var input2 = AssemblyInfo.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+            var input1 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
+            var input2 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
             var options = new ComparisonOptions(VersionCompatibility.Any, ignoreSourcePublicKeyToken);
 
             AsmRefResultComparer.SourceAssembliesMatch(input1, input2, options).Should().Be(expected);

@@ -6,9 +6,9 @@ using System.Text;
 
 namespace DumpAsmRefs.Data
 {
-    public class AssemblyInfo
+    public class AssemblyIdentifier
     {
-        private AssemblyInfo(string name, Version version, string cultureInfo, string publicKeyToken)
+        private AssemblyIdentifier(string name, Version version, string cultureInfo, string publicKeyToken)
         {
             Name = name;
             Version = version;
@@ -21,7 +21,7 @@ namespace DumpAsmRefs.Data
         public string CultureName { get; }
         public string PublicKeyToken { get; }
 
-        public static AssemblyInfo Parse(string fullName)
+        public static AssemblyIdentifier Parse(string fullName)
         {
             var asmName = ParseAssemblyName(fullName);
             if (asmName == null)
@@ -30,7 +30,7 @@ namespace DumpAsmRefs.Data
             }
 
             var token = GetPublicKeyTokenAsString(asmName);
-            return new AssemblyInfo(asmName.Name, asmName.Version, asmName.CultureName, token);
+            return new AssemblyIdentifier(asmName.Name, asmName.Version, asmName.CultureName, token);
         }
 
         private static AssemblyName ParseAssemblyName(string name)
