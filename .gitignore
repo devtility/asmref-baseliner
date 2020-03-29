@@ -8,3 +8,7 @@
 /tests/DumpAsmRefs.Tests/bin/Debug/
 /tests/DumpAsmRefs.Tests/obj
 /.sonarqube
+/src/DumpAsmRefs/bin/Release
+/tests/DumpAsmRefs.MSBuild.Tests/bin/Debug
+/tests/DumpAsmRefs.MSBuild.Tests/obj
+/tests/DumpAsmRefs.Tests/bin/Release/net461
