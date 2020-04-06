@@ -15,14 +15,17 @@ namespace DumpAsmRefs.MSBuild.Tests
     {
         private readonly ITestOutputHelper output;
 
-        public DotNetBuildTests(ITestOutputHelper output)
+        static DotNetBuildTests()
         {
-            this.output = output;
-
             // Must be done in a separate method, before any code that uses the
             // Microsoft.Build namespace.
             // See https://github.com/microsoft/MSBuildLocator/commit/f3d5b0814bc7c5734d03a617c17c6998dd2f0e99
             Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+        }
+
+        public DotNetBuildTests(ITestOutputHelper output)
+        {
+            this.output = output;
         }
 
         [Fact]
@@ -108,7 +111,6 @@ namespace MyNamespace
             var fullPathName = Path.Combine(Environment.CurrentDirectory, subdir, fileName);
             File.WriteAllText(fullPathName, text);
             return fullPathName;
-
         }
     }
 }
