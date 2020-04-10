@@ -57,25 +57,9 @@ namespace MyNamespace
             var projFilePath = WriteTextFile("proj1", "myApp.csproj", proj);
             WriteTextFile("proj1", "program.cs", code);
 
-            var p = new BuildParameters
-            {
-                Loggers = new ILogger[] { new Microsoft.Build.Logging.BinaryLogger { Parameters = "proj1\\msbuild.binlog" }  }
-            };
-
-            var buildResult = BuildManager.DefaultBuildManager.Build(p, 
-                new BuildRequestData(projFilePath,
-                    new Dictionary<string, string>(),
-                    null,
-                    new[] { "Restore", "Build" },
-                    null,
-                    BuildRequestDataFlags.None));
+            var (buildResult, buildChecker) = RestoreAndBuild(projFilePath);
 
             buildResult.OverallResult.Should().Be(BuildResultCode.Success);
-
-            var binLogFilePath = Path.Combine(Environment.CurrentDirectory, "proj1", "msbuild.binlog");
-            File.Exists(binLogFilePath).Should().BeTrue();
-
-            var buildChecker = new BuildLogChecker(binLogFilePath);
 
             buildChecker.FindSingleTargetExecution("Compile")
                 .Succeeded.Should().BeTrue();
@@ -111,6 +95,31 @@ namespace MyNamespace
             var fullPathName = Path.Combine(Environment.CurrentDirectory, subdir, fileName);
             File.WriteAllText(fullPathName, text);
             return fullPathName;
+        }
+
+        private static (BuildResult, BuildLogChecker) RestoreAndBuild(string projectFilePath)
+        {
+            var projectDir = Path.GetDirectoryName(projectFilePath);
+            var binLogFilePath = Path.Combine(projectDir, "msbuild.binlog");
+
+            var buildParams = new BuildParameters
+            {
+                Loggers = new ILogger[] { new Microsoft.Build.Logging.BinaryLogger { Parameters = binLogFilePath } }
+            };
+
+            var buildResult = BuildManager.DefaultBuildManager.Build(buildParams,
+                new BuildRequestData(projectFilePath,
+                    new Dictionary<string, string>(),
+                    null,
+                    new[] { "Restore", "Build" },
+                    null,
+                    BuildRequestDataFlags.None));
+
+            File.Exists(binLogFilePath).Should().BeTrue();
+
+            var buildChecker = new BuildLogChecker(binLogFilePath);
+
+            return (buildResult, buildChecker);
         }
     }
 }
