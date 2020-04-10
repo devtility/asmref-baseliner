@@ -31,13 +31,13 @@ namespace DumpAsmRefs.MSBuild.Tests
         [Fact]
         public void SimpleBuild()
         {
-            const string proj = @"<Project Sdk=""Microsoft.NET.Sdk"">
+            CreateTestSpecificDirectory();
 
+            const string proj = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-
 </Project>
 ";
 
@@ -56,6 +56,70 @@ namespace MyNamespace
 }";
             var projFilePath = WriteTextFile("proj1", "myApp.csproj", proj);
             WriteTextFile("proj1", "program.cs", code);
+
+            var (buildResult, buildChecker) = RestoreAndBuild(projFilePath);
+
+            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
+
+            buildChecker.FindSingleTargetExecution("Compile")
+                .Succeeded.Should().BeTrue();
+        }
+
+        [Fact]
+        public void RestorePackageThenBuild()
+        {
+            var version = GetPackageVersion();
+            var packagePath = GetTestAssemblyBinPath();
+
+            CreateTestSpecificDirectory();
+
+            var proj = $@"<Project Sdk='Microsoft.NET.Sdk'>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+
+<!--
+    <RestoreNoCache>true</RestoreNoCache>
+    <RestoreForce>true</RestoreForce>
+-->
+    <RestorePackagesPath>{GetNuGetPackageCachePath()}</RestorePackagesPath>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include='Devtility.CheckAsmRefs' Version='{version}' />
+  </ItemGroup>
+
+</Project>
+";
+
+            const string code = @"
+using System;
+
+namespace MyNamespace
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(""Hello World!"");
+        }
+    }
+}";
+
+            var nugetConfigContent = $@"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+    <packageSources>
+        <clear /> <!-- ensure only the sources defined below are used -->
+        <add key='latestPackageFolder' value='{packagePath}' />
+        <add key='NuGet official package source' value='https://api.nuget.org/v3/index.json' />
+    </packageSources>
+</configuration>
+";
+
+            var projFilePath = WriteTextFile("proj1", "myApp.csproj", proj);
+            WriteTextFile("proj1", "program.cs", code);
+            WriteTextFile("", "nuget.config", nugetConfigContent);
 
             var (buildResult, buildChecker) = RestoreAndBuild(projFilePath);
 
@@ -85,6 +149,71 @@ namespace MyNamespace
         {
         }
 
+        private string CreateTestSpecificDirectory([System.Runtime.CompilerServices.CallerMemberName] string subDirName = "")
+        {
+            var directory = Path.Combine(GetTestResultsPath(), subDirName);
+            output.WriteLine($"Test-specific directory: {directory}");
+
+            SafeDeleteDirectory(directory);
+
+            Directory.CreateDirectory(directory);
+            Directory.SetCurrentDirectory(directory);
+            return directory;
+        }
+
+        private static void SafeDeleteDirectory(string directory)
+        {
+            var attempts = 0;
+            while (attempts < 3 && Directory.Exists(directory))
+            {
+                try
+                {
+                    Directory.Delete(directory, true);
+                }
+                catch (IOException)
+                {
+                    // ignore
+                }
+                attempts++;
+            }
+        }
+
+        private static string GetTestAssemblyBinPath()
+        {
+            var uriCodeBase = typeof(DotNetBuildTests).Assembly.CodeBase;
+            var uri = new Uri(uriCodeBase);
+            var path = uri.AbsolutePath;
+            return Path.GetDirectoryName(path);
+        }
+
+        private static string GetTestResultsPath()
+        {
+            const string folderName = "\\DumpAsmRefs.MSBuild.Tests\\";
+            var projectBinPath = GetTestAssemblyBinPath();
+
+            var index = projectBinPath.IndexOf(folderName);
+            var projectDirectory = projectBinPath.Substring(0, index);
+            return Path.Combine(projectDirectory, "TestResults");
+        }
+
+        private static string GetNuGetPackageCachePath()
+            => Path.Combine(GetTestResultsPath(), "TestPackagesCache");
+
+        private static string GetPackageVersion()
+        {
+            const string filePrefix = "Devtility.CheckAsmRefs.";
+            var directory = GetTestAssemblyBinPath();
+            var files = Directory.GetFiles(directory, $"{filePrefix}*.nupkg");
+
+            if (files.Length != 1)
+            {
+                throw new InvalidOperationException("Test setup error: failed to locate the current NuGet package");
+            }
+
+            var version = Path.GetFileNameWithoutExtension(files[0]).Replace(filePrefix, "");
+            return version;
+        }
+
         private static string WriteTextFile(string subdir, string fileName, string text)
         {
             if (!string.IsNullOrEmpty(subdir) && !Directory.Exists(subdir))
@@ -99,8 +228,16 @@ namespace MyNamespace
 
         private static (BuildResult, BuildLogChecker) RestoreAndBuild(string projectFilePath)
         {
+            BuildSingleTarget(projectFilePath, "Restore");
+            var (buildResult, buildChecker) = BuildSingleTarget(projectFilePath, "Build");
+
+            return (buildResult, buildChecker);
+        }
+
+        private static (BuildResult, BuildLogChecker) BuildSingleTarget(string projectFilePath, string targetName)
+        {
             var projectDir = Path.GetDirectoryName(projectFilePath);
-            var binLogFilePath = Path.Combine(projectDir, "msbuild.binlog");
+            var binLogFilePath = Path.Combine(projectDir, $"msbuild.{targetName}.binlog");
 
             var buildParams = new BuildParameters
             {
@@ -111,14 +248,12 @@ namespace MyNamespace
                 new BuildRequestData(projectFilePath,
                     new Dictionary<string, string>(),
                     null,
-                    new[] { "Restore", "Build" },
+                    new[] { targetName },
                     null,
                     BuildRequestDataFlags.None));
 
             File.Exists(binLogFilePath).Should().BeTrue();
-
             var buildChecker = new BuildLogChecker(binLogFilePath);
-
             return (buildResult, buildChecker);
         }
     }
