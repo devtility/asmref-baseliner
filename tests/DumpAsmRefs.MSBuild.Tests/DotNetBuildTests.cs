@@ -57,7 +57,8 @@ namespace MyNamespace
             var projFilePath = WriteTextFile("proj1", "myApp.csproj", proj);
             WriteTextFile("proj1", "program.cs", code);
 
-            var (buildResult, buildChecker) = RestoreAndBuild(projFilePath);
+            BuildSingleTarget(projFilePath, "Restore");
+            var (buildResult, buildChecker) = BuildSingleTarget(projFilePath, "Build");
 
             buildResult.OverallResult.Should().Be(BuildResultCode.Success);
 
@@ -77,33 +78,21 @@ namespace MyNamespace
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-
-<!--
-    <RestoreNoCache>true</RestoreNoCache>
-    <RestoreForce>true</RestoreForce>
--->
     <RestorePackagesPath>{GetNuGetPackageCachePath()}</RestorePackagesPath>
-
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include='Devtility.CheckAsmRefs' Version='{version}' />
   </ItemGroup>
-
-</Project>
-";
+</Project>";
 
             const string code = @"
 using System;
-
-namespace MyNamespace
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine(""Hello World!"");
-        }
+        Console.WriteLine(""Hello World!"");
     }
 }";
 
@@ -116,37 +105,60 @@ namespace MyNamespace
     </packageSources>
 </configuration>
 ";
-
-            var projFilePath = WriteTextFile("proj1", "myApp.csproj", proj);
+            var projectFilePath = WriteTextFile("proj1", "myApp.csproj", proj);
             WriteTextFile("proj1", "program.cs", code);
             WriteTextFile("", "nuget.config", nugetConfigContent);
 
-            var (buildResult, buildChecker) = RestoreAndBuild(projFilePath);
+            var checker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath), "myApp");
 
+            // 1. Restore
+            var (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Restore");
+            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
+            checker.CheckNoTargetsExecuted(logChecker);
+            checker.CheckReportsDoNotExist();
+
+            // 2. Build -> baseline file created
+            (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build");
+            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
+            checker.CheckBaselinePublished(logChecker);
+
+            // 3. Build again -> comparison run, no error
+            (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build");
             buildResult.OverallResult.Should().Be(BuildResultCode.Success);
 
-            buildChecker.FindSingleTargetExecution("Compile")
-                .Succeeded.Should().BeTrue();
-        }
+            checker.CheckComparisonExecutedAndSucceeded(logChecker);
+            checker.CheckReportsAreDifferent();
 
-        [Fact]
-        public void Build_NoBaseline_BaselineCreated()
-        {
-        }
+            // 4. Add new ref, build -> comparison run, build fails
+            const string newCode = @"
+class Class1
+{
+    void Method1(System.Data.AcceptRejectRule arg1) { /* no-op */ }
+}";
+            WriteTextFile("proj1", "newCode.cs", newCode);
+            (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build");
+            buildResult.OverallResult.Should().Be(BuildResultCode.Failure);
 
-        [Fact]
-        public void Build_BaselineExists_NoChanges_TaskSucceeds()
-        {
-        }
+            checker.CheckComparisonExecutedAndFailed(logChecker);
+            checker.CheckReportsAreDifferent();
 
-        [Fact]
-        public void Build_BaselineExists_Changes_TaskFails()
-        {
-        }
+            // 5. Update -> baseline file updated
+            var properties = new Dictionary<string, string>
+            {
+                { "AsmRefUpdateBaseline", "true"}
+            };
+            (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build", properties);
+            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
 
-        [Fact]
-        public void Build_UpdateFlagSet_BaselineUpdated()
-        {
+            checker.CheckBaselineUpdatePerformed(logChecker);
+            checker.CheckReportsAreSame();
+
+            // 6. Build again -> comparison run, no error
+            (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build");
+            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
+
+            checker.CheckComparisonExecutedAndSucceeded(logChecker);
+            checker.CheckReportsAreDifferent();
         }
 
         private string CreateTestSpecificDirectory([System.Runtime.CompilerServices.CallerMemberName] string subDirName = "")
@@ -161,7 +173,7 @@ namespace MyNamespace
             return directory;
         }
 
-        private static void SafeDeleteDirectory(string directory)
+        private void SafeDeleteDirectory(string directory)
         {
             var attempts = 0;
             while (attempts < 3 && Directory.Exists(directory))
@@ -170,9 +182,9 @@ namespace MyNamespace
                 {
                     Directory.Delete(directory, true);
                 }
-                catch (IOException)
+                catch (Exception ex)
                 {
-                    // ignore
+                    output.WriteLine($"Test setup error cleaning directory '{directory}'. {ex}");
                 }
                 attempts++;
             }
@@ -226,15 +238,8 @@ namespace MyNamespace
             return fullPathName;
         }
 
-        private static (BuildResult, BuildLogChecker) RestoreAndBuild(string projectFilePath)
-        {
-            BuildSingleTarget(projectFilePath, "Restore");
-            var (buildResult, buildChecker) = BuildSingleTarget(projectFilePath, "Build");
-
-            return (buildResult, buildChecker);
-        }
-
-        private static (BuildResult, BuildLogChecker) BuildSingleTarget(string projectFilePath, string targetName)
+        private static (BuildResult, BuildLogChecker) BuildSingleTarget(string projectFilePath, string targetName,
+            Dictionary<string, string> additionalProperties = null)
         {
             var projectDir = Path.GetDirectoryName(projectFilePath);
             var binLogFilePath = Path.Combine(projectDir, $"msbuild.{targetName}.binlog");
@@ -246,7 +251,7 @@ namespace MyNamespace
 
             var buildResult = BuildManager.DefaultBuildManager.Build(buildParams,
                 new BuildRequestData(projectFilePath,
-                    new Dictionary<string, string>(),
+                    additionalProperties ?? new Dictionary<string, string>(),
                     null,
                     new[] { targetName },
                     null,

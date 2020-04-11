@@ -29,6 +29,32 @@ namespace DumpAsmRefs.MSBuild.Tests
             return matches.First();
         }
 
+        public void CheckTargetsFailed(params string[] targetNames)
+            => CheckTargetsSuccess(false, targetNames);
+
+        public void CheckTargetsSucceeded(params string[] targetNames)
+            => CheckTargetsSuccess(true, targetNames);
+
+        public void CheckTargetsNotExecuted(params string[] targetNames)
+        {
+            foreach(var item in targetNames)
+            {
+                var matches = allTargets.Where(t => IsTargetByName(t, item));
+                matches.Count().Should().Be(0);
+            }
+        }
+
+        private void CheckTargetsSuccess(bool expected, params string[] targetNames)
+        {
+            foreach (var item in targetNames)
+            {
+                CheckTargetOutcome(item, expected);
+            }
+        }
+
+        private void CheckTargetOutcome(string targetName, bool expected)
+            => FindSingleTargetExecution(targetName).Succeeded.Should().Be(expected);
+
         private static bool IsTargetByName(Target target, string name)
             => string.Equals(target.Name, name, StringComparison.Ordinal);
     }
