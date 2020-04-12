@@ -3,7 +3,6 @@
 using FluentAssertions;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -31,7 +30,7 @@ namespace DumpAsmRefs.MSBuild.Tests
         [Fact]
         public void SimpleBuild()
         {
-            CreateTestSpecificDirectory();
+            var context = TestContext.Initialize(output);
 
             const string proj = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
@@ -54,8 +53,8 @@ namespace MyNamespace
         }
     }
 }";
-            var projFilePath = WriteTextFile("proj1", "myApp.csproj", proj);
-            WriteTextFile("proj1", "program.cs", code);
+            var projFilePath = context.WriteFile("myApp.csproj", proj, "proj1");
+            context.WriteFile("program.cs", code, "proj1");
 
             BuildSingleTarget(projFilePath, "Restore");
             var (buildResult, buildChecker) = BuildSingleTarget(projFilePath, "Build");
@@ -69,20 +68,17 @@ namespace MyNamespace
         [Fact]
         public void RestorePackageThenBuild()
         {
-            var version = GetPackageVersion();
-            var packagePath = GetTestAssemblyBinPath();
-
-            CreateTestSpecificDirectory();
+            var context = TestContext.Initialize(output);
 
             var proj = $@"<Project Sdk='Microsoft.NET.Sdk'>
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <RestorePackagesPath>{GetNuGetPackageCachePath()}</RestorePackagesPath>
+    <RestorePackagesPath>{context.LocalNuGetFeedPath}</RestorePackagesPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include='Devtility.CheckAsmRefs' Version='{version}' />
+    <PackageReference Include='Devtility.CheckAsmRefs' Version='{context.PackageVersion}' />
   </ItemGroup>
 </Project>";
 
@@ -95,20 +91,9 @@ class Program
         Console.WriteLine(""Hello World!"");
     }
 }";
-
-            var nugetConfigContent = $@"<?xml version='1.0' encoding='utf-8'?>
-<configuration>
-    <packageSources>
-        <clear /> <!-- ensure only the sources defined below are used -->
-        <add key='latestPackageFolder' value='{packagePath}' />
-        <add key='NuGet official package source' value='https://api.nuget.org/v3/index.json' />
-    </packageSources>
-</configuration>
-";
-            var projectFilePath = WriteTextFile("proj1", "myApp.csproj", proj);
-            WriteTextFile("proj1", "program.cs", code);
-            WriteTextFile("", "nuget.config", nugetConfigContent);
-
+            var projectFilePath = context.WriteFile("myApp.csproj", proj, "proj1");
+            context.WriteFile("program.cs", code, "proj1");
+            
             var checker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath), "myApp");
 
             // 1. Restore
@@ -135,7 +120,7 @@ class Class1
 {
     void Method1(System.Data.AcceptRejectRule arg1) { /* no-op */ }
 }";
-            WriteTextFile("proj1", "newCode.cs", newCode);
+            context.WriteFile("newCode.cs", newCode, "proj1");
             (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build");
             buildResult.OverallResult.Should().Be(BuildResultCode.Failure);
 
@@ -159,83 +144,6 @@ class Class1
 
             checker.CheckComparisonExecutedAndSucceeded(logChecker);
             checker.CheckReportsAreDifferent();
-        }
-
-        private string CreateTestSpecificDirectory([System.Runtime.CompilerServices.CallerMemberName] string subDirName = "")
-        {
-            var directory = Path.Combine(GetTestResultsPath(), subDirName);
-            output.WriteLine($"Test-specific directory: {directory}");
-
-            SafeDeleteDirectory(directory);
-
-            Directory.CreateDirectory(directory);
-            Directory.SetCurrentDirectory(directory);
-            return directory;
-        }
-
-        private void SafeDeleteDirectory(string directory)
-        {
-            var attempts = 0;
-            while (attempts < 3 && Directory.Exists(directory))
-            {
-                try
-                {
-                    Directory.Delete(directory, true);
-                }
-                catch (Exception ex)
-                {
-                    output.WriteLine($"Test setup error cleaning directory '{directory}'. {ex}");
-                }
-                attempts++;
-            }
-        }
-
-        private static string GetTestAssemblyBinPath()
-        {
-            var uriCodeBase = typeof(DotNetBuildTests).Assembly.CodeBase;
-            var uri = new Uri(uriCodeBase);
-            var path = uri.AbsolutePath;
-            return Path.GetDirectoryName(path);
-        }
-
-        private static string GetTestResultsPath()
-        {
-            const string folderName = "\\DumpAsmRefs.MSBuild.Tests\\";
-            var projectBinPath = GetTestAssemblyBinPath();
-
-            var index = projectBinPath.IndexOf(folderName);
-            var projectDirectory = projectBinPath.Substring(0, index);
-            return Path.Combine(projectDirectory, "TestResults");
-        }
-
-        private static string GetNuGetPackageCachePath()
-            => Path.Combine(GetTestResultsPath(), "TestPackagesCache");
-
-        private static string GetPackageVersion()
-        {
-            const string filePrefix = "Devtility.CheckAsmRefs.";
-            var directory = GetTestAssemblyBinPath();
-            var files = Directory.GetFiles(directory, $"{filePrefix}*.nupkg");
-
-            if (files.Length != 1)
-            {
-                throw new InvalidOperationException("Test setup error: failed to locate the current NuGet package");
-            }
-
-            var version = Path.GetFileNameWithoutExtension(files[0]).Replace(filePrefix, "");
-            return version;
-        }
-
-        private static string WriteTextFile(string subdir, string fileName, string text)
-        {
-            if (!string.IsNullOrEmpty(subdir) && !Directory.Exists(subdir))
-            {
-                Directory.CreateDirectory(subdir);
-            }
-
-            var fullPathName = Path.Combine(Environment.CurrentDirectory, subdir, fileName);
-            File.WriteAllText(fullPathName, text);
-            return fullPathName;
         }
 
         private static (BuildResult, BuildLogChecker) BuildSingleTarget(string projectFilePath, string targetName,

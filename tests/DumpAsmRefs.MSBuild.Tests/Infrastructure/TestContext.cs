@@ -1,0 +1,138 @@
+﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
+
+using System;
+using System.IO;
+using Xunit.Abstractions;
+
+namespace DumpAsmRefs.MSBuild.Tests
+{
+    internal class TestContext
+    {
+        private readonly ITestOutputHelper output;
+        internal static TestContext Initialize(ITestOutputHelper output,
+            [System.Runtime.CompilerServices.CallerMemberName] string uniqueTestName = "") => new TestContext(output, uniqueTestName);
+
+        private TestContext(ITestOutputHelper output,
+            [System.Runtime.CompilerServices.CallerMemberName] string uniqueTestName = "")
+        {
+            this.output = output;
+
+            TestResultsDirectory = GetTestResultsPath();
+            TestSpecificDirectory = CreateTestSpecificDirectory(uniqueTestName);
+
+            LocalNuGetFeedPath = GetNuGetLocalFeedPath();
+            PackageVersion = GetPackageVersion();
+            EnsureLocalNuGetConfigFileExists(LocalNuGetFeedPath);
+        }
+
+        public string TestResultsDirectory { get; }
+        public string TestSpecificDirectory { get; }
+        public string PackageVersion { get; }
+        public string LocalNuGetFeedPath { get; }
+
+        private static string GetTestResultsPath()
+        {
+            const string folderName = "\\DumpAsmRefs.MSBuild.Tests\\";
+            var projectBinPath = GetTestAssemblyBinPath();
+
+            var index = projectBinPath.IndexOf(folderName);
+            var projectDirectory = projectBinPath.Substring(0, index);
+            return Path.Combine(projectDirectory, "TestResults");
+        }
+
+        private string CreateTestSpecificDirectory(string subDirName)
+        {
+            var directory = Path.Combine(TestResultsDirectory, subDirName);
+            output.WriteLine($"Test-specific directory: {directory}");
+
+            SafeDeleteDirectory(directory);
+
+            Directory.CreateDirectory(directory);
+            return directory;
+        }
+
+        private void EnsureLocalNuGetConfigFileExists(string feedPath)
+        {
+            // Ensure there is a local NuGet config file in the test results folder
+            // that will be picked up by any tests in that folder.
+            // The file configures the feeds to use so that the locally-built NuGet package
+            // is picked up, rather than a published version.
+
+            var fullPath = Path.Combine(GetTestResultsPath(), "nuget.config");
+            if (File.Exists(fullPath))
+            {
+                output.WriteLine($"Local nuget.config file already exists: {fullPath}");
+                return;
+            }
+
+            var nugetConfigContent = $@"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+    <packageSources>
+        <clear /> <!-- ensure only the sources defined below are used -->
+        <add key='latestPackageFolder' value='{feedPath}' />
+        <add key='NuGet official package source' value='https://api.nuget.org/v3/index.json' />
+    </packageSources>
+</configuration>
+";
+            output.WriteLine($"Creating local nuget.config file: {fullPath}");
+            File.WriteAllText(fullPath, nugetConfigContent);
+        }
+
+        private static string GetTestAssemblyBinPath()
+        {
+            var uriCodeBase = typeof(DotNetBuildTests).Assembly.CodeBase;
+            var uri = new Uri(uriCodeBase);
+            var path = uri.AbsolutePath;
+            return Path.GetDirectoryName(path);
+        }
+
+        private static string GetNuGetLocalFeedPath()
+            => Path.Combine(GetTestResultsPath(), "TestPackagesCache");
+
+        private static string GetPackageVersion()
+        {
+            const string filePrefix = "Devtility.CheckAsmRefs.";
+            var directory = GetTestAssemblyBinPath();
+            var files = Directory.GetFiles(directory, $"{filePrefix}*.nupkg");
+
+            if (files.Length != 1)
+            {
+                throw new InvalidOperationException("Test setup error: failed to locate the current NuGet package");
+            }
+
+            var version = Path.GetFileNameWithoutExtension(files[0]).Replace(filePrefix, "");
+            return version;
+        }
+
+        public string WriteFile(string fileName, string text, string subdir = "")
+        {
+            var fullDirPath = Path.Combine(TestSpecificDirectory, subdir);
+            if (!Directory.Exists(fullDirPath))
+            {
+                Directory.CreateDirectory(fullDirPath);
+            }
+
+            var fullPathName = Path.Combine(fullDirPath, fileName);
+            output.WriteLine($"Creating test-specific file: {fullPathName}");
+            File.WriteAllText(fullPathName, text);
+            return fullPathName;
+        }
+
+        private void SafeDeleteDirectory(string directory)
+        {
+            var attempts = 0;
+            while (attempts < 3 && Directory.Exists(directory))
+            {
+                try
+                {
+                    Directory.Delete(directory, true);
+                }
+                catch (Exception ex)
+                {
+                    output.WriteLine($"Test setup error cleaning directory '{directory}'. {ex}");
+                }
+                attempts++;
+            }
+        }
+    }
+}
