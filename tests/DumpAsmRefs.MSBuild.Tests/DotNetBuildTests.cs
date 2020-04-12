@@ -74,7 +74,7 @@ namespace MyNamespace
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <RestorePackagesPath>{context.LocalNuGetFeedPath}</RestorePackagesPath>
+    <RestorePackagesPath>{context.NuGetPackageCachePath}</RestorePackagesPath>
   </PropertyGroup>
 
   <ItemGroup>
