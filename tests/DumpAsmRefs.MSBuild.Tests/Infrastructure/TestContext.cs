@@ -9,6 +9,7 @@ namespace DumpAsmRefs.MSBuild.Tests
     internal class TestContext
     {
         private readonly ITestOutputHelper output;
+
         internal static TestContext Initialize(ITestOutputHelper output,
             [System.Runtime.CompilerServices.CallerMemberName] string uniqueTestName = "") => new TestContext(output, uniqueTestName);
 
@@ -16,19 +17,25 @@ namespace DumpAsmRefs.MSBuild.Tests
             [System.Runtime.CompilerServices.CallerMemberName] string uniqueTestName = "")
         {
             this.output = output;
+            output.WriteLine($"Initializing context for test '{uniqueTestName}'");
 
             TestResultsDirectory = GetTestResultsPath();
             TestSpecificDirectory = CreateTestSpecificDirectory(uniqueTestName);
 
-            LocalNuGetFeedPath = GetNuGetLocalFeedPath();
-            PackageVersion = GetPackageVersion();
+            var (packageFilePath, version) = GetLatestNuGetPackagePathAndVersion();
+            LocalNuGetFeedPath = Path.GetDirectoryName(packageFilePath);
+            PackageVersion = version;
+
+            NuGetPackageCachePath = Path.Combine(GetTestResultsPath(), "TestPackagesCache");
             EnsureLocalNuGetConfigFileExists(LocalNuGetFeedPath);
         }
 
         public string TestResultsDirectory { get; }
         public string TestSpecificDirectory { get; }
         public string PackageVersion { get; }
-        public string LocalNuGetFeedPath { get; }
+        public string NuGetPackageCachePath { get; }
+
+        private string LocalNuGetFeedPath { get; }
 
         private static string GetTestResultsPath()
         {
@@ -75,6 +82,7 @@ namespace DumpAsmRefs.MSBuild.Tests
 </configuration>
 ";
             output.WriteLine($"Creating local nuget.config file: {fullPath}");
+            output.WriteLine(nugetConfigContent);
             File.WriteAllText(fullPath, nugetConfigContent);
         }
 
@@ -86,10 +94,7 @@ namespace DumpAsmRefs.MSBuild.Tests
             return Path.GetDirectoryName(path);
         }
 
-        private static string GetNuGetLocalFeedPath()
-            => Path.Combine(GetTestResultsPath(), "TestPackagesCache");
-
-        private static string GetPackageVersion()
+        private (string packageFilePath, string version) GetLatestNuGetPackagePathAndVersion()
         {
             const string filePrefix = "Devtility.CheckAsmRefs.";
             var directory = GetTestAssemblyBinPath();
@@ -101,7 +106,9 @@ namespace DumpAsmRefs.MSBuild.Tests
             }
 
             var version = Path.GetFileNameWithoutExtension(files[0]).Replace(filePrefix, "");
-            return version;
+            output.WriteLine($"Latest NuGet package path: {files[0]}");
+            output.WriteLine($"Latest NuGet package version: {version}");
+            return (files[0], version);
         }
 
         public string WriteFile(string fileName, string text, string subdir = "")
@@ -133,6 +140,7 @@ namespace DumpAsmRefs.MSBuild.Tests
                 }
                 attempts++;
             }
+            output.WriteLine($"Directory deleted: {directory}");
         }
     }
 }
