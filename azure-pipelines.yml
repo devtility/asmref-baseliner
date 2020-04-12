@@ -58,18 +58,27 @@ steps:
     TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
 
 - task: VSTest@2
+  continueOnError: true
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     codeCoverageEnabled: true
 
 - task: CopyFiles@2
+  condition: failed()
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)\tests\TestResults'
     Contents: |
       nuget.config
       **\*.binlog
     TargetFolder: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
+
+- task: PublishPipelineArtifact@1
+  condition: failed()
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
+    artifact: 'e2eBinLogs'
+    publishLocation: 'pipeline'
 
 - task: SonarCloudAnalyze@1
 
@@ -83,12 +92,6 @@ steps:
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)\packages'
     artifact: 'packages'
-    publishLocation: 'pipeline'
-
-- task: PublishPipelineArtifact@1
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
-    artifact: 'e2eBinLogs'
     publishLocation: 'pipeline'
 
 - task: SonarCloudPublish@1
