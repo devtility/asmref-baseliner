@@ -37,6 +37,8 @@ namespace DumpAsmRefs.MSBuild.Tests
                     : ExecutionStatus.TimedOut;
             }
 
+            EnsureProcessHasExited(process, timeoutInMs);
+
             var result = new ExecutionResult(process.ExitCode, executionStatus,
                 process.StandardOutput.ReadToEnd(),
                 process.StandardError.ReadToEnd());
@@ -45,18 +47,39 @@ namespace DumpAsmRefs.MSBuild.Tests
             return result;
         }
 
+        private static void EnsureProcessHasExited(Process process, int timeoutInMs)
+        {
+            var exited = process.WaitForExit(timeoutInMs);
+            Console.WriteLine($"{nameof(EnsureProcessHasExited)}: WaitForExit result = {exited}");
+            if (!exited)
+            {
+                int retryCount = 0;
+                while(retryCount < 5 && !process.HasExited)
+                {
+                    Console.WriteLine($"Waiting for process to exit: {retryCount}");
+                    System.Threading.Thread.Sleep(500);
+                    retryCount++;
+                }
+                Console.WriteLine($"Finished waiting for process to exit. HasExited = {process.HasExited}");
+            }
+        }
+
         private static void EnsureProcessEnded(Process process)
         {
             if (process.HasExited)
             {
+                Console.WriteLine($"{nameof(EnsureProcessEnded)}: process has already ended");
                 return;
             }
 
             try
             {
-                process.Kill();
+                Console.WriteLine($"{nameof(EnsureProcessEnded)}: killing the process...");
+                process.Kill(); // asynchronous
+                process.WaitForExit();
+                Console.WriteLine($"{nameof(EnsureProcessEnded)}: Process killed. HasExited = {process.HasExited}");
             }
-            catch(Exception)
+            catch (Exception)
             {
                 // squash
             }
