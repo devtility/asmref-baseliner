@@ -27,6 +27,12 @@ namespace DumpAsmRefs.MSBuild.Tests
             var projectDir = Path.GetDirectoryName(projectFilePath);
             var binLogFilePath = Path.Combine(projectDir, $"msbuild.{targetName}.binlog");
 
+            if (File.Exists(binLogFilePath))
+            {
+                WriteLine($"Deleting existing binlog file: {binLogFilePath}");
+                File.Delete(binLogFilePath);
+            }
+
             var sb = new StringBuilder();
             sb.Append($"build \"{projectFilePath}\"");
             sb.Append($" -t:{targetName} ");

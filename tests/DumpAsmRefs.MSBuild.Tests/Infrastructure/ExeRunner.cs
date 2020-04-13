@@ -29,6 +29,7 @@ namespace DumpAsmRefs.MSBuild.Tests
 
             Console.WriteLine($"ExeRunner: FileName: {exePath}");
             Console.WriteLine($"ExeRunner: Arguments: {arguments}");
+            Console.WriteLine($"ExeRunner: Timeout: {timeoutInMs}");
 
             if (!process.Start())
             {
@@ -42,12 +43,12 @@ namespace DumpAsmRefs.MSBuild.Tests
             }
 
             EnsureProcessHasExited(process, timeoutInMs);
+            EnsureProcessEnded(process);
 
             var result = new ExecutionResult(process.ExitCode, executionStatus,
                 process.StandardOutput.ReadToEnd(),
                 process.StandardError.ReadToEnd());
 
-            EnsureProcessEnded(process);
             return result;
         }
 
