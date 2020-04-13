@@ -95,17 +95,20 @@ class Program
             var workflowChecker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath), "myApp");
 
             // 1. Restore
+            LogTestStep("1 - initial restore -> not expecting a build or comparison");
             var buildChecker = buildRunner.Restore(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
             workflowChecker.CheckNoTargetsExecuted(buildChecker);
             workflowChecker.CheckReportsDoNotExist();
 
             // 2. Build -> baseline file created
+            LogTestStep("2 - initial build -> expecting baseline baseline to be created");
             buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
             workflowChecker.CheckBaselinePublished(buildChecker);
 
             // 3. Build again -> comparison run, no error
+            LogTestStep("3 - build again -> expecting comparison to run and succeed");
             buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
@@ -113,6 +116,7 @@ class Program
             workflowChecker.CheckReportsAreDifferent();
 
             // 4. Add new ref, build -> comparison run, build fails
+            LogTestStep("4 - add new ref then build -> expecting comparison to run and fail");
             const string newCode = @"
 class Class1
 {
@@ -126,6 +130,7 @@ class Class1
             workflowChecker.CheckReportsAreDifferent();
 
             // 5. Update -> baseline file updated
+            LogTestStep("5 - run with baseline option -> expecting success");
             var properties = new Dictionary<string, string>
             {
                 { "AsmRefUpdateBaseline", "true"}
@@ -137,6 +142,7 @@ class Class1
             workflowChecker.CheckReportsAreSame();
 
             // 6. Build again -> comparison run, no error
+            LogTestStep("6 - build again -> expecting comparison to run with no error");
             buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
@@ -155,6 +161,15 @@ class Class1
                 default:
                     throw new System.ArgumentException($"Test setup error - unrecognised runner id: {runnerId}");
             }
+        }
+
+        private void LogTestStep(string message)
+        {
+            output.WriteLine("");
+            output.WriteLine("******************************************************************************************************");
+            output.WriteLine($"*** Test step: {message}");
+            output.WriteLine("******************************************************************************************************");
+            output.WriteLine("");
         }
     }
 }
