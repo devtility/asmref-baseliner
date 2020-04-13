@@ -8,19 +8,22 @@ using System.Linq;
 
 namespace DumpAsmRefs.MSBuild.Tests
 {
-    internal class BuildLogChecker
+    internal class BuildChecker
     {
         private readonly Build buildRoot;
 
         private readonly IList<Target> allTargets;
 
-        public BuildLogChecker(string binLogFilePath)
+        public BuildChecker(bool succeeded, string binLogFilePath)
         {
+            OverallBuildSucceeded = succeeded;
             buildRoot = BinaryLog.ReadBuild(binLogFilePath);
 
             allTargets = new List<Target>();
             buildRoot.VisitAllChildren<Target>(t => allTargets.Add(t));
         }
+
+        public bool OverallBuildSucceeded { get; }
 
         public Target FindSingleTargetExecution(string targetName)
         {
