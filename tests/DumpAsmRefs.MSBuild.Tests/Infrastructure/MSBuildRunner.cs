@@ -12,14 +12,11 @@ namespace DumpAsmRefs.MSBuild.Tests
     {
         static MSBuildRunner()
         {
-            // Must be done in a separate method, before any code that uses the
-            // Microsoft.Build namespace.
-            // See https://github.com/microsoft/MSBuildLocator/commit/f3d5b0814bc7c5734d03a617c17c6998dd2f0e99
-            Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+            MSBuildLocatorInitializer.EnsureMSBuildInitialized();
         }
 
-        public BuildChecker BuildSingleTarget(string projectFilePath, string targetName,
-                        Dictionary<string, string> additionalProperties = null)
+        BuildChecker IBuildRunner.BuildSingleTarget(string projectFilePath, string targetName,
+                        Dictionary<string, string> additionalProperties)
         {
             var projectDir = Path.GetDirectoryName(projectFilePath);
             var binLogFilePath = Path.Combine(projectDir, $"msbuild.{targetName}.binlog");

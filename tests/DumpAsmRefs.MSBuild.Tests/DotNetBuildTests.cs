@@ -17,11 +17,14 @@ namespace DumpAsmRefs.MSBuild.Tests
             this.output = output;
         }
 
-        [Fact]
-        public void SimpleBuild()
+        [Theory]
+        [InlineData("msbuild")]
+        [InlineData("dotnet")]
+        public void SimpleBuild(string buildRunnerId)
         {
+            var buildRunner = CreateBuildRunner(buildRunnerId);
+
             var context = TestContext.Initialize(output);
-            var buildRunner = CreateBuildRunner();
 
             const string proj = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
@@ -56,9 +59,13 @@ namespace MyNamespace
                 .Succeeded.Should().BeTrue();
         }
 
-        [Fact]
-        public void WorkflowLifecycle()
+        [Theory]
+        [InlineData("msbuild")]
+        [InlineData("dotnet")]
+        public void WorkflowLifecycle(string buildRunnerId)
         {
+            var buildRunner = CreateBuildRunner(buildRunnerId);
+
             var context = TestContext.Initialize(output);
 
             var proj = $@"<Project Sdk='Microsoft.NET.Sdk'>
@@ -86,8 +93,6 @@ class Program
             context.WriteFile("program.cs", code, "proj1");
             
             var workflowChecker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath), "myApp");
-
-            var buildRunner = CreateBuildRunner();
 
             // 1. Restore
             var buildChecker = buildRunner.Restore(projectFilePath);
@@ -139,6 +144,17 @@ class Class1
             workflowChecker.CheckReportsAreDifferent();
         }
 
-        private static IBuildRunner CreateBuildRunner() => new MSBuildRunner();
+        private IBuildRunner CreateBuildRunner(string runnerId)
+        {
+            switch(runnerId)
+            {
+                case "msbuild":
+                    return new MSBuildRunner();
+                case "dotnet":
+                    return new DotNetBuildRunner(output);
+                default:
+                    throw new System.ArgumentException($"Test setup error - unrecognised runner id: {runnerId}");
+            }
+        }
     }
 }
