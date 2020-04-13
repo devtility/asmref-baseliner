@@ -21,6 +21,7 @@ namespace DumpAsmRefs.MSBuild.Tests
         public void SimpleBuild()
         {
             var context = TestContext.Initialize(output);
+            var buildRunner = CreateBuildRunner();
 
             const string proj = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
@@ -46,8 +47,8 @@ namespace MyNamespace
             var projFilePath = context.WriteFile("myApp.csproj", proj, "proj1");
             context.WriteFile("program.cs", code, "proj1");
 
-            BuildSingleTarget(projFilePath, "Restore");
-            var buildChecker = BuildSingleTarget(projFilePath, "Build");
+            buildRunner.Restore(projFilePath);
+            var buildChecker = buildRunner.Build(projFilePath);
 
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
@@ -86,19 +87,21 @@ class Program
             
             var workflowChecker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath), "myApp");
 
+            var buildRunner = CreateBuildRunner();
+
             // 1. Restore
-            var buildChecker = BuildSingleTarget(projectFilePath, "Restore");
+            var buildChecker = buildRunner.Restore(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
             workflowChecker.CheckNoTargetsExecuted(buildChecker);
             workflowChecker.CheckReportsDoNotExist();
 
             // 2. Build -> baseline file created
-            buildChecker = BuildSingleTarget(projectFilePath, "Build");
+            buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
             workflowChecker.CheckBaselinePublished(buildChecker);
 
             // 3. Build again -> comparison run, no error
-            buildChecker = BuildSingleTarget(projectFilePath, "Build");
+            buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
             workflowChecker.CheckComparisonExecutedAndSucceeded(buildChecker);
@@ -111,7 +114,7 @@ class Class1
     void Method1(System.Data.AcceptRejectRule arg1) { /* no-op */ }
 }";
             context.WriteFile("newCode.cs", newCode, "proj1");
-            buildChecker = BuildSingleTarget(projectFilePath, "Build");
+            buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeFalse();
 
             workflowChecker.CheckComparisonExecutedAndFailed(buildChecker);
@@ -122,25 +125,20 @@ class Class1
             {
                 { "AsmRefUpdateBaseline", "true"}
             };
-            buildChecker = BuildSingleTarget(projectFilePath, "Build", properties);
+            buildChecker = buildRunner.Build(projectFilePath, properties);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
             workflowChecker.CheckBaselineUpdatePerformed(buildChecker);
             workflowChecker.CheckReportsAreSame();
 
             // 6. Build again -> comparison run, no error
-            buildChecker = BuildSingleTarget(projectFilePath, "Build");
+            buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
             workflowChecker.CheckComparisonExecutedAndSucceeded(buildChecker);
             workflowChecker.CheckReportsAreDifferent();
         }
 
-        private static BuildChecker BuildSingleTarget(string projectFilePath, string targetName,
-            Dictionary<string, string> additionalProperties = null)
-        {
-            var buildRunner = new MSBuildRunner();
-            return buildRunner.Build(projectFilePath, targetName, additionalProperties);
-        }
+        private static IBuildRunner CreateBuildRunner() => new MSBuildRunner();
     }
 }

@@ -8,7 +8,7 @@ using System.IO;
 
 namespace DumpAsmRefs.MSBuild.Tests
 {
-    internal class MSBuildRunner
+    internal class MSBuildRunner : IBuildRunner
     {
         static MSBuildRunner()
         {
@@ -18,14 +18,8 @@ namespace DumpAsmRefs.MSBuild.Tests
             Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
         }
 
-        public BuildChecker Build(string projectFilePath, string targetName,
+        public BuildChecker BuildSingleTarget(string projectFilePath, string targetName,
                         Dictionary<string, string> additionalProperties = null)
-        {
-            return BuildSingleTarget(projectFilePath, targetName, additionalProperties);
-        }
-
-        private static BuildChecker BuildSingleTarget(string projectFilePath, string targetName,
-            Dictionary<string, string> additionalProperties = null)
         {
             var projectDir = Path.GetDirectoryName(projectFilePath);
             var binLogFilePath = Path.Combine(projectDir, $"msbuild.{targetName}.binlog");
