@@ -31,6 +31,7 @@ namespace DumpAsmRefs.MSBuild.Tests
             sb.Append($"build \"{projectFilePath}\"");
             sb.Append($" -t:{targetName} ");
             sb.Append($" -bl:LogFile=\"{binLogFilePath}\"");
+            sb.Append($" -p:UseSharedCompilation=false"); // don't use the build server
 
             if (additionalProperties != null)
             {
