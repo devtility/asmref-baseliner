@@ -17,11 +17,14 @@ namespace DumpAsmRefs.MSBuild.Tests
             this.output = output;
         }
 
-        [Fact]
-        public void SimpleBuild()
+        [Theory]
+        [InlineData("msbuild")]
+        [InlineData("dotnet")]
+        public void SimpleBuild(string buildRunnerId)
         {
+            var buildRunner = CreateBuildRunner(buildRunnerId);
+
             var context = TestContext.Initialize(output);
-            var buildRunner = CreateBuildRunner();
 
             const string proj = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
@@ -56,9 +59,13 @@ namespace MyNamespace
                 .Succeeded.Should().BeTrue();
         }
 
-        [Fact]
-        public void WorkflowLifecycle()
+        [Theory]
+        [InlineData("msbuild")]
+        [InlineData("dotnet")]
+        public void WorkflowLifecycle(string buildRunnerId)
         {
+            var buildRunner = CreateBuildRunner(buildRunnerId);
+
             var context = TestContext.Initialize(output);
 
             var proj = $@"<Project Sdk='Microsoft.NET.Sdk'>
@@ -66,6 +73,7 @@ namespace MyNamespace
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <RestorePackagesPath>{context.NuGetPackageCachePath}</RestorePackagesPath>
+    <SonarQubeTargetsImported>true</SonarQubeTargetsImported>
   </PropertyGroup>
 
   <ItemGroup>
@@ -87,20 +95,21 @@ class Program
             
             var workflowChecker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath), "myApp");
 
-            var buildRunner = CreateBuildRunner();
-
             // 1. Restore
+            LogTestStep("1 - initial restore -> not expecting a build or comparison");
             var buildChecker = buildRunner.Restore(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
             workflowChecker.CheckNoTargetsExecuted(buildChecker);
             workflowChecker.CheckReportsDoNotExist();
 
             // 2. Build -> baseline file created
+            LogTestStep("2 - initial build -> expecting baseline baseline to be created");
             buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
             workflowChecker.CheckBaselinePublished(buildChecker);
 
             // 3. Build again -> comparison run, no error
+            LogTestStep("3 - build again -> expecting comparison to run and succeed");
             buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
@@ -108,6 +117,7 @@ class Program
             workflowChecker.CheckReportsAreDifferent();
 
             // 4. Add new ref, build -> comparison run, build fails
+            LogTestStep("4 - add new ref then build -> expecting comparison to run and fail");
             const string newCode = @"
 class Class1
 {
@@ -121,6 +131,7 @@ class Class1
             workflowChecker.CheckReportsAreDifferent();
 
             // 5. Update -> baseline file updated
+            LogTestStep("5 - run with baseline option -> expecting success");
             var properties = new Dictionary<string, string>
             {
                 { "AsmRefUpdateBaseline", "true"}
@@ -132,6 +143,7 @@ class Class1
             workflowChecker.CheckReportsAreSame();
 
             // 6. Build again -> comparison run, no error
+            LogTestStep("6 - build again -> expecting comparison to run with no error");
             buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
@@ -139,6 +151,26 @@ class Class1
             workflowChecker.CheckReportsAreDifferent();
         }
 
-        private static IBuildRunner CreateBuildRunner() => new MSBuildRunner();
+        private IBuildRunner CreateBuildRunner(string runnerId)
+        {
+            switch(runnerId)
+            {
+                case "msbuild":
+                    return new MSBuildRunner();
+                case "dotnet":
+                    return new DotNetBuildRunner(output);
+                default:
+                    throw new System.ArgumentException($"Test setup error - unrecognised runner id: {runnerId}");
+            }
+        }
+
+        private void LogTestStep(string message)
+        {
+            output.WriteLine("");
+            output.WriteLine("******************************************************************************************************");
+            output.WriteLine($"*** Test step: {message}");
+            output.WriteLine("******************************************************************************************************");
+            output.WriteLine("");
+        }
     }
 }

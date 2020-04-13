@@ -58,10 +58,25 @@ steps:
     TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
 
 - task: VSTest@2
+  displayName: 'Unit tests'
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     codeCoverageEnabled: true
+    testSelector: testAssemblies
+    testAssemblyVer2: |
+      **\DumpAsmRefs.Tests.dll
+      !**\obj\**
+
+- task: VSTest@2
+  displayName: 'End-to-end build tests'
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    testSelector: testAssemblies
+    testAssemblyVer2: |
+      **\DumpAsmRefs.MSBuild.Tests.dll
+      !**\obj\**
 
 - task: CopyFiles@2
   condition: failed()
