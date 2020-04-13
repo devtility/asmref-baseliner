@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using FluentAssertions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -40,7 +41,7 @@ namespace DumpAsmRefs.MSBuild.Tests
             }
 
             var args = sb.ToString();
-            output.WriteLine($"Command line arguments: {args}");
+            WriteLine($"Command line arguments: {args}");
             var executionResult = ExeRunner.Run(exePath, args);
             DumpExecutionResult(executionResult);
 
@@ -56,7 +57,7 @@ namespace DumpAsmRefs.MSBuild.Tests
         private void DumpDotNetVersion()
         {
             var executionResult = ExeRunner.Run(exePath, "--version");
-            output.WriteLine($"dotnet version: {executionResult.StandardOutput}");
+            WriteLine($"dotnet version: {executionResult.StandardOutput}");
         }
 
         private void DumpExecutionResult(ExeRunner.ExecutionResult result)
@@ -72,12 +73,18 @@ namespace DumpAsmRefs.MSBuild.Tests
                 standardError = "{empty}";
             }
 
-            output.WriteLine($"Exit code: {result.ExitCode}");
-            output.WriteLine($"Execution status: {result.Status}");
-            output.WriteLine($"Standard output: {standardOutput}");
-            output.WriteLine($"Standard error: {standardError}");
-            output.WriteLine(string.Empty);
-            output.WriteLine(string.Empty);
+            WriteLine($"Exit code: {result.ExitCode}");
+            WriteLine($"Execution status: {result.Status}");
+            WriteLine($"Standard output: {standardOutput}");
+            WriteLine($"Standard error: {standardError}");
+            WriteLine(string.Empty);
+            WriteLine(string.Empty);
+        }
+
+        private void WriteLine(string message)
+        {
+            output.WriteLine(message);
+            Console.WriteLine(message);
         }
     }
 }

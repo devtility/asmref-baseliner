@@ -26,6 +26,10 @@ namespace DumpAsmRefs.MSBuild.Tests
             };
 
             ExecutionStatus executionStatus;
+
+            Console.WriteLine($"ExeRunner: FileName: {exePath}");
+            Console.WriteLine($"ExeRunner: Arguments: {arguments}");
+
             if (!process.Start())
             {
                 executionStatus = ExecutionStatus.FailedToStart;
@@ -57,7 +61,7 @@ namespace DumpAsmRefs.MSBuild.Tests
                 while(retryCount < 5 && !process.HasExited)
                 {
                     Console.WriteLine($"Waiting for process to exit: {retryCount}");
-                    System.Threading.Thread.Sleep(500);
+                    System.Threading.Thread.Sleep(10000);
                     retryCount++;
                 }
                 Console.WriteLine($"Finished waiting for process to exit. HasExited = {process.HasExited}");
