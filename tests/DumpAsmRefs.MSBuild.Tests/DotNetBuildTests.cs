@@ -73,6 +73,7 @@ namespace MyNamespace
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <RestorePackagesPath>{context.NuGetPackageCachePath}</RestorePackagesPath>
+    <SonarQubeTargetsImported>true</SonarQubeTargetsImported>
   </PropertyGroup>
 
   <ItemGroup>
