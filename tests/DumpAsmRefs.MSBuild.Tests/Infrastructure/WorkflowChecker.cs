@@ -43,12 +43,12 @@ namespace DumpAsmRefs.MSBuild.Tests
             CheckLatestReportDoesNotExist();
         }
 
-        public void CheckNoTargetsExecuted(BuildLogChecker logChecker)
+        public void CheckNoTargetsExecuted(BuildChecker logChecker)
         {
             logChecker.CheckTargetsNotExecuted(WorkflowTarget, CompareTarget, PublishTarget, UpdateBaselineTarget);
         }
 
-        public void CheckBaselinePublished(BuildLogChecker logChecker)
+        public void CheckBaselinePublished(BuildChecker logChecker)
         {
             logChecker.CheckTargetsSucceeded(WorkflowTarget, PublishTarget);
             logChecker.CheckTargetsNotExecuted(CompareTarget, UpdateBaselineTarget);
@@ -57,7 +57,7 @@ namespace DumpAsmRefs.MSBuild.Tests
             CheckLatestReportDoesNotExist();
         }
 
-        public void CheckComparisonExecutedAndSucceeded(BuildLogChecker logChecker)
+        public void CheckComparisonExecutedAndSucceeded(BuildChecker logChecker)
         {
             logChecker.CheckTargetsSucceeded(WorkflowTarget, CompareTarget);
             logChecker.CheckTargetsNotExecuted(PublishTarget, UpdateBaselineTarget);
@@ -65,7 +65,7 @@ namespace DumpAsmRefs.MSBuild.Tests
             CheckReportsExist();
         }
 
-        public void CheckComparisonExecutedAndFailed(BuildLogChecker logChecker)
+        public void CheckComparisonExecutedAndFailed(BuildChecker logChecker)
         {
             logChecker.CheckTargetsFailed(WorkflowTarget, CompareTarget);
             logChecker.CheckTargetsNotExecuted(PublishTarget, UpdateBaselineTarget);
@@ -73,7 +73,7 @@ namespace DumpAsmRefs.MSBuild.Tests
             CheckReportsExist();
         }
 
-        public void CheckBaselineUpdatePerformed(BuildLogChecker logChecker)
+        public void CheckBaselineUpdatePerformed(BuildChecker logChecker)
         {
             logChecker.CheckTargetsSucceeded(WorkflowTarget, UpdateBaselineTarget);
             logChecker.CheckTargetsNotExecuted(CompareTarget, PublishTarget);

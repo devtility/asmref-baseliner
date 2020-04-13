@@ -1,8 +1,6 @@
 // Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using FluentAssertions;
-using Microsoft.Build.Execution;
-using Microsoft.Build.Framework;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -14,14 +12,6 @@ namespace DumpAsmRefs.MSBuild.Tests
     {
         private readonly ITestOutputHelper output;
 
-        static DotNetBuildTests()
-        {
-            // Must be done in a separate method, before any code that uses the
-            // Microsoft.Build namespace.
-            // See https://github.com/microsoft/MSBuildLocator/commit/f3d5b0814bc7c5734d03a617c17c6998dd2f0e99
-            Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
-        }
-
         public DotNetBuildTests(ITestOutputHelper output)
         {
             this.output = output;
@@ -31,6 +21,7 @@ namespace DumpAsmRefs.MSBuild.Tests
         public void SimpleBuild()
         {
             var context = TestContext.Initialize(output);
+            var buildRunner = CreateBuildRunner();
 
             const string proj = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
@@ -56,17 +47,17 @@ namespace MyNamespace
             var projFilePath = context.WriteFile("myApp.csproj", proj, "proj1");
             context.WriteFile("program.cs", code, "proj1");
 
-            BuildSingleTarget(projFilePath, "Restore");
-            var (buildResult, buildChecker) = BuildSingleTarget(projFilePath, "Build");
+            buildRunner.Restore(projFilePath);
+            var buildChecker = buildRunner.Build(projFilePath);
 
-            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
+            buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
             buildChecker.FindSingleTargetExecution("Compile")
                 .Succeeded.Should().BeTrue();
         }
 
         [Fact]
-        public void RestorePackageThenBuild()
+        public void WorkflowLifecycle()
         {
             var context = TestContext.Initialize(output);
 
@@ -94,25 +85,27 @@ class Program
             var projectFilePath = context.WriteFile("myApp.csproj", proj, "proj1");
             context.WriteFile("program.cs", code, "proj1");
             
-            var checker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath), "myApp");
+            var workflowChecker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath), "myApp");
+
+            var buildRunner = CreateBuildRunner();
 
             // 1. Restore
-            var (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Restore");
-            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
-            checker.CheckNoTargetsExecuted(logChecker);
-            checker.CheckReportsDoNotExist();
+            var buildChecker = buildRunner.Restore(projectFilePath);
+            buildChecker.OverallBuildSucceeded.Should().BeTrue();
+            workflowChecker.CheckNoTargetsExecuted(buildChecker);
+            workflowChecker.CheckReportsDoNotExist();
 
             // 2. Build -> baseline file created
-            (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build");
-            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
-            checker.CheckBaselinePublished(logChecker);
+            buildChecker = buildRunner.Build(projectFilePath);
+            buildChecker.OverallBuildSucceeded.Should().BeTrue();
+            workflowChecker.CheckBaselinePublished(buildChecker);
 
             // 3. Build again -> comparison run, no error
-            (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build");
-            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
+            buildChecker = buildRunner.Build(projectFilePath);
+            buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
-            checker.CheckComparisonExecutedAndSucceeded(logChecker);
-            checker.CheckReportsAreDifferent();
+            workflowChecker.CheckComparisonExecutedAndSucceeded(buildChecker);
+            workflowChecker.CheckReportsAreDifferent();
 
             // 4. Add new ref, build -> comparison run, build fails
             const string newCode = @"
@@ -121,53 +114,31 @@ class Class1
     void Method1(System.Data.AcceptRejectRule arg1) { /* no-op */ }
 }";
             context.WriteFile("newCode.cs", newCode, "proj1");
-            (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build");
-            buildResult.OverallResult.Should().Be(BuildResultCode.Failure);
+            buildChecker = buildRunner.Build(projectFilePath);
+            buildChecker.OverallBuildSucceeded.Should().BeFalse();
 
-            checker.CheckComparisonExecutedAndFailed(logChecker);
-            checker.CheckReportsAreDifferent();
+            workflowChecker.CheckComparisonExecutedAndFailed(buildChecker);
+            workflowChecker.CheckReportsAreDifferent();
 
             // 5. Update -> baseline file updated
             var properties = new Dictionary<string, string>
             {
                 { "AsmRefUpdateBaseline", "true"}
             };
-            (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build", properties);
-            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
+            buildChecker = buildRunner.Build(projectFilePath, properties);
+            buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
-            checker.CheckBaselineUpdatePerformed(logChecker);
-            checker.CheckReportsAreSame();
+            workflowChecker.CheckBaselineUpdatePerformed(buildChecker);
+            workflowChecker.CheckReportsAreSame();
 
             // 6. Build again -> comparison run, no error
-            (buildResult, logChecker) = BuildSingleTarget(projectFilePath, "Build");
-            buildResult.OverallResult.Should().Be(BuildResultCode.Success);
+            buildChecker = buildRunner.Build(projectFilePath);
+            buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
-            checker.CheckComparisonExecutedAndSucceeded(logChecker);
-            checker.CheckReportsAreDifferent();
+            workflowChecker.CheckComparisonExecutedAndSucceeded(buildChecker);
+            workflowChecker.CheckReportsAreDifferent();
         }
 
-        private static (BuildResult, BuildLogChecker) BuildSingleTarget(string projectFilePath, string targetName,
-            Dictionary<string, string> additionalProperties = null)
-        {
-            var projectDir = Path.GetDirectoryName(projectFilePath);
-            var binLogFilePath = Path.Combine(projectDir, $"msbuild.{targetName}.binlog");
-
-            var buildParams = new BuildParameters
-            {
-                Loggers = new ILogger[] { new Microsoft.Build.Logging.BinaryLogger { Parameters = binLogFilePath } }
-            };
-
-            var buildResult = BuildManager.DefaultBuildManager.Build(buildParams,
-                new BuildRequestData(projectFilePath,
-                    additionalProperties ?? new Dictionary<string, string>(),
-                    null,
-                    new[] { targetName },
-                    null,
-                    BuildRequestDataFlags.None));
-
-            File.Exists(binLogFilePath).Should().BeTrue();
-            var buildChecker = new BuildLogChecker(binLogFilePath);
-            return (buildResult, buildChecker);
-        }
+        private static IBuildRunner CreateBuildRunner() => new MSBuildRunner();
     }
 }
