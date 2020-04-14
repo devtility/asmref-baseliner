@@ -17,6 +17,8 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         protected ITestOutputHelper Output { get; }
 
+        protected abstract string BinLogFileNamePrefix { get; }
+
         protected abstract string ExePath { get; }
 
         protected virtual void InitializeBuild() { /* no-op */ }
@@ -30,7 +32,7 @@ namespace DumpAsmRefs.MSBuild.Tests
             InitializeBuild();
 
             var projectDir = Path.GetDirectoryName(projectFilePath);
-            var binLogFilePath = Path.Combine(projectDir, $"msbuild.{targetName}.binlog");
+            var binLogFilePath = Path.Combine(projectDir, $"{BinLogFileNamePrefix}.{targetName}.binlog");
 
             if (File.Exists(binLogFilePath))
             {

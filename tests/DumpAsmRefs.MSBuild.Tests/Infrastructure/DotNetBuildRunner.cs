@@ -20,6 +20,8 @@ namespace DumpAsmRefs.MSBuild.Tests
             DumpDotNetVersion();
         }
 
+        protected override string BinLogFileNamePrefix => "dotnet";
+
         protected override string ExePath => "dotnet";
 
         protected override string BuildCommandLineArgs(string projectFilePath, string targetName,
