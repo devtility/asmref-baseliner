@@ -156,7 +156,7 @@ class Class1
             switch(runnerId)
             {
                 case "msbuild":
-                    return new MSBuildRunner();
+                    return new MSBuildExeRunner(output);
                 case "dotnet":
                     return new DotNetBuildRunner(output);
                 default:
