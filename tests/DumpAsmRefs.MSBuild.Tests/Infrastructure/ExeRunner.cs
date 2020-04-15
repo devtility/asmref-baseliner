@@ -2,12 +2,14 @@
 
 using System;
 using System.Diagnostics;
+using System.Text;
 
 namespace DumpAsmRefs.MSBuild.Tests
 {
     internal static class ExeRunner
     {
-        private const int DefaultTimeoutInMs = 1000 * 60 * 2;
+        private const int DefaultTimeoutInMs = 1000 * 60 * 1;
+        private const int ShutdownTimeoutInMs = 1000 * 20;
 
         public static ExecutionResult Run(string exePath, string arguments = null, int timeoutInMs = DefaultTimeoutInMs)
         {
@@ -31,23 +33,34 @@ namespace DumpAsmRefs.MSBuild.Tests
             Console.WriteLine($"ExeRunner: Arguments: {arguments}");
             Console.WriteLine($"ExeRunner: Timeout: {timeoutInMs}");
 
+            // Note: we're redirecting the IO streams, so we need to process the
+            // data otherwise the process will hang if the output buffers are full
+            var outputSb = new StringBuilder();
+            var errorSb = new StringBuilder();
+
+            process.OutputDataReceived += (s, args) => outputSb.AppendLine(args.Data);
+            process.ErrorDataReceived += (s, args) => errorSb.AppendLine(args.Data);
+
             if (!process.Start())
             {
                 executionStatus = ExecutionStatus.FailedToStart;
             }
             else
             {
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
                 executionStatus = process.WaitForExit(timeoutInMs)
                     ? ExecutionStatus.Completed
                     : ExecutionStatus.TimedOut;
             }
 
-            EnsureProcessHasExited(process, timeoutInMs);
+            EnsureProcessHasExited(process, ShutdownTimeoutInMs);
             EnsureProcessEnded(process);
 
             var result = new ExecutionResult(process.ExitCode, executionStatus,
-                process.StandardOutput.ReadToEnd(),
-                process.StandardError.ReadToEnd());
+                outputSb.ToString(),
+                errorSb.ToString());
 
             return result;
         }
