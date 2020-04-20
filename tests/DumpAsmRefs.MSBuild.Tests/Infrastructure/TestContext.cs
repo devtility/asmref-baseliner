@@ -8,6 +8,14 @@ namespace DumpAsmRefs.MSBuild.Tests
 {
     internal class TestContext
     {
+        // Fields to control one-time static initialisation.
+        // The test NuGet package should be deleted from the test package cache
+        // when the first TestContext is created.
+        private static bool initialized;
+        private static readonly object lockObject = new object();
+
+        private const string PackageName = "Devtility.CheckAsmRefs";
+
         private readonly ITestOutputHelper output;
 
         internal static TestContext Initialize(ITestOutputHelper output,
@@ -28,6 +36,7 @@ namespace DumpAsmRefs.MSBuild.Tests
 
             NuGetPackageCachePath = Path.Combine(GetTestResultsPath(), "TestPackagesCache");
             EnsureLocalNuGetConfigFileExists(LocalNuGetFeedPath);
+            EnsureTestNuGetPackageDeletedOnFirstRun(NuGetPackageCachePath);
         }
 
         public string TestResultsDirectory { get; }
@@ -86,6 +95,24 @@ namespace DumpAsmRefs.MSBuild.Tests
             File.WriteAllText(fullPath, nugetConfigContent);
         }
 
+        private void EnsureTestNuGetPackageDeletedOnFirstRun(string nuGetPackageCachePath)
+        {
+            lock (lockObject)
+            {
+                output.WriteLine("Test NuGet package was deleted by a previous test.");
+                if (initialized)
+                {
+                    return;
+                }
+
+                var path = Path.Combine(nuGetPackageCachePath, PackageName);
+                output.WriteLine($"Deleting test NuGet package directory: {path}");
+                SafeDeleteDirectory(path);
+
+                initialized = true;
+            }
+        }
+
         private static string GetTestAssemblyBinPath()
         {
             var uriCodeBase = typeof(DotNetBuildTests).Assembly.CodeBase;
@@ -96,7 +123,7 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         private (string packageFilePath, string version) GetLatestNuGetPackagePathAndVersion()
         {
-            const string filePrefix = "Devtility.CheckAsmRefs.";
+            const string filePrefix = PackageName + ".";
             var directory = GetTestAssemblyBinPath();
             var files = Directory.GetFiles(directory, $"{filePrefix}*.nupkg");
 
