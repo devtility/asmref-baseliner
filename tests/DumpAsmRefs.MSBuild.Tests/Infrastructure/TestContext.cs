@@ -8,6 +8,8 @@ namespace DumpAsmRefs.MSBuild.Tests
 {
     internal class TestContext
     {
+        private const string PackageName = "Devtility.CheckAsmRefs";
+
         private readonly ITestOutputHelper output;
 
         internal static TestContext Initialize(ITestOutputHelper output,
@@ -28,6 +30,7 @@ namespace DumpAsmRefs.MSBuild.Tests
 
             NuGetPackageCachePath = Path.Combine(GetTestResultsPath(), "TestPackagesCache");
             EnsureLocalNuGetConfigFileExists(LocalNuGetFeedPath);
+            EnsureTestNuGetPackageDeleted(NuGetPackageCachePath);
         }
 
         public string TestResultsDirectory { get; }
@@ -86,6 +89,13 @@ namespace DumpAsmRefs.MSBuild.Tests
             File.WriteAllText(fullPath, nugetConfigContent);
         }
 
+        private void EnsureTestNuGetPackageDeleted(string nuGetPackageCachePath)
+        {
+            var path = Path.Combine(nuGetPackageCachePath, PackageName);
+            output.WriteLine($"Deleting test NuGet package directory: {path}");
+            SafeDeleteDirectory(path);
+        }
+
         private static string GetTestAssemblyBinPath()
         {
             var uriCodeBase = typeof(DotNetBuildTests).Assembly.CodeBase;
@@ -96,7 +106,7 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         private (string packageFilePath, string version) GetLatestNuGetPackagePathAndVersion()
         {
-            const string filePrefix = "Devtility.CheckAsmRefs.";
+            const string filePrefix = PackageName + ".";
             var directory = GetTestAssemblyBinPath();
             var files = Directory.GetFiles(directory, $"{filePrefix}*.nupkg");
 
