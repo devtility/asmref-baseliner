@@ -8,6 +8,12 @@ namespace DumpAsmRefs.MSBuild.Tests
 {
     internal class TestContext
     {
+        // Fields to control one-time static initialisation.
+        // The test NuGet package should be deleted from the test package cache
+        // when the first TestContext is created.
+        private static bool initialized;
+        private static readonly object lockObject = new object();
+
         private const string PackageName = "Devtility.CheckAsmRefs";
 
         private readonly ITestOutputHelper output;
@@ -30,7 +36,7 @@ namespace DumpAsmRefs.MSBuild.Tests
 
             NuGetPackageCachePath = Path.Combine(GetTestResultsPath(), "TestPackagesCache");
             EnsureLocalNuGetConfigFileExists(LocalNuGetFeedPath);
-            EnsureTestNuGetPackageDeleted(NuGetPackageCachePath);
+            EnsureTestNuGetPackageDeletedOnFirstRun(NuGetPackageCachePath);
         }
 
         public string TestResultsDirectory { get; }
@@ -89,11 +95,22 @@ namespace DumpAsmRefs.MSBuild.Tests
             File.WriteAllText(fullPath, nugetConfigContent);
         }
 
-        private void EnsureTestNuGetPackageDeleted(string nuGetPackageCachePath)
+        private void EnsureTestNuGetPackageDeletedOnFirstRun(string nuGetPackageCachePath)
         {
-            var path = Path.Combine(nuGetPackageCachePath, PackageName);
-            output.WriteLine($"Deleting test NuGet package directory: {path}");
-            SafeDeleteDirectory(path);
+            lock (lockObject)
+            {
+                output.WriteLine("Test NuGet package was deleted by a previous test.");
+                if (initialized)
+                {
+                    return;
+                }
+
+                var path = Path.Combine(nuGetPackageCachePath, PackageName);
+                output.WriteLine($"Deleting test NuGet package directory: {path}");
+                SafeDeleteDirectory(path);
+
+                initialized = true;
+            }
         }
 
         private static string GetTestAssemblyBinPath()
