@@ -119,13 +119,13 @@ namespace DumpAsmRefs
             => AreStringsSame(first.Name, second.Name)
                 && AreStringsSame(first.CultureName, second.CultureName)
                 && AreStringsSame(first.PublicKeyToken, second.PublicKeyToken)
-                && VersionComparer.AreVersionsEqual(first.Version, second.Version, options.VersionCompatibility);
+                && VersionComparer.AreVersionsEqual(first.Version, second.Version, options.TargetVersionCompatibility);
 
         internal static bool SourceAssembliesMatch(AssemblyIdentifier first, AssemblyIdentifier second, ComparisonOptions options)
             => AreStringsSame(first.Name, second.Name)
                 && AreStringsSame(first.CultureName, second.CultureName)
                 && (options.IgnoreSourcePublicKeyToken || AreStringsSame(first.PublicKeyToken, second.PublicKeyToken))
-                && VersionComparer.AreVersionsEqual(first.Version, second.Version, options.VersionCompatibility);
+                && VersionComparer.AreVersionsEqual(first.Version, second.Version, options.SourceVersionCompatibility);
 
         internal static bool AreListsSame(IEnumerable<string> list1, IEnumerable<string> list2)
         {

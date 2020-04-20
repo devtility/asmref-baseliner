@@ -5,15 +5,20 @@ namespace DumpAsmRefs
     public class ComparisonOptions
     {
         public ComparisonOptions(VersionCompatibility versionCompatibility)
-            :this(versionCompatibility, ignoreSourcePublicKeyToken: false) {}
+            :this(versionCompatibility, ignoreSourcePublicKeyToken: false, versionCompatibility ) {}
 
-        public ComparisonOptions(VersionCompatibility versionCompatibility, bool ignoreSourcePublicKeyToken)
+        public ComparisonOptions(VersionCompatibility sourceVersionCompatibility, bool ignoreSourcePublicKeyToken,
+            VersionCompatibility targetVersionCompatibility)
         {
-            VersionCompatibility = versionCompatibility;
+            SourceVersionCompatibility = sourceVersionCompatibility;
             IgnoreSourcePublicKeyToken = ignoreSourcePublicKeyToken;
+
+            TargetVersionCompatibility = targetVersionCompatibility;
         }
 
-        public VersionCompatibility VersionCompatibility { get; }
+        public VersionCompatibility SourceVersionCompatibility { get; }
         public bool IgnoreSourcePublicKeyToken { get; }
+
+        public VersionCompatibility TargetVersionCompatibility { get; }
     }
 }
