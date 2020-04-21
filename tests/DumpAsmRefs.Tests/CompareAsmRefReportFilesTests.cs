@@ -11,8 +11,11 @@ namespace DumpAsmRefs.Tests
 {
     public class CompareAsmRefReportFilesTests
     {
-        [Fact]
-        public void Compare_InvalidVersionCompatibility_Fails()
+        [Theory]
+        [InlineData("invalid compat level", "yyy", false)]
+        [InlineData("Any", "xxx", true)]
+        public void Compare_InvalidVersionCompatibility_Fails(string sourceVersionCompatString, string targetVersionCompatString,
+            bool isSourceValid)
         {
             var dummyFileSystem = new FakeFileSystem();
             var mockLoader = new Mock<IReportLoader>();
@@ -27,7 +30,8 @@ namespace DumpAsmRefs.Tests
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
-                VersionCompatibility = "invalid compat level",
+                SourceVersionCompatibility = sourceVersionCompatString,
+                TargetVersionCompatibility = targetVersionCompatString,
                 BuildEngine = buildEngine
             };
 
@@ -37,7 +41,9 @@ namespace DumpAsmRefs.Tests
             // Check
             result.Should().BeFalse();
             buildEngine.ErrorEvents.Count.Should().Be(1);
-            buildEngine.ErrorEvents[0].Message.Contains("invalid compat level").Should().BeTrue();
+
+            var expectedMessage = isSourceValid ? targetVersionCompatString : sourceVersionCompatString;
+            buildEngine.ErrorEvents[0].Message.Contains(expectedMessage).Should().BeTrue();
         }
 
         [Theory]
@@ -70,16 +76,18 @@ namespace DumpAsmRefs.Tests
             {
                 BaseLineReportFilePath = "c:\\file1.txt",
                 CurrentReportFilePath = "c:\\file2.txt",
-                VersionCompatibility = "MajorMinorBuild",
+                SourceVersionCompatibility = "MajorMinorBuild",
                 IgnoreSourcePublicKeyToken = true,
+                TargetVersionCompatibility = "Any",
                 BuildEngine = buildEngine
             };
 
             testSubject.Execute().Should().Be(expectedTaskResult);
             mockLoader.VerifyAll();
             mockComparer.VerifyAll();
-            actualOptions.VersionCompatibility.Should().Be(VersionCompatibility.MajorMinorBuild);
+            actualOptions.SourceVersionCompatibility.Should().Be(VersionCompatibility.MajorMinorBuild);
             actualOptions.IgnoreSourcePublicKeyToken.Should().BeTrue();
+            actualOptions.TargetVersionCompatibility.Should().Be(VersionCompatibility.Any);
 
             if (expectedTaskResult)
             {
@@ -134,8 +142,9 @@ Referenced assemblies:   # count = 1
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
-                VersionCompatibility = "sTRICt",
-                BuildEngine = buildEngine
+                SourceVersionCompatibility = "sTRICt",
+                BuildEngine = buildEngine,
+                TargetVersionCompatibility = "any"
             };
 
             // Test
@@ -144,11 +153,16 @@ Referenced assemblies:   # count = 1
             // Check
             result.Should().BeTrue();
             buildEngine.ErrorEvents.Count.Should().Be(0);
-            buildEngine.MessageEvents.Count.Should().Be(4);
+            buildEngine.MessageEvents.Count.Should().Be(5);
+            buildEngine.MessageEvents[1].Message.Contains("Source").Should().BeTrue();
             buildEngine.MessageEvents[1].Message.Contains(": Strict").Should().BeTrue();
-            buildEngine.MessageEvents[2].Message.Contains(": False").Should().BeTrue();
-            buildEngine.MessageEvents[3].Message.Contains(": file1").Should().BeTrue();
-            buildEngine.MessageEvents[3].Message.Contains(": file2").Should().BeTrue();
+
+            buildEngine.MessageEvents[2].Message.Contains("Target").Should().BeTrue();
+            buildEngine.MessageEvents[2].Message.Contains(": Any").Should().BeTrue();
+
+            buildEngine.MessageEvents[3].Message.Contains(": False").Should().BeTrue();
+            buildEngine.MessageEvents[4].Message.Contains(": file1").Should().BeTrue();
+            buildEngine.MessageEvents[4].Message.Contains(": file2").Should().BeTrue();
         }
 
         [Fact]
@@ -199,8 +213,9 @@ Referenced assemblies:   # count = 1
             {
                 BaseLineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
-                VersionCompatibility = "any",
-                BuildEngine = buildEngine
+                SourceVersionCompatibility = "any",
+                BuildEngine = buildEngine,
+                TargetVersionCompatibility = "any"
             };
 
             // Test

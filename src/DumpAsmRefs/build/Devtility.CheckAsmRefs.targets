@@ -65,6 +65,8 @@
 
       <!-- Options: Any, Major, MajorMinor, MajorMinorBuild, Strict -->
       <AsmRefVersionCompatibility Condition="$(AsmRefVersionCompatibility)==''">Strict</AsmRefVersionCompatibility>
+      <AsmRefSourceVersionCompatibility Condition="$(AsmRefSourceVersionCompatibility)==''">$(AsmRefVersionCompatibility)</AsmRefSourceVersionCompatibility>
+      <AsmRefTargetVersionCompatibility Condition="$(AsmRefTargetVersionCompatibility)==''">$(AsmRefVersionCompatibility)</AsmRefTargetVersionCompatibility>
     </PropertyGroup>
   </Target>
 
@@ -119,12 +121,14 @@
     <Error Condition="$(AsmRefBaselineFilePath) == '' " Text="AsmRef: AsmRefBaselineFilePath property has not been set" />
     <Error Condition="!Exists($(AsmRefBaselineFilePath))" Text="AsmRef: Baseline file does not exist: $(AsmRefBaselineFilePath)" />
     <Error Condition="$(AsmRefUpdateBaseline) == 'true'" Text="AsmRef: Should not be comparing files since AsmRefUpdateBaseline is true" />
-    <Error Condition="$(AsmRefVersionCompatibility) == '' " Text="AsmRef: AsmRefVersionCompatibility property has not been set" />
+    <Error Condition="$(AsmRefSourceVersionCompatibility) == '' " Text="AsmRef: AsmRefSourceVersionCompatibility property has not been set" />
+    <Error Condition="$(AsmRefTargetVersionCompatibility) == '' " Text="AsmRef: AsmRefTargetVersionCompatibility property has not been set" />
 
     <CompareAsmRefReportFiles
       BaselineReportFilePath="$(AsmRefBaselineFilePath)"
       CurrentReportFilePath="$(AsmRefOutputFilePath)"
-      VersionCompatibility="$(AsmRefVersionCompatibility)"
+      SourceVersionCompatibility="$(AsmRefSourceVersionCompatibility)"
+      TargetVersionCompatibility="$(AsmRefTargetVersionCompatibility)"
       IgnoreSourcePublicKeyToken="$(AsmRefIgnoreSourcePublicKeyToken)" />
   </Target>
 

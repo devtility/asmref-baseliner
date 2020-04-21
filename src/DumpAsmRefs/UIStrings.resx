@@ -127,8 +127,8 @@
     <value>    Ignore source assembly public key tokens: {0}</value>
   </data>
   <data name="CompareTask_InvalidVersionCompat" xml:space="preserve">
-    <value>Supplied VersionCompatibility is invalid: {0}. Allowed values: {1}</value>
-    <comment>0 = invalid value, 1 = list of allowed values.</comment>
+    <value>Supplied property '{0}' is invalid: {1}. Allowed values: {2}</value>
+    <comment>0 = property name, 1 = invalid value, 2 = list of allowed values.</comment>
   </data>
   <data name="CompareTask_ReferencesAreDifferent" xml:space="preserve">
     <value>Referenced assemblies are different. Compare the baseline and current files to see the details.
@@ -143,8 +143,8 @@
     <comment>0 = baseline file path, 1 = current file path</comment>
   </data>
   <data name="CompareTask_VersionCompat" xml:space="preserve">
-    <value>    Assembly version compatibility level: {0}</value>
-    <comment>0 = version compatibility level value</comment>
+    <value>    {0}: {1}</value>
+    <comment>0 = property name, 1 = version compatibility level value</comment>
   </data>
   <data name="Matching_MatchesFound" xml:space="preserve">
     <value>Found {0} matches</value>

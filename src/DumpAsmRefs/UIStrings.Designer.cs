@@ -88,7 +88,7 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Supplied VersionCompatibility is invalid: {0}. Allowed values: {1}.
+        ///   Looks up a localized string similar to Supplied property &apos;{0}&apos; is invalid: {1}. Allowed values: {2}.
         /// </summary>
         internal static string CompareTask_InvalidVersionCompat {
             get {
@@ -119,7 +119,7 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to     Assembly version compatibility level: {0}.
+        ///   Looks up a localized string similar to     {0}: {1}.
         /// </summary>
         internal static string CompareTask_VersionCompat {
             get {

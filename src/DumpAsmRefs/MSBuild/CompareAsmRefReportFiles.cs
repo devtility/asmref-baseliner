@@ -19,10 +19,13 @@ namespace DumpAsmRefs
         public string CurrentReportFilePath { get; set; }
 
         [Required]
-        public string VersionCompatibility { get; set; }
+        public string SourceVersionCompatibility { get; set; }
 
         [Required]
         public bool IgnoreSourcePublicKeyToken { get; set; }
+
+        [Required]
+        public string TargetVersionCompatibility { get; set; }
 
         public CompareAsmRefReportFiles()
             : this(new FileSystemAbstraction(), new YamlReportLoader(),  new AsmRefResultComparer()) { }
@@ -38,7 +41,8 @@ namespace DumpAsmRefs
         public override bool Execute()
         {
             Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_ComparisonSettingsHeaderText);
-            if (!TryGetVersionCompatibility(out var versionCompatibility))
+            if (!TryGetVersionCompatibility(SourceVersionCompatibility, nameof(SourceVersionCompatibility), out var sourceVersionCompatibility) ||
+                !TryGetVersionCompatibility(TargetVersionCompatibility, nameof(TargetVersionCompatibility), out var targetVersionCompatibility))
             {
                 return false;    
             }
@@ -50,7 +54,7 @@ namespace DumpAsmRefs
                 return false;
             }
 
-            var options = new ComparisonOptions(versionCompatibility, IgnoreSourcePublicKeyToken);
+            var options = new ComparisonOptions(sourceVersionCompatibility, IgnoreSourcePublicKeyToken, targetVersionCompatibility);
 
             bool result = comparer.AreSame(baseline, current, options);
 
@@ -68,15 +72,15 @@ namespace DumpAsmRefs
             }
         }
 
-        private bool TryGetVersionCompatibility(out VersionCompatibility versionCompatibility)
+        private bool TryGetVersionCompatibility(string inputValue, string inputPropertyName,  out VersionCompatibility versionCompatibility)
         {
-            if (!System.Enum.TryParse(VersionCompatibility, ignoreCase: true, out versionCompatibility))
+            if (!System.Enum.TryParse(inputValue, ignoreCase: true, out versionCompatibility))
             {
                 var allowedValues = string.Join(", ", System.Enum.GetNames(typeof(VersionCompatibility)));
-                Log.LogError(UIStrings.CompareTask_InvalidVersionCompat, VersionCompatibility ?? "{null}", allowedValues);
+                Log.LogError(UIStrings.CompareTask_InvalidVersionCompat, inputPropertyName, inputValue ?? "{null}", allowedValues);
                 return false;
             }
-            Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_VersionCompat, versionCompatibility);
+            Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_VersionCompat, inputPropertyName, versionCompatibility);
             return true;
         }
 

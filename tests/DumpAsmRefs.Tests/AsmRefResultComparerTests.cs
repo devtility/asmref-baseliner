@@ -122,11 +122,28 @@ namespace DumpAsmRefs.Tests
         {
             var input1 = AssemblyIdentifier.Parse($"DumpAsmRefs, Version={version}, Culture=neutral, PublicKeyToken=null");
             var input2 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
-            var options = new ComparisonOptions(versionCompatibility, ignoreSourcePublicKeyToken: false);
+            var options = new ComparisonOptions(versionCompatibility);
 
-            // Source and non-source assembly should be handled the same currently
+            // Test both source and non-source assemblies with the same version compatibility
             AsmRefResultComparer.SourceAssembliesMatch(input1, input2, options).Should().Be(expected);
             AsmRefResultComparer.NonSourceAssembliesMatch(input1, input2, options).Should().Be(expected);
+        }
+
+        [Fact]
+        public void XXXAssembliesMatch_UsesCorrectVersionCompatibility()
+        {
+            var input1 = AssemblyIdentifier.Parse($"DumpAsmRefs, Version=1.2.9.9, Culture=neutral, PublicKeyToken=null");
+            var input2 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
+
+            // 1. Source is strict, non-source is any
+            var options = new ComparisonOptions(VersionCompatibility.Strict, true, VersionCompatibility.Any);
+            AsmRefResultComparer.SourceAssembliesMatch(input1, input2, options).Should().BeFalse();
+            AsmRefResultComparer.NonSourceAssembliesMatch(input1, input2, options).Should().BeTrue();
+
+            // 2. Source is any, non-source is strict
+            options = new ComparisonOptions(VersionCompatibility.Any, true, VersionCompatibility.Strict);
+            AsmRefResultComparer.SourceAssembliesMatch(input1, input2, options).Should().BeTrue();
+            AsmRefResultComparer.NonSourceAssembliesMatch(input1, input2, options).Should().BeFalse();
         }
 
         [Theory]
@@ -137,7 +154,8 @@ namespace DumpAsmRefs.Tests
             // IgnoreSourcePublicKeyToken should not be used when comparing non-source assemblies
             var input1 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
             var input2 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
-            var options = new ComparisonOptions(VersionCompatibility.Any, ignoreSourcePublicKeyToken);
+            var options = new ComparisonOptions(VersionCompatibility.Any, ignoreSourcePublicKeyToken,
+                VersionCompatibility.Any);
 
             AsmRefResultComparer.NonSourceAssembliesMatch(input1, input2, options).Should().Be(expected);
         }
@@ -149,7 +167,7 @@ namespace DumpAsmRefs.Tests
         {
             var input1 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null");
             var input2 = AssemblyIdentifier.Parse("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
-            var options = new ComparisonOptions(VersionCompatibility.Any, ignoreSourcePublicKeyToken);
+            var options = new ComparisonOptions(VersionCompatibility.Any, ignoreSourcePublicKeyToken, VersionCompatibility.Any);
 
             AsmRefResultComparer.SourceAssembliesMatch(input1, input2, options).Should().Be(expected);
         }
@@ -163,7 +181,7 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            var options = new ComparisonOptions(versionCompatibility, ignoreSourcePublicKeyToken);
+            var options = new ComparisonOptions(versionCompatibility, ignoreSourcePublicKeyToken, VersionCompatibility.Any);
             var sourceAsmNames = Array.Empty<string>();
 
             AsmRefResultComparer.IsSameSourceAssemblyInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
@@ -174,7 +192,7 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            var options = new ComparisonOptions(VersionCompatibility.Strict, false);
+            var options = new ComparisonOptions(VersionCompatibility.Strict, false, VersionCompatibility.Any);
             var sourceAsmNames = Array.Empty<string>();
 
             AsmRefResultComparer.IsSameSourceAssemblyInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
@@ -190,7 +208,7 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            var options = new ComparisonOptions(VersionCompatibility.Strict, false);
+            var options = new ComparisonOptions(VersionCompatibility.Strict, false, VersionCompatibility.Any);
             var sourceAsmNames = Array.Empty<string>();
 
             AsmRefResultComparer.IsSameSourceAssemblyInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
@@ -209,7 +227,7 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            var options = new ComparisonOptions(VersionCompatibility.Strict, false);
+            var options = new ComparisonOptions(VersionCompatibility.Strict, false, VersionCompatibility.Any);
             var sourceAsmNames = Array.Empty<string>();
 
             AsmRefResultComparer.IsSameSourceAssemblyInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
@@ -228,7 +246,7 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            var options = new ComparisonOptions(VersionCompatibility.Strict, false);
+            var options = new ComparisonOptions(VersionCompatibility.Strict, false, VersionCompatibility.Any);
             var sourceAsmNames = Array.Empty<string>();
 
             AsmRefResultComparer.IsSameSourceAssemblyInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
@@ -247,7 +265,7 @@ namespace DumpAsmRefs.Tests
         {
             var ref1 = CreateWellKnownAsmRefInfo();
             var ref2 = CreateWellKnownAsmRefInfo();
-            var options = new ComparisonOptions(VersionCompatibility.Strict, false);
+            var options = new ComparisonOptions(VersionCompatibility.Strict, false, VersionCompatibility.Any);
             var sourceAsmNames = Array.Empty<string>();
 
             AsmRefResultComparer.IsSameSourceAssemblyInfo(ref1, ref2, options, sourceAsmNames).Should().BeTrue();
@@ -312,7 +330,7 @@ namespace DumpAsmRefs.Tests
         {
             var input1 = CreateWellKnownInputCriteria();
             var input2 = CreateWellKnownInputCriteria();
-            var options = new ComparisonOptions(versionCompatibility);
+            var options = new ComparisonOptions(versionCompatibility, true, VersionCompatibility.Any);
 
             var report1 = new AsmRefResult(input1, new SourceAssemblyInfo[]
                 {
@@ -339,7 +357,8 @@ namespace DumpAsmRefs.Tests
         {
             var input1 = CreateWellKnownInputCriteria();
             var input2 = CreateWellKnownInputCriteria();
-            var options = new ComparisonOptions(versionCompatibility);
+            var options = new ComparisonOptions(VersionCompatibility.Any, true,
+                versionCompatibility);
 
             var source1 = new SourceAssemblyInfo
             {
@@ -388,7 +407,8 @@ namespace DumpAsmRefs.Tests
                     CreateWellKnownAsmRefInfo("DumpAsmRefs, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
                 });
 
-            var options = new ComparisonOptions(VersionCompatibility.Strict, ignoreSourcePublicKeyToken);
+            var options = new ComparisonOptions(VersionCompatibility.Strict, ignoreSourcePublicKeyToken,
+                VersionCompatibility.Any);
 
             var testSubject = new AsmRefResultComparer();
             testSubject.AreSame(report1, report2, options)
@@ -421,7 +441,8 @@ namespace DumpAsmRefs.Tests
                         "Assembly1, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
                 });
 
-            var options = new ComparisonOptions(VersionCompatibility.Strict, ignoreSourcePublicKeyToken);
+            var options = new ComparisonOptions(VersionCompatibility.Strict, ignoreSourcePublicKeyToken,
+                VersionCompatibility.Any);
 
             var testSubject = new AsmRefResultComparer();
             testSubject.AreSame(reportSourcesWithoutStrongNames, reportSourcesWithStrongNames, options)
@@ -456,7 +477,8 @@ namespace DumpAsmRefs.Tests
                         "NotASourceAssembly, Version=1.2.3.4, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
                 });
 
-            var options = new ComparisonOptions(VersionCompatibility.Strict, ignoreSourcePublicKeyToken: true);
+            var options = new ComparisonOptions(VersionCompatibility.Strict, ignoreSourcePublicKeyToken: true,
+                VersionCompatibility.Any);
 
             var testSubject = new AsmRefResultComparer();
             testSubject.AreSame(reportSourcesWithoutStrongNames, reportSourcesWithStrongNames, options)
