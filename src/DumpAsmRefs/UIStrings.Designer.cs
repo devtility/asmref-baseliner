@@ -128,6 +128,15 @@ namespace DumpAsmRefs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to . File is not a .NET assembly.
+        /// </summary>
+        internal static string InfoGenerator_NotADotNetAssembly {
+            get {
+                return ResourceManager.GetString("InfoGenerator_NotADotNetAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Found {0} matches.
         /// </summary>
         internal static string Matching_MatchesFound {

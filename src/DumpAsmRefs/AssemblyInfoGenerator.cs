@@ -52,7 +52,14 @@ namespace DumpAsmRefs
             return Assembly.LoadFrom(fullFilePath);
         }
 
-        public static string GetLoadExceptionText(Exception ex) =>
-            ex == null ? null : $"{ex.GetType().FullName}. {ex.Message}";
+        private static string GetLoadExceptionText(Exception ex)
+        {
+            var text = ex == null ? null : $"{ex.GetType().FullName}";
+            if (ex is BadImageFormatException)
+            {
+                text += UIStrings.InfoGenerator_NotADotNetAssembly;
+            }
+            return text;
+        }
     }
 }
