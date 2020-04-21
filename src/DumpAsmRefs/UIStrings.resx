@@ -146,6 +146,9 @@
     <value>    {0}: {1}</value>
     <comment>0 = property name, 1 = version compatibility level value</comment>
   </data>
+  <data name="InfoGenerator_NotADotNetAssembly" xml:space="preserve">
+    <value>. File is not a .NET assembly</value>
+  </data>
   <data name="Matching_MatchesFound" xml:space="preserve">
     <value>Found {0} matches</value>
   </data>
