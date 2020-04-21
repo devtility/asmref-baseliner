@@ -23,6 +23,14 @@
        into account when comparing source assemblies (i.e. the assemblies being baselined)
        Defaults to true.
 
+  * AsmRefSourceVersionCompatibility / AsmRefTargetVersionCompatibility - specifies how
+       assembly versions should be compared.
+       Possible values: Any, Major, MajorMinor, MajorMinorBuild, Strict
+       Defaults to Strict.
+       The comparison options for source and target versions can be set independently
+       using the above properties. Alternatively, they can be set together using the
+       property "AsmRefVersionCompatibility"
+      
   Workflow:
   If the baseline comparison file does not exist, the build will generate an initial file
   and save it as the baseline file (in the location indicated by $(AsmRefBaselineFilePath).

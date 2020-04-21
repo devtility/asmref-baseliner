@@ -3,6 +3,8 @@
   <PropertyGroup>
     <!-- NuGet package version -->
     <PackageVersion>0.10.0-rc</PackageVersion>
+
+    <Version>0.10.0</Version>
   </PropertyGroup>
 
 </Project>
