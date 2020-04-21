@@ -66,6 +66,7 @@ steps:
     testSelector: testAssemblies
     testAssemblyVer2: |
       **\DumpAsmRefs.Tests.dll
+      **\DumpAsmRefs.MSBuild.Tests.dll
       !**\obj\**
 
 - task: VSTest@2
