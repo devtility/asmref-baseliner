@@ -68,8 +68,12 @@ steps:
       **\DumpAsmRefs.Tests.dll
       !**\obj\**
 
+- task: SonarCloudAnalyze@1
+
 - task: VSTest@2
+  enabled: true
   displayName: 'End-to-end build tests'
+  timeoutInMinutes: 5
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
@@ -93,8 +97,6 @@ steps:
     targetPath: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
     artifact: 'e2eBinLogs'
     publishLocation: 'pipeline'
-
-- task: SonarCloudAnalyze@1
 
 - task: PublishPipelineArtifact@1
   inputs:
