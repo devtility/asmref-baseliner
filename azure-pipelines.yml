@@ -69,6 +69,7 @@ steps:
       !**\obj\**
 
 - task: VSTest@2
+  enabled: false
   displayName: 'End-to-end build tests'
   inputs:
     platform: '$(buildPlatform)'
