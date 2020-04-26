@@ -5,6 +5,9 @@
     <PackageVersion>0.10.0-rc</PackageVersion>
 
     <Version>0.10.0</Version>
+
+    <!-- If building on the server set the revision number -->
+    <Version Condition=" $(BUILD_BUILDID) != '' " >$(Version).$(BUILD_BUILDID)</Version>
   </PropertyGroup>
 
 </Project>
