@@ -57,6 +57,13 @@ steps:
       **\*.snupkg
     TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
 
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)'
+    Contents: |
+      ReleaseNotes.md
+    TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
+
 - task: VSTest@2
   displayName: 'Unit tests'
   inputs:
