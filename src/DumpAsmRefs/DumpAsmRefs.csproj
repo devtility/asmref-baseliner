@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="DEV_UpdateLocalNuGetFeed.targets" />
+  <Import Project="tools/DEV_UpdateLocalNuGetFeed.targets" />
   
   <PropertyGroup>
     <OutputType>Exe</OutputType>
