@@ -1,0 +1,97 @@
+<Project>
+  <!-- Targets to generate additional artefacts used by the release pipeline, namely:
+  
+      * RELEASE_LatestReleaseNotes.md - file containing the release notes for the new release
+          This is an extract from the main ReleaseNotes.md and is picked up by the
+          GitHub publish task.
+          
+      * RELEASE_Versions.json - JSON file containing the build and release versions in a format
+          that is easy to consume in the release pipeline.
+          
+  -->
+
+  <Target Name="CreateAdditionalReleaseArtefacts"
+          Condition=" '$(IsInnerBuild)' != 'true'"
+          AfterTargets="Pack" DependsOnTargets="" >
+
+    <Message Importance="high" Text="Generating additional release pipeline artefacts..." />
+    
+    <CreateLatestReleaseNotes
+      ReleaseNotesFilePath="$(MSBuildThisFileDirectory)..\..\..\ReleaseNotes.md"
+      OutputPath="$(OutputPath)" 
+      PackageVersion="$(PackageVersion)"
+      AssemblyVersion="$(Version)"
+      >
+    </CreateLatestReleaseNotes>
+  </Target>
+
+  <UsingTask TaskName="CreateLatestReleaseNotes"
+           TaskFactory="RoslynCodeTaskFactory"
+           AssemblyFile="$(MSBuildBinPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <ReleaseNotesFilePath ParameterType="System.String" Required="true" />
+      <PackageVersion ParameterType="System.String" />
+      <AssemblyVersion ParameterType="System.String" />
+      <OutputPath ParameterType="System.String" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.IO"/>
+      <Code Type="Fragment" Language="C#">
+        <![CDATA[
+
+  const string LatestReleaseFileName = "RELEASE_LatestReleaseNotes.md";
+  const string ReleaseVersionFileName = "RELEASE_Versions.json";
+
+
+  Log.LogMessage(MessageImportance.High, $"ReleaseNotesFilePath: '{ReleaseNotesFilePath}'");
+  Log.LogMessage(MessageImportance.High, $"PackageVersion: '{PackageVersion}'");
+  Log.LogMessage(MessageImportance.High, $"AssemblyVersion: '{AssemblyVersion}'");
+  Log.LogMessage(MessageImportance.High, $"OutputPath: '{OutputPath}'");
+
+  if (!File.Exists(ReleaseNotesFilePath))
+  {
+    Log.LogError($"Could not find source release notes file: {ReleaseNotesFilePath}");
+    return false;
+  }
+  
+  var notes = File.ReadAllText(ReleaseNotesFilePath);
+
+  var firstIndex = notes.IndexOf($"# Release Notes v{PackageVersion}");
+  if (firstIndex < 0)
+  {
+    Log.LogWarning($"Failed to find release notes section for '{PackageVersion}'. {LatestReleaseFileName} will not be generated.");
+    return false;
+  }
+
+  var secondIndex = notes.IndexOf($"# Release Notes ", firstIndex + 1);
+  if (secondIndex < 0)
+  {
+    Log.LogWarning($"Failed to find release notes section for the version preceding '{PackageVersion}'. {LatestReleaseFileName} will not be generated.");
+    return false;
+  }
+
+  var latestNotes = notes.Substring(firstIndex, secondIndex - firstIndex);
+  Log.LogMessage(MessageImportance.Normal, $"Latest release notes: {latestNotes}");
+
+  var latestNotesFilePath = Path.Combine(OutputPath, LatestReleaseFileName);
+  File.WriteAllText(latestNotesFilePath, latestNotes);
+  Log.LogMessage(MessageImportance.High, $"Latest release notes written: {latestNotesFilePath}");
+
+
+  // Create the release version json
+  var releaseVersions = @$"{{
+  PackageVersion: '{PackageVersion}',
+  AssemblyVersion: '{AssemblyVersion}' 
+}}";
+
+  var releaseVersionsFilePath = Path.Combine(OutputPath, ReleaseVersionFileName);
+  File.WriteAllText(releaseVersionsFilePath, releaseVersions);
+  Log.LogMessage(MessageImportance.High, $"Release version file written: {releaseVersionsFilePath}");
+
+            ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  
+</Project>
