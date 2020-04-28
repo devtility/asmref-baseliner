@@ -36,12 +36,15 @@ steps:
     projectVersion: '0.1'
 
 - task: VSBuild@1
+  displayName: 'Build product and tests'
   inputs:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
 - task: CopyFiles@2
+  displayName: 'Copy binaries to staging directory "binaries"'
+  enabled: false
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin'
     Contents: |
@@ -50,6 +53,7 @@ steps:
     TargetFolder: '$(Build.ArtifactStagingDirectory)\binaries'
 
 - task: CopyFiles@2
+  displayName: 'Copy release artefacts to staging directory "packages"'
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin\$(buildConfiguration)'
     Contents: |
@@ -72,7 +76,6 @@ steps:
 - task: SonarCloudAnalyze@1
 
 - task: VSTest@2
-  enabled: true
   displayName: 'End-to-end build tests'
   timeoutInMinutes: 5
   inputs:
@@ -84,6 +87,7 @@ steps:
       !**\obj\**
 
 - task: CopyFiles@2
+  displayName: '(on failure) Copy e2e test outputs to staging directory "e2eBinLogs"'
   condition: failed()
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)\tests\TestResults'
@@ -93,6 +97,7 @@ steps:
     TargetFolder: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
 
 - task: PublishPipelineArtifact@1
+  displayName: '(on failure) Publish "e2eBinLogs"'
   condition: failed()
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
@@ -100,12 +105,15 @@ steps:
     publishLocation: 'pipeline'
 
 - task: PublishPipelineArtifact@1
+  displayName: 'Publish "binaries"'
+  enabled: false
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
     artifact: 'binaries'
     publishLocation: 'pipeline'
 
 - task: PublishPipelineArtifact@1
+  displayName: 'Publish "packages"'
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)\packages'
     artifact: 'packages'
