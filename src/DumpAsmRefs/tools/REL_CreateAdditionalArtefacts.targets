@@ -57,6 +57,7 @@
   
   var notes = File.ReadAllText(ReleaseNotesFilePath);
 
+  // Extract the section of the release notes for the current release
   var firstIndex = notes.IndexOf($"# Release Notes v{PackageVersion}");
   if (firstIndex < 0)
   {
@@ -70,12 +71,18 @@
     Log.LogWarning($"Failed to find release notes section for the version preceding '{PackageVersion}'. {LatestReleaseFileName} will not be generated.");
     return false;
   }
-
-  var latestNotes = notes.Substring(firstIndex, secondIndex - firstIndex);
-  Log.LogMessage(MessageImportance.Normal, $"Latest release notes: {latestNotes}");
-
+  var latestNotesSection = notes.Substring(firstIndex, secondIndex - firstIndex);
+  
+  // Add in the assembly version info
+  var endOfFirstLine = latestNotesSection.IndexOf(Environment.NewLine);
+  var finalText = latestNotesSection.Substring(0, endOfFirstLine);
+  finalText += $"{Environment.NewLine}Assembly version: v{AssemblyVersion}";
+  finalText += latestNotesSection.Substring(endOfFirstLine + 1);
+  Log.LogMessage(MessageImportance.Normal, $"Latest release notes: {finalText}");
+  
+  // Write the final file
   var latestNotesFilePath = Path.Combine(OutputPath, LatestReleaseFileName);
-  File.WriteAllText(latestNotesFilePath, latestNotes);
+  File.WriteAllText(latestNotesFilePath, finalText);
   Log.LogMessage(MessageImportance.High, $"Latest release notes written: {latestNotesFilePath}");
 
 
