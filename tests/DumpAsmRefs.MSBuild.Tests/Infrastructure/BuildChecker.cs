@@ -10,11 +10,6 @@ namespace DumpAsmRefs.MSBuild.Tests
 {
     internal class BuildChecker
     {
-        static BuildChecker()
-        {
-            MSBuildLocatorInitializer.EnsureMSBuildInitialized();
-        }
-
         private readonly Build buildRoot;
 
         private readonly IList<Target> allTargets;
