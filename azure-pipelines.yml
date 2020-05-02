@@ -47,6 +47,23 @@ jobs:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
 
+    - task: CopyFiles@2
+      displayName: 'Copy E2E test binaries to staging directory "e2ebinaries"'
+      enabled: false
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)/tests/DumpAsmRefs.MSBuild.Tests/bin/$(buildConfiguration)/'
+        Contents: |
+          **/*
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/e2ebinaries'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish "E2E test binaries"'
+      enabled: false
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/e2ebinaries'
+        artifact: 'e2ebinaries'
+        publishLocation: 'pipeline'
+
     - task: DotNetCoreCLI@2
       displayName: 'DotNet e2e tests - netcoreapp3.0'
       inputs:
