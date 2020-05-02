@@ -13,7 +13,7 @@ pr:
   - branch-*
 
 jobs:
-  - job: buildAndTest
+  - job: buildAndUnitTest
     displayName: 'Build and unit test'
     pool:
       vmImage: 'windows-latest'
@@ -129,6 +129,7 @@ jobs:
 
   - job: e2etests
     displayName: 'End to end tests'
+    dependsOn: 'buildAndUnitTest'
 
     pool:
       vmImage: 'windows-latest'
