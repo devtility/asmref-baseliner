@@ -47,6 +47,22 @@ jobs:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
 
+    - task: DotNetCoreCLI@2
+      displayName: 'DotNet e2e tests'
+      inputs:
+        command: custom
+        custom: vstest
+        arguments: DumpAsmRefs.MSBuild.Tests.dll
+        workingDirectory: '$(Build.SourcesDirectory)\tests\DumpAsmRefs.MSBuild.Tests\bin\$(buildConfiguration)\netcoreapp3.0\'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'DotNet e2e tests'
+      inputs:
+        command: custom
+        custom: vstest
+        arguments: DumpAsmRefs.MSBuild.Tests.dll
+        workingDirectory: '$(Build.SourcesDirectory)\tests\DumpAsmRefs.MSBuild.Tests\bin\$(buildConfiguration)\net48\'
+
     - task: CopyFiles@2
       displayName: 'Copy binaries to staging directory "binaries"'
       enabled: false
@@ -100,6 +116,7 @@ jobs:
         pollingTimeoutSec: '300'
 
     - task: VSTest@2
+      enabled: false
       displayName: 'End-to-end build tests'
       timeoutInMinutes: 5
       inputs:
