@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.0;net48</TargetFrameworks>
@@ -25,10 +25,12 @@
 
   <!-- Copy the mostly-recently built NuGet package to test project output folder -->
   <PropertyGroup>
-    <NuGetPackageSource>$(MSBuildProjectDirectory)\..\..\src\DumpAsmRefs\bin\$(Configuration)\Devtility.CheckAsmRefs.$(PackageVersion).nupkg</NuGetPackageSource>
+    <NuGetPackageSourceFolder Condition=" $(NuGetPackageSourceFolder) == '' ">$(MSBuildProjectDirectory)\..\..\src\DumpAsmRefs\bin\$(Configuration)</NuGetPackageSourceFolder>
+    <NormalizedNuGetPackageSourceFolder>$([MSBuild]::NormalizeDirectory('$(NuGetPackageSourceFolder)'))</NormalizedNuGetPackageSourceFolder>
+    <NuGetPackageSourceFilePath>$(NormalizedNuGetPackageSourceFolder)Devtility.CheckAsmRefs.$(PackageVersion).nupkg</NuGetPackageSourceFilePath>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="$(NuGetPackageSource)">
+    <None Include="$(NuGetPackageSourceFilePath)">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
