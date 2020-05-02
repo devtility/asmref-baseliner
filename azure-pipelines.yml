@@ -13,7 +13,6 @@ pr:
   - branch-*
 
 jobs:
-
   - job: buildAndTest
     displayName: 'Build and unit test'
     pool:
@@ -63,31 +62,6 @@ jobs:
         targetPath: '$(Build.ArtifactStagingDirectory)/e2ebinaries'
         artifact: 'e2ebinaries'
         publishLocation: 'pipeline'
-
-    - task: DotNetCoreCLI@2
-      displayName: 'DotNet e2e tests - netcoreapp3.0'
-      inputs:
-        command: custom
-        custom: vstest
-        arguments: DumpAsmRefs.MSBuild.Tests.dll --Logger:trx
-        workingDirectory: '$(Build.SourcesDirectory)/tests/DumpAsmRefs.MSBuild.Tests/bin/$(buildConfiguration)/netcoreapp3.0/'
-
-    - task: DotNetCoreCLI@2
-      displayName: 'DotNet e2e tests - net48 '
-      inputs:
-        command: custom
-        custom: vstest
-        arguments: DumpAsmRefs.MSBuild.Tests.dll  --Logger:trx
-        workingDirectory: '$(Build.SourcesDirectory)\tests\DumpAsmRefs.MSBuild.Tests\bin\$(buildConfiguration)\net48\'
-
-    - task: PublishTestResults@2
-      displayName: 'Publish dotnet e2e test results'
-      inputs:
-        testResultsFormat: 'VSTest'
-        testResultsFiles: '**/*.trx'
-        mergeTestResults: true
-        testRunTitle: 'E2E tests'
-        searchFolder: '$(Build.SourcesDirectory)/tests/DumpAsmRefs.MSBuild.Tests/bin/$(buildConfiguration)/'
 
     - task: CopyFiles@2
       displayName: 'Copy binaries to staging directory "binaries"'
@@ -153,15 +127,54 @@ jobs:
           **\DumpAsmRefs.MSBuild.Tests.dll
           !**\obj\**
 
+  - job: e2etests
+    displayName: 'End to end tests'
+
+    pool:
+      vmImage: 'windows-latest'
+
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download test binaries'
+      inputs:
+        buildType: 'current'
+        artifactName: 'e2ebinaries'
+        targetPath: '$(Pipeline.Workspace)'
+       
+    - task: DotNetCoreCLI@2
+      displayName: 'DotNet e2e tests - netcoreapp3.0'
+      inputs:
+        command: custom
+        custom: vstest
+        arguments: DumpAsmRefs.MSBuild.Tests.dll --Logger:trx
+        workingDirectory: '$(Pipeline.Workspace)/e2ebinaries/netcoreapp3.0/'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'DotNet e2e tests - net48 '
+      inputs:
+        command: custom
+        custom: vstest
+        arguments: DumpAsmRefs.MSBuild.Tests.dll  --Logger:trx
+        workingDirectory: '$(Pipeline.Workspace)/e2ebinaries/net48/'
+
+    - task: PublishTestResults@2
+      displayName: 'Publish dotnet e2e test results'
+      inputs:
+        testResultsFormat: 'VSTest'
+        testResultsFiles: '**/*.trx'
+        mergeTestResults: true
+        testRunTitle: 'E2E tests'
+        searchFolder: '$(Pipeline.Workspace)/e2ebinaries/'
+
     - task: CopyFiles@2
       displayName: '(on failure) Copy e2e test outputs to staging directory "e2eBinLogs"'
       condition: failed()
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\tests\TestResults'
+        SourceFolder: '$(Pipeline.Workspace)/e2ebinaries/'
         Contents: |
-          nuget.config
-          **\*.binlog
-        TargetFolder: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
+          **/nuget.config
+          **/*.binlog
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/e2eBinLogs'
 
     - task: PublishPipelineArtifact@1
       displayName: '(on failure) Publish "e2eBinLogs"'
