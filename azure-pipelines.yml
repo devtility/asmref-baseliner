@@ -165,6 +165,7 @@ jobs:
 
     - task: PublishTestResults@2
       displayName: 'Publish dotnet e2e test results'
+      condition: 'succeededOrFailed'
       inputs:
         testResultsFormat: 'VSTest'
         testResultsFiles: '**/*.trx'
