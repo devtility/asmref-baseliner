@@ -135,7 +135,7 @@ jobs:
       system.debug: 'true'
       
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'ubuntu-latest'
 
     steps:
     - checkout: none # don't sync sources
