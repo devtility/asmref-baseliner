@@ -80,6 +80,25 @@ jobs:
 
     - task: SonarCloudAnalyze@1
 
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish "binaries"'
+      enabled: false
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
+        artifact: 'binaries'
+        publishLocation: 'pipeline'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish "packages"'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)\packages'
+        artifact: 'packages'
+        publishLocation: 'pipeline'
+
+    - task: SonarCloudPublish@1
+      inputs:
+        pollingTimeoutSec: '300'
+
     - task: VSTest@2
       displayName: 'End-to-end build tests'
       timeoutInMinutes: 5
@@ -108,22 +127,3 @@ jobs:
         targetPath: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
         artifact: 'e2eBinLogs'
         publishLocation: 'pipeline'
-
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish "binaries"'
-      enabled: false
-      inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
-        artifact: 'binaries'
-        publishLocation: 'pipeline'
-
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish "packages"'
-      inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)\packages'
-        artifact: 'packages'
-        publishLocation: 'pipeline'
-
-    - task: SonarCloudPublish@1
-      inputs:
-        pollingTimeoutSec: '300'
