@@ -54,8 +54,8 @@ jobs:
         codeCoverageEnabled: true
         testSelector: testAssemblies
         testAssemblyVer2: |
-          **\DumpAsmRefs.Tests.dll
-          !**\obj\**
+          **/DumpAsmRefs.Tests.dll
+          !**/obj/**
 
     - task: SonarCloudAnalyze@1
 
@@ -186,6 +186,6 @@ jobs:
       displayName: '(on failure) Publish "e2eBinLogs"'
       condition: failed()
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
+        targetPath: '$(Build.ArtifactStagingDirectory)/e2eBinLogs'
         artifact: 'e2eBinLogs'
         publishLocation: 'pipeline'
