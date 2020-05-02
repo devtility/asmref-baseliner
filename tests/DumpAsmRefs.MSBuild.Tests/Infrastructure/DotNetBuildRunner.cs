@@ -49,22 +49,24 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         private void DumpDotNetVersion()
         {
-            var executionResult = ExeRunner.Run(exePath, "--version");
-            WriteLine($"dotnet version: {executionResult.StandardOutput}");
+            var exeRunner = new ExeRunner(Logger);
+            var executionResult = exeRunner.Run(exePath, "--version");
+            Logger.WriteLine($"dotnet version: {executionResult.StandardOutput}");
         }
 
         private void DumpDotNetSdks()
         {
-            var executionResult = ExeRunner.Run(exePath, "--list-sdks");
-            WriteLine($"dotnet SDKs: {executionResult.StandardOutput}");
+            var exeRunner = new ExeRunner(Logger);
+            var executionResult = exeRunner.Run(exePath, "--list-sdks");
+            Logger.WriteLine($"dotnet SDKs: {executionResult.StandardOutput}");
 
-            WriteLine("");
+            Logger.WriteLine("");
 
-            var locator = new DotNetSdkLocator(Output);
+            var locator = new DotNetSdkLocator(Logger);
             var sdks = locator.Find();
             foreach (var sdk in sdks)
             {
-                WriteLine($"  {sdk.Path}    Exists: {Directory.Exists(sdk.Path)}    Parsed version: {sdk.Version}");
+                Logger.WriteLine($"  {sdk.Path}    Exists: {Directory.Exists(sdk.Path)}    Parsed version: {sdk.Version}");
             }
         }
     }

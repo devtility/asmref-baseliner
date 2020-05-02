@@ -6,11 +6,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DumpAsmRefs.Tests
 {
     public class AssemblyInfoGeneratorTests
     {
+        private readonly ITestOutputHelper logger;
+
+        public AssemblyInfoGeneratorTests(ITestOutputHelper logger)
+        {
+            this.logger = logger;
+        }
+
         [Fact]
         public void SystemAssembly_NoRefs()
         {
@@ -42,7 +50,7 @@ namespace DumpAsmRefs.Tests
                 typeof(System.Collections.CollectionBase),
                 typeof(Xunit.ClassDataAttribute) };
 
-            var asm = AssemblyCreator.CreateAssembly("foo", typesInRefAssemblies);
+            var asm = AssemblyCreator.CreateAssembly(logger, "foo", typesInRefAssemblies);
 
             testSubject.FilePathToAssemblyMap["c:\\foo.dll"] = asm;
 
@@ -62,8 +70,8 @@ namespace DumpAsmRefs.Tests
         [Fact]
         public void MultipleSourceAssemblies()
         {
-            var asm1 = AssemblyCreator.CreateAssembly("asm1", typeof(object));
-            var asm2 = AssemblyCreator.CreateAssembly("asm2", typeof(object), typeof(Xunit.ClassDataAttribute));
+            var asm1 = AssemblyCreator.CreateAssembly(logger, "asm1", typeof(object));
+            var asm2 = AssemblyCreator.CreateAssembly(logger, "asm2", typeof(object), typeof(Xunit.ClassDataAttribute));
 
             var testSubject = new TestableAssemblyInfoGenerator();
             testSubject.FilePathToAssemblyMap["c:\\asm1.dll"] = asm1;
@@ -95,8 +103,8 @@ namespace DumpAsmRefs.Tests
             testSubject.FilePathToExceptionToThrowMap[exceptionFilePath] = expectedException;
 
             // Set up valid assemblies
-            var validAsm1 = AssemblyCreator.CreateAssembly("valid1", typeof(System.Collections.CollectionBase));
-            var validAsm2 = AssemblyCreator.CreateAssembly("valid2", typeof(object));
+            var validAsm1 = AssemblyCreator.CreateAssembly(logger, "valid1", typeof(System.Collections.CollectionBase));
+            var validAsm2 = AssemblyCreator.CreateAssembly(logger, "valid2", typeof(object));
 
             testSubject.FilePathToAssemblyMap["c:\\valid1.dll"] = validAsm1;
             testSubject.FilePathToAssemblyMap["c:\\valid2.dll"] = validAsm2;

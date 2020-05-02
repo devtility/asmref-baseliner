@@ -7,16 +7,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Xunit.Abstractions;
 
 namespace DumpAsmRefs.Tests
 {
     internal static class AssemblyCreator
     {
-        public static Assembly CreateAssembly(string assemblyName, params Type[] nonStaticReferencedTypes)
+        public static Assembly CreateAssembly(ITestOutputHelper logger, string assemblyName, params Type[] nonStaticReferencedTypes)
         {
             var code = CreateCode(nonStaticReferencedTypes);
-            Console.WriteLine($"Test assembly code for {assemblyName}:");
-            Console.WriteLine(code);
+            logger.WriteLine($"Test assembly code for {assemblyName}:");
+            logger.WriteLine(code);
 
             var syntaxTree = CSharpSyntaxTree.ParseText(code);
             var refs = nonStaticReferencedTypes.Select(CreateMetadataReference);
@@ -33,7 +34,7 @@ namespace DumpAsmRefs.Tests
             {
                 foreach(var diag in result.Diagnostics)
                 {
-                    Console.WriteLine(diag);
+                    logger.WriteLine(diag.ToString());
                 }
                 throw new InvalidOperationException("Test setup error: error compiling test assembly");
             }
