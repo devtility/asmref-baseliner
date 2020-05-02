@@ -49,7 +49,7 @@ jobs:
 
     - task: CopyFiles@2
       displayName: 'Copy E2E test binaries to staging directory "e2ebinaries"'
-      enabled: false
+      enabled: true
       inputs:
         SourceFolder: '$(Build.SourcesDirectory)/tests/DumpAsmRefs.MSBuild.Tests/bin/$(buildConfiguration)/'
         Contents: |
@@ -58,7 +58,7 @@ jobs:
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish "E2E test binaries"'
-      enabled: false
+      enabled: true
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)/e2ebinaries'
         artifact: 'e2ebinaries'
