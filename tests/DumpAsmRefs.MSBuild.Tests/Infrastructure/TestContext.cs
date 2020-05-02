@@ -19,16 +19,18 @@ namespace DumpAsmRefs.MSBuild.Tests
         private readonly ITestOutputHelper output;
 
         internal static TestContext Initialize(ITestOutputHelper output,
-            [System.Runtime.CompilerServices.CallerMemberName] string uniqueTestName = "") => new TestContext(output, uniqueTestName);
+            string uniqueTestName) => new TestContext(output, uniqueTestName);
 
         private TestContext(ITestOutputHelper output,
-            [System.Runtime.CompilerServices.CallerMemberName] string uniqueTestName = "")
+            string uniqueTestName)
         {
             this.output = output;
             output.WriteLine($"Initializing context for test '{uniqueTestName}'");
 
             TestResultsDirectory = GetTestResultsPath();
+            output.WriteLine($"TestResults directory: '{TestResultsDirectory}'");
             TestSpecificDirectory = CreateTestSpecificDirectory(uniqueTestName);
+            output.WriteLine($"Test-specific directory: '{TestSpecificDirectory}'");
 
             var (packageFilePath, version) = GetLatestNuGetPackagePathAndVersion();
             LocalNuGetFeedPath = Path.GetDirectoryName(packageFilePath);
@@ -48,11 +50,19 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         private static string GetTestResultsPath()
         {
-            const string folderName = "\\DumpAsmRefs.MSBuild.Tests\\";
-            var projectBinPath = GetTestAssemblyBinPath();
+            // The test results will be in a folder called "TestResults".
+            // If the test assembly has been built from source and executed then this
+            // will be at the same level as the test project folder.
+            // If we only have the test binaries (e.g. executing on separate CI agent)
+            // then it will be in the same folder as the assembly.
+            const string projectSourceFolderName = "\\DumpAsmRefs.MSBuild.Tests\\";
+            var testAssemblyFilePath = GetTestAssemblyBinPath();
 
-            var index = projectBinPath.IndexOf(folderName);
-            var projectDirectory = projectBinPath.Substring(0, index);
+            var index = testAssemblyFilePath.IndexOf(projectSourceFolderName);
+            var projectDirectory = (index > 0)
+                ? testAssemblyFilePath.Substring(0, index)
+                : Path.GetDirectoryName(testAssemblyFilePath);
+
             return Path.Combine(projectDirectory, "TestResults");
         }
 
