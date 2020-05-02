@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2020 Devtility.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the repo root for license information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Xunit.Abstractions;
 
@@ -18,6 +19,7 @@ namespace DumpAsmRefs.MSBuild.Tests
         protected override void InitializeBuild()
         {
             DumpDotNetVersion();
+            DumpDotNetSdks();
         }
 
         protected override string BinLogFileNamePrefix => "dotnet";
@@ -49,6 +51,21 @@ namespace DumpAsmRefs.MSBuild.Tests
         {
             var executionResult = ExeRunner.Run(exePath, "--version");
             WriteLine($"dotnet version: {executionResult.StandardOutput}");
+        }
+
+        private void DumpDotNetSdks()
+        {
+            var executionResult = ExeRunner.Run(exePath, "--list-sdks");
+            WriteLine($"dotnet SDKs: {executionResult.StandardOutput}");
+
+            WriteLine("");
+
+            var locator = new DotNetSdkLocator(Output);
+            var sdks = locator.Find();
+            foreach (var sdk in sdks)
+            {
+                WriteLine($"  {sdk.Path}    Exists: {Directory.Exists(sdk.Path)}    Parsed version: {sdk.Version}");
+            }
         }
     }
 }
