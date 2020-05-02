@@ -46,6 +46,19 @@ jobs:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
 
+    - task: VSTest@2
+      displayName: 'Unit tests'
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+        codeCoverageEnabled: true
+        testSelector: testAssemblies
+        testAssemblyVer2: |
+          **\DumpAsmRefs.Tests.dll
+          !**\obj\**
+
+    - task: SonarCloudAnalyze@1
+
     - task: CopyFiles@2
       displayName: 'Copy E2E test binaries to staging directory "e2ebinaries"'
       enabled: true
@@ -64,16 +77,6 @@ jobs:
         publishLocation: 'pipeline'
 
     - task: CopyFiles@2
-      displayName: 'Copy binaries to staging directory "binaries"'
-      enabled: false
-      inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin'
-        Contents: |
-          **\dump**
-          **\Microsoft.Extensions**
-        TargetFolder: '$(Build.ArtifactStagingDirectory)\binaries'
-
-    - task: CopyFiles@2
       displayName: 'Copy release artefacts to staging directory "packages"'
       inputs:
         SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin\$(buildConfiguration)'
@@ -83,18 +86,22 @@ jobs:
           **\RELEASE_*
         TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
 
-    - task: VSTest@2
-      displayName: 'Unit tests'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish "packages"'
       inputs:
-        platform: '$(buildPlatform)'
-        configuration: '$(buildConfiguration)'
-        codeCoverageEnabled: true
-        testSelector: testAssemblies
-        testAssemblyVer2: |
-          **\DumpAsmRefs.Tests.dll
-          !**\obj\**
+        targetPath: '$(Build.ArtifactStagingDirectory)\packages'
+        artifact: 'packages'
+        publishLocation: 'pipeline'
 
-    - task: SonarCloudAnalyze@1
+    - task: CopyFiles@2
+      displayName: 'Copy binaries to staging directory "binaries"'
+      enabled: false
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin'
+        Contents: |
+          **\dump**
+          **\Microsoft.Extensions**
+        TargetFolder: '$(Build.ArtifactStagingDirectory)\binaries'
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish "binaries"'
@@ -102,13 +109,6 @@ jobs:
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
         artifact: 'binaries'
-        publishLocation: 'pipeline'
-
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish "packages"'
-      inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)\packages'
-        artifact: 'packages'
         publishLocation: 'pipeline'
 
     - task: SonarCloudPublish@1
