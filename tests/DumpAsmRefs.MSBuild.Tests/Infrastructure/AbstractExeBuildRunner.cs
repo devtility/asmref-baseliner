@@ -10,12 +10,12 @@ namespace DumpAsmRefs.MSBuild.Tests
 {
     internal abstract class AbstractExeBuildRunner : IBuildRunner
     {
-        protected AbstractExeBuildRunner(ITestOutputHelper output)
+        protected AbstractExeBuildRunner(ITestOutputHelper logger)
         {
-            this.Output = output ?? throw new ArgumentNullException(nameof(output));
+            this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        protected ITestOutputHelper Output { get; }
+        protected ITestOutputHelper Logger { get; }
 
         protected abstract string BinLogFileNamePrefix { get; }
 
@@ -43,7 +43,8 @@ namespace DumpAsmRefs.MSBuild.Tests
             var args = BuildCommandLineArgs(projectFilePath, targetName, binLogFilePath, additionalProperties);
             WriteLine($"Command line arguments: {args}");
 
-            var executionResult = ExeRunner.Run(ExePath, args);
+            var exeRunner = new ExeRunner(Logger);
+            var executionResult = exeRunner.Run(ExePath, args);
             DumpExecutionResult(executionResult);
 
             File.Exists(binLogFilePath).Should().BeTrue();
@@ -76,10 +77,6 @@ namespace DumpAsmRefs.MSBuild.Tests
             WriteLine(string.Empty);
         }
 
-        protected void WriteLine(string message)
-        {
-            Output.WriteLine(message);
-            Console.WriteLine(message);
-        }
+        protected void WriteLine(string message) => Logger.WriteLine(message);
     }
 }

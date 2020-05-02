@@ -3,15 +3,22 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using Xunit.Abstractions;
 
 namespace DumpAsmRefs.MSBuild.Tests
 {
-    internal static class ExeRunner
+    internal class ExeRunner
     {
         private const int DefaultTimeoutInMs = 1000 * 60 * 1;
         private const int ShutdownTimeoutInMs = 1000 * 20;
 
-        public static ExecutionResult Run(string exePath, string arguments = null, int timeoutInMs = DefaultTimeoutInMs)
+        private readonly ITestOutputHelper logger;
+        public ExeRunner(ITestOutputHelper logger)
+        {
+            this.logger = logger;
+        }
+
+        public ExecutionResult Run(string exePath, string arguments = null, int timeoutInMs = DefaultTimeoutInMs)
         {
             var process = new Process
             {
@@ -29,9 +36,9 @@ namespace DumpAsmRefs.MSBuild.Tests
 
             ExecutionStatus executionStatus;
 
-            Console.WriteLine($"ExeRunner: FileName: {exePath}");
-            Console.WriteLine($"ExeRunner: Arguments: {arguments}");
-            Console.WriteLine($"ExeRunner: Timeout: {timeoutInMs}");
+            logger.WriteLine($"ExeRunner: FileName: {exePath}");
+            logger.WriteLine($"ExeRunner: Arguments: {arguments}");
+            logger.WriteLine($"ExeRunner: Timeout: {timeoutInMs}");
 
             // Note: we're redirecting the IO streams, so we need to process the
             // data otherwise the process will hang if the output buffers are full
@@ -65,37 +72,37 @@ namespace DumpAsmRefs.MSBuild.Tests
             return result;
         }
 
-        private static void EnsureProcessHasExited(Process process, int timeoutInMs)
+        private void EnsureProcessHasExited(Process process, int timeoutInMs)
         {
             var exited = process.WaitForExit(timeoutInMs);
-            Console.WriteLine($"{nameof(EnsureProcessHasExited)}: WaitForExit result = {exited}");
+            logger.WriteLine($"{nameof(EnsureProcessHasExited)}: WaitForExit result = {exited}");
             if (!exited)
             {
                 int retryCount = 0;
                 while(retryCount < 5 && !process.HasExited)
                 {
-                    Console.WriteLine($"Waiting for process to exit: {retryCount}");
+                    logger.WriteLine($"Waiting for process to exit: {retryCount}");
                     System.Threading.Thread.Sleep(10000);
                     retryCount++;
                 }
-                Console.WriteLine($"Finished waiting for process to exit. HasExited = {process.HasExited}");
+                logger.WriteLine($"Finished waiting for process to exit. HasExited = {process.HasExited}");
             }
         }
 
-        private static void EnsureProcessEnded(Process process)
+        private void EnsureProcessEnded(Process process)
         {
             if (process.HasExited)
             {
-                Console.WriteLine($"{nameof(EnsureProcessEnded)}: process has already ended");
+                logger.WriteLine($"{nameof(EnsureProcessEnded)}: process has already ended");
                 return;
             }
 
             try
             {
-                Console.WriteLine($"{nameof(EnsureProcessEnded)}: killing the process...");
+                logger.WriteLine($"{nameof(EnsureProcessEnded)}: killing the process...");
                 process.Kill(); // asynchronous
                 process.WaitForExit();
-                Console.WriteLine($"{nameof(EnsureProcessEnded)}: Process killed. HasExited = {process.HasExited}");
+                logger.WriteLine($"{nameof(EnsureProcessEnded)}: Process killed. HasExited = {process.HasExited}");
             }
             catch (Exception)
             {

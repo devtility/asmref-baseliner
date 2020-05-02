@@ -11,17 +11,18 @@ namespace DumpAsmRefs.MSBuild.Tests
 {
     internal class DotNetSdkLocator
     {
-        private readonly ITestOutputHelper outputHelper;
+        private readonly ITestOutputHelper logger;
 
-        public DotNetSdkLocator(ITestOutputHelper outputHelper)
+        public DotNetSdkLocator(ITestOutputHelper logger)
         {
-            this.outputHelper = outputHelper;
+            this.logger = logger;
         }
 
         public IEnumerable<DotNetSdk> Find()
         {
-            var executionResult = ExeRunner.Run("dotnet", "--list-sdks");
-            WriteLine($"dotnet SDKs: {executionResult.StandardOutput}");
+            var exeRunner = new ExeRunner(logger);
+            var executionResult = exeRunner.Run("dotnet", "--list-sdks");
+            logger.WriteLine($"dotnet SDKs: {executionResult.StandardOutput}");
 
             // e.g 2.1.202 [C:\Program Files\dotnet\sdk]
             var listSdksOutput = executionResult.StandardOutput.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
@@ -48,12 +49,6 @@ namespace DumpAsmRefs.MSBuild.Tests
             }
 
             return null;
-        }
-
-        protected void WriteLine(string message)
-        {
-            outputHelper.WriteLine(message);
-            Console.WriteLine(message);
         }
     }
 }
