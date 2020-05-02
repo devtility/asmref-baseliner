@@ -48,20 +48,29 @@ jobs:
         configuration: '$(buildConfiguration)'
 
     - task: DotNetCoreCLI@2
-      displayName: 'DotNet e2e tests'
+      displayName: 'DotNet e2e tests - netcoreapp3.0'
       inputs:
         command: custom
         custom: vstest
-        arguments: DumpAsmRefs.MSBuild.Tests.dll
-        workingDirectory: '$(Build.SourcesDirectory)\tests\DumpAsmRefs.MSBuild.Tests\bin\$(buildConfiguration)\netcoreapp3.0\'
+        arguments: DumpAsmRefs.MSBuild.Tests.dll --Logger:trx
+        workingDirectory: '$(Build.SourcesDirectory)/tests/DumpAsmRefs.MSBuild.Tests/bin/$(buildConfiguration)/netcoreapp3.0/'
 
     - task: DotNetCoreCLI@2
-      displayName: 'DotNet e2e tests'
+      displayName: 'DotNet e2e tests - net48 '
       inputs:
         command: custom
         custom: vstest
-        arguments: DumpAsmRefs.MSBuild.Tests.dll
+        arguments: DumpAsmRefs.MSBuild.Tests.dll  --Logger:trx
         workingDirectory: '$(Build.SourcesDirectory)\tests\DumpAsmRefs.MSBuild.Tests\bin\$(buildConfiguration)\net48\'
+
+    - task: PublishTestResults@2
+      displayName: 'Publish dotnet e2e test results'
+      inputs:
+        testResultsFormat: 'VSTest'
+        testResultsFiles: '**/*.trx'
+        mergeTestResults: true
+        testRunTitle: 'E2E tests'
+        searchFolder: '$(Build.SourcesDirectory)/tests/DumpAsmRefs.MSBuild.Tests/bin/$(buildConfiguration)/'
 
     - task: CopyFiles@2
       displayName: 'Copy binaries to staging directory "binaries"'
