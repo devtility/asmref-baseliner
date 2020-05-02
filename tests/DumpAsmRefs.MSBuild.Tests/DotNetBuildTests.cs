@@ -25,7 +25,7 @@ namespace DumpAsmRefs.MSBuild.Tests
         {
             var buildRunner = CreateBuildRunner(buildRunnerId);
 
-            var context = TestContext.Initialize(output);
+            var context = TestContext.Initialize(output, uniqueTestName: $"{nameof(SimpleBuild)}_{buildRunnerId}");
 
             const string proj = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
@@ -67,7 +67,7 @@ namespace MyNamespace
         {
             var buildRunner = CreateBuildRunner(buildRunnerId);
 
-            var context = TestContext.Initialize(output);
+            var context = TestContext.Initialize(output, uniqueTestName: $"{nameof(WorkflowLifecycle)}_{buildRunnerId}");
 
             var proj = $@"<Project Sdk='Microsoft.NET.Sdk'>
   <PropertyGroup>
