@@ -2,6 +2,7 @@
 # Build and run tests for .NET Desktop or Windows classic desktop solutions.
 # Add steps that publish symbols, save build artifacts, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+name: 'CI build, test and end-to-end test'
 
 trigger:
   - master
@@ -11,114 +12,118 @@ pr:
   - master
   - branch-*
 
-pool:
-  vmImage: 'windows-latest'
+jobs:
 
-variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
+  - job: buildAndTest
+    displayName: 'Build and unit test'
+    pool:
+      vmImage: 'windows-latest'
 
-steps:
-- task: NuGetToolInstaller@1
+    variables:
+      solution: '**/*.sln'
+      buildPlatform: 'Any CPU'
+      buildConfiguration: 'Release'
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+    steps:
+    - task: NuGetToolInstaller@1
 
-- task: SonarCloudPrepare@1
-  inputs:
-    SonarCloud: 'SonarCloud - Devtility'
-    organization: 'devtility'
-    scannerMode: 'MSBuild'
-    projectKey: 'asmrefs-baseliner'
-    projectName: 'AsmRefs Baseliner'
-    projectVersion: '0.1'
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
 
-- task: VSBuild@1
-  displayName: 'Build product and tests'
-  inputs:
-    solution: '$(solution)'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    - task: SonarCloudPrepare@1
+      inputs:
+        SonarCloud: 'SonarCloud - Devtility'
+        organization: 'devtility'
+        scannerMode: 'MSBuild'
+        projectKey: 'asmrefs-baseliner'
+        projectName: 'AsmRefs Baseliner'
+        projectVersion: '0.1'
 
-- task: CopyFiles@2
-  displayName: 'Copy binaries to staging directory "binaries"'
-  enabled: false
-  inputs:
-    SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin'
-    Contents: |
-      **\dump**
-      **\Microsoft.Extensions**
-    TargetFolder: '$(Build.ArtifactStagingDirectory)\binaries'
+    - task: VSBuild@1
+      displayName: 'Build product and tests'
+      inputs:
+        solution: '$(solution)'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
 
-- task: CopyFiles@2
-  displayName: 'Copy release artefacts to staging directory "packages"'
-  inputs:
-    SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin\$(buildConfiguration)'
-    Contents: |
-      **\*.nupkg
-      **\*.snupkg
-      **\RELEASE_*
-    TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
+    - task: CopyFiles@2
+      displayName: 'Copy binaries to staging directory "binaries"'
+      enabled: false
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin'
+        Contents: |
+          **\dump**
+          **\Microsoft.Extensions**
+        TargetFolder: '$(Build.ArtifactStagingDirectory)\binaries'
 
-- task: VSTest@2
-  displayName: 'Unit tests'
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    codeCoverageEnabled: true
-    testSelector: testAssemblies
-    testAssemblyVer2: |
-      **\DumpAsmRefs.Tests.dll
-      !**\obj\**
+    - task: CopyFiles@2
+      displayName: 'Copy release artefacts to staging directory "packages"'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin\$(buildConfiguration)'
+        Contents: |
+          **\*.nupkg
+          **\*.snupkg
+          **\RELEASE_*
+        TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
 
-- task: SonarCloudAnalyze@1
+    - task: VSTest@2
+      displayName: 'Unit tests'
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+        codeCoverageEnabled: true
+        testSelector: testAssemblies
+        testAssemblyVer2: |
+          **\DumpAsmRefs.Tests.dll
+          !**\obj\**
 
-- task: VSTest@2
-  displayName: 'End-to-end build tests'
-  timeoutInMinutes: 5
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    testSelector: testAssemblies
-    testAssemblyVer2: |
-      **\DumpAsmRefs.MSBuild.Tests.dll
-      !**\obj\**
+    - task: SonarCloudAnalyze@1
 
-- task: CopyFiles@2
-  displayName: '(on failure) Copy e2e test outputs to staging directory "e2eBinLogs"'
-  condition: failed()
-  inputs:
-    SourceFolder: '$(Build.SourcesDirectory)\tests\TestResults'
-    Contents: |
-      nuget.config
-      **\*.binlog
-    TargetFolder: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
+    - task: VSTest@2
+      displayName: 'End-to-end build tests'
+      timeoutInMinutes: 5
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+        testSelector: testAssemblies
+        testAssemblyVer2: |
+          **\DumpAsmRefs.MSBuild.Tests.dll
+          !**\obj\**
 
-- task: PublishPipelineArtifact@1
-  displayName: '(on failure) Publish "e2eBinLogs"'
-  condition: failed()
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
-    artifact: 'e2eBinLogs'
-    publishLocation: 'pipeline'
+    - task: CopyFiles@2
+      displayName: '(on failure) Copy e2e test outputs to staging directory "e2eBinLogs"'
+      condition: failed()
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)\tests\TestResults'
+        Contents: |
+          nuget.config
+          **\*.binlog
+        TargetFolder: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
 
-- task: PublishPipelineArtifact@1
-  displayName: 'Publish "binaries"'
-  enabled: false
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
-    artifact: 'binaries'
-    publishLocation: 'pipeline'
+    - task: PublishPipelineArtifact@1
+      displayName: '(on failure) Publish "e2eBinLogs"'
+      condition: failed()
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
+        artifact: 'e2eBinLogs'
+        publishLocation: 'pipeline'
 
-- task: PublishPipelineArtifact@1
-  displayName: 'Publish "packages"'
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)\packages'
-    artifact: 'packages'
-    publishLocation: 'pipeline'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish "binaries"'
+      enabled: false
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
+        artifact: 'binaries'
+        publishLocation: 'pipeline'
 
-- task: SonarCloudPublish@1
-  inputs:
-    pollingTimeoutSec: '300'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish "packages"'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)\packages'
+        artifact: 'packages'
+        publishLocation: 'pipeline'
+
+    - task: SonarCloudPublish@1
+      inputs:
+        pollingTimeoutSec: '300'
