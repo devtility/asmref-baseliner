@@ -13,8 +13,7 @@ pr:
   - branch-*
 
 jobs:
-
-  - job: buildAndTest
+  - job: buildAndUnitTest
     displayName: 'Build and unit test'
     pool:
       vmImage: 'windows-latest'
@@ -47,26 +46,6 @@ jobs:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
 
-    - task: CopyFiles@2
-      displayName: 'Copy binaries to staging directory "binaries"'
-      enabled: false
-      inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin'
-        Contents: |
-          **\dump**
-          **\Microsoft.Extensions**
-        TargetFolder: '$(Build.ArtifactStagingDirectory)\binaries'
-
-    - task: CopyFiles@2
-      displayName: 'Copy release artefacts to staging directory "packages"'
-      inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin\$(buildConfiguration)'
-        Contents: |
-          **\*.nupkg
-          **\*.snupkg
-          **\RELEASE_*
-        TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
-
     - task: VSTest@2
       displayName: 'Unit tests'
       inputs:
@@ -80,13 +59,32 @@ jobs:
 
     - task: SonarCloudAnalyze@1
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish "binaries"'
-      enabled: false
+    - task: CopyFiles@2
+      displayName: 'Copy E2E test binaries to staging directory "e2ebinaries"'
+      enabled: true
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
-        artifact: 'binaries'
+        SourceFolder: '$(Build.SourcesDirectory)/tests/DumpAsmRefs.MSBuild.Tests/bin/$(buildConfiguration)/'
+        Contents: |
+          **/*
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/e2ebinaries'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish "E2E test binaries"'
+      enabled: true
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/e2ebinaries'
+        artifact: 'e2ebinaries'
         publishLocation: 'pipeline'
+
+    - task: CopyFiles@2
+      displayName: 'Copy release artefacts to staging directory "packages"'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin\$(buildConfiguration)'
+        Contents: |
+          **\*.nupkg
+          **\*.snupkg
+          **\RELEASE_*
+        TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish "packages"'
@@ -95,11 +93,30 @@ jobs:
         artifact: 'packages'
         publishLocation: 'pipeline'
 
+    - task: CopyFiles@2
+      displayName: 'Copy binaries to staging directory "binaries"'
+      enabled: false
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)\src\DumpAsmRefs\bin'
+        Contents: |
+          **\dump**
+          **\Microsoft.Extensions**
+        TargetFolder: '$(Build.ArtifactStagingDirectory)\binaries'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish "binaries"'
+      enabled: false
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)\binaries'
+        artifact: 'binaries'
+        publishLocation: 'pipeline'
+
     - task: SonarCloudPublish@1
       inputs:
         pollingTimeoutSec: '300'
 
     - task: VSTest@2
+      enabled: false
       displayName: 'End-to-end build tests'
       timeoutInMinutes: 5
       inputs:
@@ -110,15 +127,60 @@ jobs:
           **\DumpAsmRefs.MSBuild.Tests.dll
           !**\obj\**
 
+  - job: e2etests
+    displayName: 'End to end tests'
+    dependsOn: 'buildAndUnitTest'
+
+    variables:
+      system.debug: 'true'
+      
+    pool:
+      vmImage: 'windows-latest'
+
+    steps:
+    - checkout: none # don't sync sources
+
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download test binaries'
+      inputs:
+        buildType: 'current'
+        artifactName: 'e2ebinaries'
+        targetPath: '$(Pipeline.Workspace)'
+       
+    - task: DotNetCoreCLI@2
+      displayName: 'DotNet e2e tests - netcoreapp3.0'
+      inputs:
+        command: custom
+        custom: vstest
+        arguments: DumpAsmRefs.MSBuild.Tests.dll --Logger:trx
+        workingDirectory: '$(Pipeline.Workspace)/netcoreapp3.0/'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'DotNet e2e tests - net48 '
+      inputs:
+        command: custom
+        custom: vstest
+        arguments: DumpAsmRefs.MSBuild.Tests.dll  --Logger:trx
+        workingDirectory: '$(Pipeline.Workspace)/net48/'
+
+    - task: PublishTestResults@2
+      displayName: 'Publish dotnet e2e test results'
+      inputs:
+        testResultsFormat: 'VSTest'
+        testResultsFiles: '**/*.trx'
+        mergeTestResults: true
+        testRunTitle: 'E2E tests'
+        searchFolder: '$(Pipeline.Workspace)'
+
     - task: CopyFiles@2
       displayName: '(on failure) Copy e2e test outputs to staging directory "e2eBinLogs"'
       condition: failed()
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\tests\TestResults'
+        SourceFolder: '$(Pipeline.Workspace)'
         Contents: |
-          nuget.config
-          **\*.binlog
-        TargetFolder: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
+          **/nuget.config
+          **/*.binlog
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/e2eBinLogs'
 
     - task: PublishPipelineArtifact@1
       displayName: '(on failure) Publish "e2eBinLogs"'
