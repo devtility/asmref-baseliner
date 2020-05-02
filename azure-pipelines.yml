@@ -138,6 +138,8 @@ jobs:
       vmImage: 'windows-latest'
 
     steps:
+    - checkout: none # don't sync sources
+
     - task: DownloadPipelineArtifact@2
       displayName: 'Download test binaries'
       inputs:
