@@ -29,7 +29,7 @@ namespace DumpAsmRefs.MSBuild.Tests
 
             const string proj = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 </Project>
@@ -48,7 +48,7 @@ namespace MyNamespace
         }
     }
 }";
-            var projFilePath = context.WriteFile("myApp.csproj", proj, "proj1");
+            var projFilePath = context.WriteFile("simpleBuild.csproj", proj, "proj1");
             context.WriteFile("program.cs", code, "proj1");
 
             buildRunner.Restore(projFilePath);
@@ -71,9 +71,10 @@ namespace MyNamespace
 
             var proj = $@"<Project Sdk='Microsoft.NET.Sdk'>
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <RestorePackagesPath>{context.NuGetPackageCachePath}</RestorePackagesPath>
+    <AsmRefLogLevel>Diagnostic</AsmRefLogLevel>
     <SonarQubeTargetsImported>true</SonarQubeTargetsImported>
   </PropertyGroup>
 
@@ -91,10 +92,11 @@ class Program
         Console.WriteLine(""Hello World!"");
     }
 }";
-            var projectFilePath = context.WriteFile("myApp.csproj", proj, "proj1");
+            var projectFilePath = context.WriteFile("workflow.csproj", proj, "proj1");
             context.WriteFile("program.cs", code, "proj1");
             
-            var workflowChecker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath), "myApp");
+            var workflowChecker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath),
+                Path.GetFileNameWithoutExtension(projectFilePath));
 
             // 1. Restore
             LogTestStep("1 - initial restore -> not expecting a build or comparison");

@@ -11,6 +11,8 @@ namespace DumpAsmRefs.MSBuild.Tests
     {
         private const string exePath = "dotnet";
 
+        private static bool alreadyRun = false;
+        
         public DotNetBuildRunner(ITestOutputHelper output)
             :base(output)
         {
@@ -19,7 +21,12 @@ namespace DumpAsmRefs.MSBuild.Tests
         protected override void InitializeBuild()
         {
             DumpDotNetVersion();
-            DumpDotNetSdks();
+
+            if (!alreadyRun)
+            {
+                alreadyRun = true;
+                DumpDotNetSdks();
+            }
         }
 
         protected override string BinLogFileNamePrefix => "dotnet";
