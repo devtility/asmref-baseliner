@@ -111,10 +111,24 @@ class Program
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
             workflowChecker.CheckBaselinePublished(buildChecker);
 
+            // Check the input properties were correctly set
+            var inputs = workflowChecker.GetPropertiesSetInInputValidationTarget(buildChecker);
+            Path.IsPathRooted(inputs.AsmRefBaselineFilePath).Should().BeTrue();
+            Path.IsPathRooted(inputs.AsmRefOutputFilePath).Should().BeTrue();
+            Path.IsPathRooted(inputs.AsmRefRootSearchDir).Should().BeTrue();
+            inputs.AsmRefIncludePatterns.Should().Be("workflow.dll");
+            inputs.AsmRefLogLevel.Should().BeNull(); // set in the project being built, so should not have been overridden in the target
+
             // 3. Build again -> comparison run, no error
             LogTestStep("3 - build again -> expecting comparison to run and succeed");
             buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
+
+            // Check the comparison used the defaults
+            var taskInput = workflowChecker.GetCompareTaskInputs(buildChecker);
+            taskInput.IgnoreSourcePublicKeyToken.Should().Be("True");
+            taskInput.SourceVersionCompatibility.Should().Be("Strict");
+            taskInput.TargetVersionCompatibility.Should().Be("Strict");
 
             workflowChecker.CheckComparisonExecutedAndSucceeded(buildChecker);
             workflowChecker.CheckReportsAreDifferent();
@@ -135,11 +149,11 @@ class Class1
 
             // 5. Update -> baseline file updated
             LogTestStep("5 - run with baseline option -> expecting success");
-            var properties = new Dictionary<string, string>
+            var additionalInputs = new Dictionary<string, string>
             {
                 { "AsmRefUpdateBaseline", "true"}
             };
-            buildChecker = buildRunner.Build(projectFilePath, properties);
+            buildChecker = buildRunner.Build(projectFilePath, additionalInputs);
             buildChecker.OverallBuildSucceeded.Should().BeTrue();
 
             workflowChecker.CheckBaselineUpdatePerformed(buildChecker);
