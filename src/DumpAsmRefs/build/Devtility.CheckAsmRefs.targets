@@ -49,6 +49,7 @@
   <PropertyGroup>
     <AsmRefAssemblyFile Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)..\lib\netcoreapp2.0\DumpAsmRefs.dll</AsmRefAssemblyFile>
     <AsmRefAssemblyFile Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)..\lib\net461\DumpAsmRefs.exe</AsmRefAssemblyFile>
+    <AsmRefAssemblyFile>$([MSBuild]::NormalizePath('$(AsmRefAssemblyFile)'))</AsmRefAssemblyFile>
 
     <AsmRefExecCommand Condition="'$(MSBuildRuntimeType)' == 'Core'">dotnet $(AsmRefAssemblyFile)</AsmRefExecCommand>
     <AsmRefExecCommand Condition="'$(MSBuildRuntimeType)' != 'Core'">$(AsmRefAssemblyFile)</AsmRefExecCommand>
@@ -64,12 +65,16 @@
 
   <Target Name="_EnsureAsmRefFilePathsAreSet">
     <PropertyGroup>
-      <AsmRefIncludePatterns Condition="$(AsmRefIncludePatterns) == '' ">$(TargetName)*</AsmRefIncludePatterns>
-      <AsmRefRootSearchDir Condition="$(AsmRefRootSearchDir) == '' " >$(OutDir)</AsmRefRootSearchDir>
-      <AsmRefOutputFilePath Condition="$(AsmRefOutputFilePath) == '' " >$(MSBuildProjectDirectory)\$(OutDir)AsmRef_$(MSBuildProjectName)_Latest.txt</AsmRefOutputFilePath>
+      <AsmRefIncludePatterns Condition="$(AsmRefIncludePatterns) == '' ">$([System.IO.Path]::GetFileName('$(TargetPath)'))</AsmRefIncludePatterns>
+      <AsmRefRootSearchDir Condition="$(AsmRefRootSearchDir) == '' " >$([System.IO.Path]::GetDirectoryName('$(TargetPath)'))</AsmRefRootSearchDir>
+      <AsmRefOutputFilePath Condition="$(AsmRefOutputFilePath) == '' " >$([System.IO.Path]::GetDirectoryName('$(TargetPath)'))\AsmRef_$(MSBuildProjectName)_Latest.txt</AsmRefOutputFilePath>
       <AsmRefBaselineFilePath Condition="$(AsmRefBaselineFilePath) == '' " >$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline.txt</AsmRefBaselineFilePath>
       <AsmRefLogLevel Condition="$(AsmRefLogLevel) == '' " >Normal</AsmRefLogLevel>
       <AsmRefIgnoreSourcePublicKeyToken Condition="$(AsmRefIgnoreSourcePublicKeyToken) == '' ">true</AsmRefIgnoreSourcePublicKeyToken>
+
+      <AsmRefRootSearchDir>$([MSBuild]::NormalizePath('$(AsmRefRootSearchDir)'))</AsmRefRootSearchDir>
+      <AsmRefOutputFilePath>$([MSBuild]::NormalizePath('$(AsmRefOutputFilePath)'))</AsmRefOutputFilePath>
+      <AsmRefBaselineFilePath>$([MSBuild]::NormalizePath('$(AsmRefBaselineFilePath)'))</AsmRefBaselineFilePath>
 
       <!-- Options: Any, Major, MajorMinor, MajorMinorBuild, Strict -->
       <AsmRefVersionCompatibility Condition="$(AsmRefVersionCompatibility)==''">Strict</AsmRefVersionCompatibility>
