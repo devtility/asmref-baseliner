@@ -28,7 +28,7 @@ namespace DumpAsmRefs.Tests
 
             var testSubject = new CompareAsmRefReportFiles(dummyFileSystem, mockLoader.Object, mockComparer.Object)
             {
-                BaseLineReportFilePath = "file1",
+                BaselineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
                 SourceVersionCompatibility = sourceVersionCompatString,
                 TargetVersionCompatibility = targetVersionCompatString,
@@ -74,7 +74,7 @@ namespace DumpAsmRefs.Tests
             var testSubject = new CompareAsmRefReportFiles(dummyFileSystem,
                 mockLoader.Object, mockComparer.Object)
             {
-                BaseLineReportFilePath = "c:\\file1.txt",
+                BaselineReportFilePath = "c:\\file1.txt",
                 CurrentReportFilePath = "c:\\file2.txt",
                 SourceVersionCompatibility = "MajorMinorBuild",
                 IgnoreSourcePublicKeyToken = true,
@@ -140,7 +140,7 @@ Referenced assemblies:   # count = 1
             var testSubject = new CompareAsmRefReportFiles(dummyFileSystem, 
                 new YamlReportLoader(), new AsmRefResultComparer())
             {
-                BaseLineReportFilePath = "file1",
+                BaselineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
                 SourceVersionCompatibility = "sTRICt",
                 BuildEngine = buildEngine,
@@ -211,7 +211,7 @@ Referenced assemblies:   # count = 1
             var testSubject = new CompareAsmRefReportFiles(dummyFileSystem,
                 new YamlReportLoader(), new AsmRefResultComparer())
             {
-                BaseLineReportFilePath = "file1",
+                BaselineReportFilePath = "file1",
                 CurrentReportFilePath = "file2",
                 SourceVersionCompatibility = "any",
                 BuildEngine = buildEngine,
