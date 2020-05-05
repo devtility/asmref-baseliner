@@ -13,7 +13,7 @@ namespace DumpAsmRefs
         private readonly IResultComparer comparer;
 
         [Required]
-        public string BaseLineReportFilePath { get; set; }
+        public string BaselineReportFilePath { get; set; }
 
         [Required]
         public string CurrentReportFilePath { get; set; }
@@ -48,7 +48,7 @@ namespace DumpAsmRefs
             }
             Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_IgnoreSourcePublicKeyToken, IgnoreSourcePublicKeyToken);
 
-            if (!TryLoadReport(BaseLineReportFilePath, out var baseline)
+            if (!TryLoadReport(BaselineReportFilePath, out var baseline)
                 || !TryLoadReport(CurrentReportFilePath, out var current))
             {
                 return false;
@@ -61,13 +61,13 @@ namespace DumpAsmRefs
             if (result)
             {
                 this.Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_ReferencesAreSame,
-                    BaseLineReportFilePath, CurrentReportFilePath);
+                    BaselineReportFilePath, CurrentReportFilePath);
                 return true;
             }
             else
             {
                 this.Log.LogError(UIStrings.CompareTask_ReferencesAreDifferent,
-                    BaseLineReportFilePath, CurrentReportFilePath);
+                    BaselineReportFilePath, CurrentReportFilePath);
                 return false;
             }
         }
