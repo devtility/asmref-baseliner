@@ -54,8 +54,8 @@ jobs:
         codeCoverageEnabled: true
         testSelector: testAssemblies
         testAssemblyVer2: |
-          **\DumpAsmRefs.Tests.dll
-          !**\obj\**
+          **/DumpAsmRefs.Tests.dll
+          !**/obj/**
 
     - task: SonarCloudAnalyze@1
 
@@ -127,15 +127,15 @@ jobs:
           **\DumpAsmRefs.MSBuild.Tests.dll
           !**\obj\**
 
-  - job: e2etests
-    displayName: 'End to end tests'
+  - job: e2etests_linux
+    displayName: 'End to end tests - Linux'
     dependsOn: 'buildAndUnitTest'
 
     variables:
       system.debug: 'true'
       
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'ubuntu-16.04'
 
     steps:
     - checkout: none # don't sync sources
@@ -155,23 +155,14 @@ jobs:
         arguments: DumpAsmRefs.MSBuild.Tests.dll --Logger:trx
         workingDirectory: '$(Pipeline.Workspace)/netcoreapp3.0/'
 
-    - task: DotNetCoreCLI@2
-      displayName: 'DotNet e2e tests - net48 '
-      condition: succeededOrFailed()
-      inputs:
-        command: custom
-        custom: vstest
-        arguments: DumpAsmRefs.MSBuild.Tests.dll  --Logger:trx
-        workingDirectory: '$(Pipeline.Workspace)/net48/'
-
     - task: PublishTestResults@2
-      displayName: 'Publish dotnet e2e test results'
+      displayName: 'Publish dotnet e2e test results - Linux'
       condition: succeededOrFailed()
       inputs:
         testResultsFormat: 'VSTest'
         testResultsFiles: '**/*.trx'
         mergeTestResults: true
-        testRunTitle: 'E2E tests'
+        testRunTitle: 'E2E tests - Linux'
         searchFolder: '$(Pipeline.Workspace)'
 
     - task: CopyFiles@2
@@ -185,9 +176,65 @@ jobs:
         TargetFolder: '$(Build.ArtifactStagingDirectory)/e2eBinLogs'
 
     - task: PublishPipelineArtifact@1
-      displayName: '(on failure) Publish "e2eBinLogs"'
+      displayName: '(on failure) Publish "e2eBinLogs_Linux"'
       condition: failed()
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)\e2eBinLogs'
-        artifact: 'e2eBinLogs'
+        targetPath: '$(Build.ArtifactStagingDirectory)/e2eBinLogs'
+        artifact: 'e2eBinLogs_Linux'
+        publishLocation: 'pipeline'
+
+  - job: e2etests_windows
+    displayName: 'End to end tests - Windows'
+    dependsOn: 'buildAndUnitTest'
+
+    variables:
+      system.debug: 'true'
+      
+    pool:
+      vmImage: 'windows-latest'
+
+    steps:
+    - checkout: none # don't sync sources
+
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download test binaries'
+      inputs:
+        buildType: 'current'
+        artifactName: 'e2ebinaries'
+        targetPath: '$(Pipeline.Workspace)'
+       
+    - task: DotNetCoreCLI@2
+      displayName: 'DotNet e2e tests - net48'
+      inputs:
+        command: custom
+        custom: vstest
+        arguments: DumpAsmRefs.MSBuild.Tests.dll  --Logger:trx
+        workingDirectory: '$(Pipeline.Workspace)/net48/'
+
+    - task: PublishTestResults@2
+      displayName: 'Publish dotnet e2e test results - Windows'
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFormat: 'VSTest'
+        testResultsFiles: '**/*.trx'
+        mergeTestResults: true
+        testRunTitle: 'E2E tests - Windows'
+        searchFolder: '$(Pipeline.Workspace)'
+
+    - task: CopyFiles@2
+      displayName: '(on failure) Copy e2e test outputs to staging directory "e2eBinLogs"'
+      condition: failed()
+      inputs:
+        SourceFolder: '$(Pipeline.Workspace)'
+        Contents: |
+          **/nuget.config
+          **/*.binlog
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/e2eBinLogs'
+
+    - task: PublishPipelineArtifact@1
+      displayName: '(on failure) Publish "e2eBinLogs_Windows"'
+      condition: failed()
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/e2eBinLogs'
+        artifact: 'e2eBinLogs_Windows'
         publishLocation: 'pipeline'
