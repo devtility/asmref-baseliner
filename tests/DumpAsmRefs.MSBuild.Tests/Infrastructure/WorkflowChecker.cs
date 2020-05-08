@@ -4,6 +4,7 @@ using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Xunit.Abstractions;
 
 namespace DumpAsmRefs.MSBuild.Tests
 {
@@ -19,26 +20,50 @@ namespace DumpAsmRefs.MSBuild.Tests
         private const string ComparisonTaskName = "CompareAsmRefReportFiles";
 
         private readonly string projectDirectory;
-        private readonly string BaselineFilePath;
+        private readonly string baselineFilePath;
+        private readonly ITestOutputHelper logger;
 
-        public WorkflowChecker(string projectDirectory, string projectName)
+        public WorkflowChecker(string projectDirectory, string projectName, ITestOutputHelper logger)
         {
             this.projectDirectory = projectDirectory;
-            BaselineFilePath = Path.Combine(projectDirectory, $"AsmRef_{projectName}_Baseline.txt");
+            baselineFilePath = Path.Combine(projectDirectory, $"AsmRef_{projectName}_Baseline.txt");
+            this.logger = logger;
         }
 
-        private string latestReportFilePath;
-        private string LatestReportFilePath
+        public TargetsInputs GetPropertiesSetInInputValidationTarget(BuildChecker buildChecker)
         {
-            get
+            var targetInputs = new TargetsInputs();
+
+            var msbuildProperties = buildChecker.GetPropertyAssignmentsInTarget(InputValidationTargetName);
+            SetObjectProperties(targetInputs, msbuildProperties, false);
+
+            return targetInputs;
+        }
+
+        public ComparisonTaskInputs GetCompareTaskInputs(BuildChecker buildChecker)
+        {
+            var inputs = buildChecker.GetTaskInputs(ComparisonTaskName);
+            if (inputs == null)
             {
-                if (latestReportFilePath == null)
+                throw new InvalidOperationException($"Test error: could not find task in the log. Task name: {ComparisonTaskName}");
+            }
+
+            var taskInputs = new ComparisonTaskInputs();
+            SetObjectProperties(taskInputs, inputs, true);
+
+            return taskInputs;
+        }
+
+        private static void SetObjectProperties(object instance, IDictionary<string, string> values, bool throwIfNotFound)
+        {
+            var properties = instance.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                if (!values.TryGetValue(property.Name, out string data) && throwIfNotFound)
                 {
-                    var matches = FindLatestReportFiles();
-                    matches.Length.Should().Be(1);
-                    latestReportFilePath = matches[0];
+                    throw new InvalidOperationException($"Test error: could not find expected property in log. Property name: {property.Name}");
                 }
-                return latestReportFilePath;
+                property.SetValue(instance, data);
             }
         }
 
@@ -81,7 +106,7 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         public void CheckReportsDoNotExist()
         {
-            CheckBaselineExists(false);
+            CheckBaselineDoesNotExist();
             CheckLatestReportDoesNotExist();
         }
 
@@ -92,10 +117,12 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         public void CheckBaselinePublished(BuildChecker logChecker)
         {
+            Log("Checking Baseline publishing...");
+
             logChecker.CheckTargetsSucceeded(WorkflowTarget, PublishTarget);
             logChecker.CheckTargetsNotExecuted(CompareTarget, UpdateBaselineTarget);
 
-            CheckBaselineExists(true);
+            CheckBaselineExists();
             CheckLatestReportDoesNotExist();
         }
 
@@ -131,27 +158,63 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         private void CheckReportContents(bool expected)
         {
-            var baselineContent = File.ReadAllText(BaselineFilePath);
-            var latestContent = File.ReadAllText(LatestReportFilePath);
+            var baselineContent = File.ReadAllText(CheckBaselineExists());
+            var latestContent = File.ReadAllText(CheckLatestReportExists());
 
             baselineContent.Equals(latestContent, StringComparison.Ordinal)
-                .Should().Be(expected);
+                .Should().Be(expected, "reports contents should match");
         }
 
         private string[] FindLatestReportFiles()
-            => Directory.GetFiles(projectDirectory, "AsmRef*Latest.txt", SearchOption.AllDirectories);
+        {
+            Log($"  Searching for latest report files in {projectDirectory}");
+            var reports = Directory.GetFiles(projectDirectory, "AsmRef*Latest.txt", SearchOption.AllDirectories);
+
+            var reportsList = (reports.Length == 0) ? "{none}" : string.Join(", ", reports);
+            Log($"  -> Matches: {reportsList}");
+            return reports;
+        }
 
         private void CheckReportsExist()
         {
-            CheckBaselineExists(true);
-            File.Exists(LatestReportFilePath).Should().BeTrue();
+            CheckBaselineExists();
+            CheckLatestReportExists();
         }
 
-        private void CheckBaselineExists(bool shouldExist)
-            => File.Exists(BaselineFilePath).Should().Be(shouldExist);
+        private string CheckBaselineExists()
+        {
+            Log($"Checking baseline exists at ${baselineFilePath}");
+            File.Exists(baselineFilePath).Should().BeTrue($"baseline file should exist at {baselineFilePath}");
+            LogOk();
+            return baselineFilePath;
+        }
+
+        private void CheckBaselineDoesNotExist()
+        {
+            Log($"Checking baseline does not exist at {baselineFilePath}");
+            File.Exists(baselineFilePath).Should().BeFalse($"baseline file should not exist at {baselineFilePath}");
+            LogOk();
+        }
+
+        private string CheckLatestReportExists()
+        {
+            Log("Checking latest report exists...");
+            var reports = FindLatestReportFiles();
+            reports.Length.Should().Be(1);
+            LogOk();
+            return reports[0];
+        }
 
         private void CheckLatestReportDoesNotExist()
-            => FindLatestReportFiles().Length.Should().Be(0);
+        {
+            Log("Checking latest report does not exist...");
+            var reports = FindLatestReportFiles();
+            reports.Length.Should().Be(0);
+            LogOk();
+        }
 
+        private void Log(string message) => logger.WriteLine($"Workflow checker: {message}");
+
+        private void LogOk() => Log($"  -> ok");
     }
 }

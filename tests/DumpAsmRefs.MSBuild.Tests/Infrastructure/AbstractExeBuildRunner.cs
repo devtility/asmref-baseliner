@@ -52,7 +52,7 @@ namespace DumpAsmRefs.MSBuild.Tests
             var buildSucceeded = executionResult.Status == ExeRunner.ExecutionStatus.Completed
                 && executionResult.ExitCode == 0;
 
-            var buildChecker = new BuildChecker(buildSucceeded, binLogFilePath);
+            var buildChecker = new BuildChecker(buildSucceeded, binLogFilePath, Logger);
             return buildChecker;
         }
 

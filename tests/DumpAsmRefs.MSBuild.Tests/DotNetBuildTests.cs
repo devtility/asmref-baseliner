@@ -54,10 +54,10 @@ namespace MyNamespace
             buildRunner.Restore(projFilePath);
             var buildChecker = buildRunner.Build(projFilePath);
 
-            buildChecker.OverallBuildSucceeded.Should().BeTrue();
+            buildChecker.CheckBuildSucceeded("Restore");
 
             buildChecker.FindSingleTargetExecution("Compile")
-                .Succeeded.Should().BeTrue();
+                .Succeeded.Should().BeTrue("Compile should have succeeded");
         }
 
         [SkippableTheory(typeof(NotSupportedException))]
@@ -96,33 +96,31 @@ class Program
             context.WriteFile("program.cs", code, "proj1");
             
             var workflowChecker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath),
-                Path.GetFileNameWithoutExtension(projectFilePath));
+                Path.GetFileNameWithoutExtension(projectFilePath), output);
 
             // 1. Restore
             LogTestStep("1 - initial restore -> not expecting a build or comparison");
             var buildChecker = buildRunner.Restore(projectFilePath);
-            buildChecker.OverallBuildSucceeded.Should().BeTrue();
+            buildChecker.CheckBuildSucceeded("Step 1 - 'initial restore'");
             workflowChecker.CheckNoTargetsExecuted(buildChecker);
             workflowChecker.CheckReportsDoNotExist();
 
             // 2. Build -> baseline file created
             LogTestStep("2 - initial build -> expecting baseline baseline to be created");
             buildChecker = buildRunner.Build(projectFilePath);
-            buildChecker.OverallBuildSucceeded.Should().BeTrue();
+            buildChecker.CheckBuildSucceeded("Step 2 - 'initial build'");
             workflowChecker.CheckBaselinePublished(buildChecker);
 
             // Check the input properties were correctly set
-            var inputs = workflowChecker.GetPropertiesSetInInputValidationTarget(buildChecker);
-            Path.IsPathRooted(inputs.AsmRefBaselineFilePath).Should().BeTrue();
-            Path.IsPathRooted(inputs.AsmRefOutputFilePath).Should().BeTrue();
-            Path.IsPathRooted(inputs.AsmRefRootSearchDir).Should().BeTrue();
-            inputs.AsmRefIncludePatterns.Should().Be("workflow.dll");
-            inputs.AsmRefLogLevel.Should().BeNull(); // set in the project being built, so should not have been overridden in the target
+            CheckValidationTargetProperties(
+                expectedIncludePatterns: "workflow.dll",
+                expectedLogLevel: null, // set in the project being built, so should not have been overridden in the target
+                workflowChecker, buildChecker);
 
             // 3. Build again -> comparison run, no error
             LogTestStep("3 - build again -> expecting comparison to run and succeed");
             buildChecker = buildRunner.Build(projectFilePath);
-            buildChecker.OverallBuildSucceeded.Should().BeTrue();
+            buildChecker.CheckBuildSucceeded("Step 3 - 'build again'");
 
             // Check the comparison used the defaults
             var taskInput = workflowChecker.GetCompareTaskInputs(buildChecker);
@@ -142,7 +140,7 @@ class Class1
 }";
             context.WriteFile("newCode.cs", newCode, "proj1");
             buildChecker = buildRunner.Build(projectFilePath);
-            buildChecker.OverallBuildSucceeded.Should().BeFalse();
+            buildChecker.CheckBuildFailed("Step 4");
 
             workflowChecker.CheckComparisonExecutedAndFailed(buildChecker);
             workflowChecker.CheckReportsAreDifferent();
@@ -154,7 +152,7 @@ class Class1
                 { "AsmRefUpdateBaseline", "true"}
             };
             buildChecker = buildRunner.Build(projectFilePath, additionalInputs);
-            buildChecker.OverallBuildSucceeded.Should().BeTrue();
+            buildChecker.CheckBuildSucceeded("Step 5 - 'run with basedline option'");
 
             workflowChecker.CheckBaselineUpdatePerformed(buildChecker);
             workflowChecker.CheckReportsAreSame();
@@ -162,10 +160,41 @@ class Class1
             // 6. Build again -> comparison run, no error
             LogTestStep("6 - build again -> expecting comparison to run with no error");
             buildChecker = buildRunner.Build(projectFilePath);
-            buildChecker.OverallBuildSucceeded.Should().BeTrue();
+            buildChecker.CheckBuildSucceeded("Step 6 - 'build again'");
 
             workflowChecker.CheckComparisonExecutedAndSucceeded(buildChecker);
             workflowChecker.CheckReportsAreDifferent();
+        }
+
+        private void CheckValidationTargetProperties(string expectedIncludePatterns, string expectedLogLevel,
+            WorkflowChecker workflowChecker, BuildChecker buildChecker)
+        {
+            LogTestInfo("  Checking validation target inputs...");
+            var inputs = workflowChecker.GetPropertiesSetInInputValidationTarget(buildChecker);
+            CheckPathIsRooted(nameof(inputs.AsmRefBaselineFilePath), inputs.AsmRefBaselineFilePath);
+            CheckPathIsRooted(nameof(inputs.AsmRefOutputFilePath), inputs.AsmRefOutputFilePath);
+            CheckPathIsRooted(nameof(inputs.AsmRefRootSearchDir), inputs.AsmRefRootSearchDir);
+
+            CheckPropertyValue(nameof(inputs.AsmRefIncludePatterns), inputs.AsmRefIncludePatterns, expectedIncludePatterns);
+            CheckPropertyValue(nameof(inputs.AsmRefLogLevel), inputs.AsmRefLogLevel, expectedLogLevel);
+
+            LogTestInfoOk();
+        }
+
+        private void CheckPathIsRooted(string name, string value)
+        {
+            LogTestInfo($"Checking path is rooted...");
+            LogTestInfo($"{name}={value}");
+            Path.IsPathRooted(value).Should().BeTrue();
+            LogTestInfoOk();
+        }
+
+        private void CheckPropertyValue(string name, string value, string expected)
+        {
+            LogTestInfo($"Checking property value...");
+            LogTestInfo($"{name}={value}");
+            value.Should().Be(expected);
+            LogTestInfoOk();
         }
 
         private IBuildRunner CreateBuildRunner(string runnerId)
@@ -189,5 +218,9 @@ class Class1
             output.WriteLine("******************************************************************************************************");
             output.WriteLine("");
         }
+
+        private void LogTestInfo(string message) => output.WriteLine($"  {message}");
+
+        private void LogTestInfoOk() => LogTestInfo("  -> Ok");
     }
 }
