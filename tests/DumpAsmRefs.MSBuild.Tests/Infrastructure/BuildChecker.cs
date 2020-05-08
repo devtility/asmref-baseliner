@@ -34,7 +34,6 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         public Target FindSingleTargetExecution(string targetName)
         {
-
             var matches = allTargets.Where(t => IsTargetByName(t, targetName));
             matches.Count().Should().Be(1, $"target {targetName} should have executed once and only once. Actual times: {matches.Count()}");
             return matches.First();
@@ -42,43 +41,71 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         public IDictionary<string, string> GetPropertyAssignmentsInTarget(string targetName)
         {
+            Log($"Getting property assignments in target '{targetName}':");
             var target = FindSingleTargetExecution(targetName);
             if (target == null)
             {
+                LogIndent("-> target not found");
                 return null;
             }
 
-            Log($"Getting property assignments in target '{targetName}':");
             const string propertyAssignmentPattern = ".+: (.+)=(.*)";
-            return GetPropertyAssignmentsInNode(target, propertyAssignmentPattern);
+            var result = GetPropertyAssignmentsInNode(target, propertyAssignmentPattern);
+            return result;
         }
 
         public IDictionary<string, string> GetTaskInputs(string taskName)
         {
+            Log($"Getting inputs for task '{taskName}':");
             var task = allTasks.FirstOrDefault(t => t.Name == taskName);
             if (task == null)
             {
+                LogIndent("-> task not found");
                 return null;
             }
 
-            Log($"Getting inputs for task '{taskName}':");
             const string inputPropertyPattern = ".+ :(.+)=(.*)";
-            return GetPropertyAssignmentsInNode(task, inputPropertyPattern);
+            var result = GetPropertyAssignmentsInNode(task, inputPropertyPattern);
+            return result;
         }
 
         private IDictionary<string, string> GetPropertyAssignmentsInNode(TreeNode node, string pattern)
         {
-            // Property assignments are not stored directly in the log. Instead, there
-            // will be a message saying "Property set: aaa=123".
+            IDictionary<string, string> map = new Dictionary<string, string>();
+
+            LogIndent("Looking for properties...");
+            node.VisitAllChildren<Property>(p => map[p.Name] = p.Value);
+            if (map.Count == 0)
+            {
+                LogIndent("No children of type Property found. Falling back on parsing messages to find properties...");
+                map = FindPropertyAssignmentsInMessages(node, pattern);
+            }
+
+            LogIndent($"-> count={map.Count}");
+            return map;
+        }
+
+        private IDictionary<string, string> FindPropertyAssignmentsInMessages(TreeNode node, string pattern)
+        {
+            // The binary log stores text strings describing operations e.g. "Property set: x=y".
+            // The MS binary log reader parses the messages and extracts the data to turn them into
+            // strongly-typed objects like "Property".
+            // Unfortunately, the text stored in the log is localised, but the MS binary log reader
+            // assumes the entries are in en-us. So it won't correctly identify e.g. property assignment
+            // log entries if the log is written in a different language.
+            // If that happens, we'll end up here and we'll try to extract property assignments from
+            // the log Messages ourselves.
             // Also, the same property could be set multiple times in the target. If we
             // wanted all of the interim assignments we could store them in a list.
             var map = new Dictionary<string, string>();
 
+            LogIndent("Looking for properties in Messages...");
             LogIndent($"RegEx: \"{pattern}\"");
-            node.VisitAllChildren<Message>(tryGetPropertyValue);
+            node.VisitAllChildren<Message>(tryGetPropertyValueFromMessage);
+
             return map;
 
-            void tryGetPropertyValue(Message message)
+            void tryGetPropertyValueFromMessage(Message message)
             {
                 LogIndent($"Message: {message}");
                 // Example: Property set/redefined : AsmRefIncludePatterns=workflow.dll
