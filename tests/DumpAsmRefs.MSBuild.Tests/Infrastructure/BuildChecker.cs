@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Xunit.Abstractions;
 
 namespace DumpAsmRefs.MSBuild.Tests
 {
@@ -15,11 +16,14 @@ namespace DumpAsmRefs.MSBuild.Tests
 
         private readonly IList<Target> allTargets;
         private readonly IList<Task> allTasks;
+        private readonly ITestOutputHelper logger;
+        private readonly bool overallBuildSucceeded;
 
-        public BuildChecker(bool succeeded, string binLogFilePath)
+        public BuildChecker(bool succeeded, string binLogFilePath, ITestOutputHelper logger)
         {
-            OverallBuildSucceeded = succeeded;
+            overallBuildSucceeded = succeeded;
             buildRoot = BinaryLog.ReadBuild(binLogFilePath);
+            this.logger = logger;
 
             allTargets = new List<Target>();
             buildRoot.VisitAllChildren<Target>(t => allTargets.Add(t));
@@ -28,12 +32,11 @@ namespace DumpAsmRefs.MSBuild.Tests
             buildRoot.VisitAllChildren<Task>(t => allTasks.Add(t));
         }
 
-        public bool OverallBuildSucceeded { get; }
-
         public Target FindSingleTargetExecution(string targetName)
         {
+
             var matches = allTargets.Where(t => IsTargetByName(t, targetName));
-            matches.Count().Should().Be(1);
+            matches.Count().Should().Be(1, $"target {targetName} should have executed once and only once. Actual times: {matches.Count()}");
             return matches.First();
         }
 
@@ -45,6 +48,7 @@ namespace DumpAsmRefs.MSBuild.Tests
                 return null;
             }
 
+            Log($"Getting property assignments in target '{targetName}':");
             const string propertyAssignmentPattern = ".+: (.+)=(.*)";
             return GetPropertyAssignmentsInNode(target, propertyAssignmentPattern);
         }
@@ -57,11 +61,12 @@ namespace DumpAsmRefs.MSBuild.Tests
                 return null;
             }
 
+            Log($"Getting inputs for task '{taskName}':");
             const string inputPropertyPattern = ".+ :(.+)=(.*)";
             return GetPropertyAssignmentsInNode(task, inputPropertyPattern);
         }
 
-        private static IDictionary<string, string> GetPropertyAssignmentsInNode(TreeNode node, string pattern)
+        private IDictionary<string, string> GetPropertyAssignmentsInNode(TreeNode node, string pattern)
         {
             // Property assignments are not stored directly in the log. Instead, there
             // will be a message saying "Property set: aaa=123".
@@ -69,11 +74,13 @@ namespace DumpAsmRefs.MSBuild.Tests
             // wanted all of the interim assignments we could store them in a list.
             var map = new Dictionary<string, string>();
 
+            LogIndent($"RegEx: \"{pattern}\"");
             node.VisitAllChildren<Message>(tryGetPropertyValue);
             return map;
 
             void tryGetPropertyValue(Message message)
             {
+                LogIndent($"Message: {message}");
                 // Example: Property set/redefined : AsmRefIncludePatterns=workflow.dll
                 var match = Regex.Match(message.Text, pattern);
 
@@ -82,8 +89,27 @@ namespace DumpAsmRefs.MSBuild.Tests
                     var key = match.Groups[1].Value;
                     var value = match.Groups[2].Value;
                     map[key] = value;
+                    LogIndent($"  -> {key}={value}");
+                }
+                else
+                {
+                    LogIndent($"  -> property assignment not found");
                 }
             }
+        }
+
+        public void CheckBuildSucceeded(string messageSuffix = null)
+        {
+            Log($"Checking build succeeded... {messageSuffix}");
+            overallBuildSucceeded.Should().BeTrue();
+            LogOk();
+        }
+
+        public void CheckBuildFailed(string messageSuffix = null)
+        {
+            Log($"Checking build failed... {messageSuffix}");
+            overallBuildSucceeded.Should().BeFalse();
+            LogOk();
         }
 
         public void CheckTargetsFailed(params string[] targetNames)
@@ -96,8 +122,10 @@ namespace DumpAsmRefs.MSBuild.Tests
         {
             foreach(var item in targetNames)
             {
+                Log($"Checking target '{item}' was not executed...");
                 var matches = allTargets.Where(t => IsTargetByName(t, item));
-                matches.Count().Should().Be(0);
+                matches.Count().Should().Be(0, $"target {item} should not have executed");
+                LogOk();
             }
         }
 
@@ -110,9 +138,20 @@ namespace DumpAsmRefs.MSBuild.Tests
         }
 
         private void CheckTargetOutcome(string targetName, bool expected)
-            => FindSingleTargetExecution(targetName).Succeeded.Should().Be(expected);
+        {
+            Log($"Checking target outcome: {targetName}, expected: {expected}");
+
+            FindSingleTargetExecution(targetName).Succeeded.Should().Be(expected,
+                $"target {targetName} should have {(expected ? "succeeded" : "failed")}");
+
+            LogOk();
+        }
 
         private static bool IsTargetByName(Target target, string name)
             => string.Equals(target.Name, name, StringComparison.Ordinal);
+
+        private void Log(string message) => logger.WriteLine($"Build log checker: {message}");
+        private void LogIndent(string message) => Log($"  {message}");
+        private void LogOk() => LogIndent($"-> ok");
     }
 }
