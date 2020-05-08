@@ -67,43 +67,6 @@ namespace DumpAsmRefs.MSBuild.Tests
             }
         }
 
-        public TargetsInputs GetPropertiesSetInInputValidationTarget(BuildChecker buildChecker)
-        {
-            var targetInputs = new TargetsInputs();
-
-            var msbuildProperties = buildChecker.GetPropertyAssignmentsInTarget(InputValidationTargetName);
-            SetObjectProperties(targetInputs, msbuildProperties, false);
-
-            return targetInputs;
-        }
-
-        public ComparisonTaskInputs GetCompareTaskInputs(BuildChecker buildChecker)
-        {
-            var inputs = buildChecker.GetTaskInputs(ComparisonTaskName);
-            if (inputs == null)
-            {
-                throw new InvalidOperationException($"Test error: could not find task in the log. Task name: {ComparisonTaskName}");
-            }
-
-            var taskInputs = new ComparisonTaskInputs();
-            SetObjectProperties(taskInputs, inputs, true);
-
-            return taskInputs;
-        }
-
-        private static void SetObjectProperties(object instance, IDictionary<string, string> values, bool throwIfNotFound)
-        {
-            var properties = instance.GetType().GetProperties();
-            foreach (var property in properties)
-            {
-                if (!values.TryGetValue(property.Name, out string data) && throwIfNotFound)
-                {
-                    throw new InvalidOperationException($"Test error: could not find expected property in log. Property name: {property.Name}");
-                }
-                property.SetValue(instance, data);
-            }
-        }
-
         public void CheckReportsDoNotExist()
         {
             CheckBaselineDoesNotExist();
