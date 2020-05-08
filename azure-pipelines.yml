@@ -157,6 +157,7 @@ jobs:
 
     - task: DotNetCoreCLI@2
       displayName: 'DotNet e2e tests - net48 '
+      condition: succeededOrFailed()
       inputs:
         command: custom
         custom: vstest
@@ -165,6 +166,7 @@ jobs:
 
     - task: PublishTestResults@2
       displayName: 'Publish dotnet e2e test results'
+      condition: succeededOrFailed()
       inputs:
         testResultsFormat: 'VSTest'
         testResultsFiles: '**/*.trx'
