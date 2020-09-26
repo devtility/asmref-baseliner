@@ -15,7 +15,7 @@ namespace DumpAsmRefs.MSBuild.Tests
         private const string CompareTarget = "_CompareAsmRefReportsOnBuild";
         private const string UpdateBaselineTarget = "_UpdateAsmRefBaselineFile";
 
-        private const string InputValidationTargetName = "_EnsureAsmRefFilePathsAreSet";
+        private const string InputValidationTargetName = "_EnsureAsmRefPropertiesAreSet";
 
         private const string ComparisonTaskName = "CompareAsmRefReportFiles";
 
@@ -92,7 +92,7 @@ namespace DumpAsmRefs.MSBuild.Tests
         public void CheckComparisonExecutedAndSucceeded(BuildChecker logChecker)
         {
             logChecker.CheckTargetsSucceeded(WorkflowTarget, CompareTarget);
-            logChecker.CheckTargetsNotExecuted(PublishTarget, UpdateBaselineTarget);
+            logChecker.CheckTargetsNotExecuted(PublishTarget);
 
             CheckReportsExist();
         }
@@ -105,13 +105,17 @@ namespace DumpAsmRefs.MSBuild.Tests
             CheckReportsExist();
         }
 
-        public void CheckBaselineUpdatePerformed(BuildChecker logChecker)
+        public void CheckComparisonNotExecuted(BuildChecker logChecker) =>
+            logChecker.CheckTargetsNotExecuted(CompareTarget);
+
+        public void CheckBaselineUpdated(BuildChecker logChecker)
         {
             logChecker.CheckTargetsSucceeded(WorkflowTarget, UpdateBaselineTarget);
-            logChecker.CheckTargetsNotExecuted(CompareTarget, PublishTarget);
-
             CheckReportsExist();
         }
+
+        public void CheckBaselineNotUpdated(BuildChecker logChecker) =>
+            logChecker.CheckTargetsNotExecuted(UpdateBaselineTarget);
 
         public void CheckReportsAreSame()
             => CheckReportContents(true);

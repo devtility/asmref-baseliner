@@ -13,6 +13,16 @@ namespace DumpAsmRefs.MSBuild.Tests
     {
         private readonly ITestOutputHelper output;
 
+        private const string HelloWorldConsoleCode = @"
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello World!"");
+    }
+}";
+
         public DotNetBuildTests(ITestOutputHelper output)
         {
             this.output = output;
@@ -27,7 +37,7 @@ namespace DumpAsmRefs.MSBuild.Tests
 
             var context = TestContext.Initialize(output, uniqueTestName: $"{nameof(SimpleBuild)}_{buildRunnerId}");
 
-            const string proj = @"<Project Sdk=""Microsoft.NET.Sdk"">
+            const string proj = @"<Project Sdk='Microsoft.NET.Sdk'>
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -65,36 +75,17 @@ namespace MyNamespace
         [InlineData("dotnet")]
         public void WorkflowLifecycle(string buildRunnerId)
         {
+            const string projectDirectory = "workflow";
+
             var buildRunner = CreateBuildRunner(buildRunnerId);
 
             var context = TestContext.Initialize(output, uniqueTestName: $"{nameof(WorkflowLifecycle)}_{buildRunnerId}");
 
-            var proj = $@"<Project Sdk='Microsoft.NET.Sdk'>
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <RestorePackagesPath>{context.NuGetPackageCachePath}</RestorePackagesPath>
-    <AsmRefLogLevel>Diagnostic</AsmRefLogLevel>
-    <SonarQubeTargetsImported>true</SonarQubeTargetsImported>
-  </PropertyGroup>
+            var proj = GetProjectText(context);
 
-  <ItemGroup>
-    <PackageReference Include='Devtility.CheckAsmRefs' Version='{context.PackageVersion}' />
-  </ItemGroup>
-</Project>";
+            var projectFilePath = context.WriteFile("workflow.csproj", proj, projectDirectory);
+            context.WriteFile("program.cs", HelloWorldConsoleCode, projectDirectory);
 
-            const string code = @"
-using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.WriteLine(""Hello World!"");
-    }
-}";
-            var projectFilePath = context.WriteFile("workflow.csproj", proj, "proj1");
-            context.WriteFile("program.cs", code, "proj1");
-            
             var workflowChecker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath),
                 Path.GetFileNameWithoutExtension(projectFilePath), output);
 
@@ -130,15 +121,11 @@ class Program
 
             workflowChecker.CheckComparisonExecutedAndSucceeded(buildChecker);
             workflowChecker.CheckReportsAreDifferent();
+            workflowChecker.CheckBaselineNotUpdated(buildChecker);
 
             // 4. Add new ref, build -> comparison run, build fails
             LogTestStep("4 - add new ref then build -> expecting comparison to run and fail");
-            const string newCode = @"
-class Class1
-{
-    void Method1(System.Data.AcceptRejectRule arg1) { /* no-op */ }
-}";
-            context.WriteFile("newCode.cs", newCode, "proj1");
+            WriteAdditionalRefCodeFile(context, projectDirectory);
             buildChecker = buildRunner.Build(projectFilePath);
             buildChecker.CheckBuildFailed("Step 4");
 
@@ -152,9 +139,10 @@ class Class1
                 { "AsmRefUpdateBaseline", "true"}
             };
             buildChecker = buildRunner.Build(projectFilePath, additionalInputs);
-            buildChecker.CheckBuildSucceeded("Step 5 - 'run with basedline option'");
+            buildChecker.CheckBuildSucceeded("Step 5 - 'run with baseline option'");
 
-            workflowChecker.CheckBaselineUpdatePerformed(buildChecker);
+            workflowChecker.CheckComparisonNotExecuted(buildChecker);
+            workflowChecker.CheckBaselineUpdated(buildChecker);
             workflowChecker.CheckReportsAreSame();
 
             // 6. Build again -> comparison run, no error
@@ -164,6 +152,91 @@ class Class1
 
             workflowChecker.CheckComparisonExecutedAndSucceeded(buildChecker);
             workflowChecker.CheckReportsAreDifferent();
+            workflowChecker.CheckBaselineNotUpdated(buildChecker);
+        }
+
+        [SkippableTheory(typeof(NotSupportedException))]
+        [InlineData("msbuild")]
+        [InlineData("dotnet")]
+        public void DevWorkflowLifecycle(string buildRunnerId)
+        {
+            // Test dev workflow with AsmRefUpdateBaselineIfChanged set to true
+            // i.e. auto-update baseline when developing locally
+            const string projectDirectory = "devworkflow";
+
+            var buildRunner = CreateBuildRunner(buildRunnerId);
+
+            var context = TestContext.Initialize(output, uniqueTestName: $"{nameof(DevWorkflowLifecycle)}_{buildRunnerId}");
+
+            var proj = GetProjectText(context);
+
+            var projectFilePath = context.WriteFile("workflow.csproj", proj, projectDirectory);
+            context.WriteFile("program.cs", HelloWorldConsoleCode, projectDirectory);
+
+            var workflowChecker = new WorkflowChecker(Path.GetDirectoryName(projectFilePath),
+                Path.GetFileNameWithoutExtension(projectFilePath), output);
+
+            // 1. Restore
+            LogTestStep("1 - initial restore -> not expecting a build or comparison");
+            var buildChecker = buildRunner.Restore(projectFilePath);
+            buildChecker.CheckBuildSucceeded("Step 1 - 'initial restore'");
+            workflowChecker.CheckNoTargetsExecuted(buildChecker);
+            workflowChecker.CheckReportsDoNotExist();
+
+            // 2. Build -> baseline file created
+            LogTestStep("2 - initial build -> expecting baseline baseline to be created");
+            buildChecker = buildRunner.Build(projectFilePath);
+            buildChecker.CheckBuildSucceeded("Step 2 - 'initial build'");
+            workflowChecker.CheckBaselinePublished(buildChecker);
+
+            // 3. Build again -> comparison run, no changes -> no error, no update
+            var additionalInputs = new Dictionary<string, string>
+            {
+                { "AsmRefUpdateBaselineIfChanged", "true"}
+            };
+
+            LogTestStep("3 - build again -> expecting comparison to run and succeed");
+            buildChecker = buildRunner.Build(projectFilePath, additionalInputs);
+            buildChecker.CheckBuildSucceeded("Step 3 - 'build again'");
+
+            workflowChecker.CheckComparisonExecutedAndSucceeded(buildChecker);
+            workflowChecker.CheckBaselineNotUpdated(buildChecker);
+            workflowChecker.CheckReportsAreDifferent();
+
+            // 4. Add new ref, build -> comparison run, baseline updated
+            LogTestStep("4 - add new ref then build -> expecting comparison to detect differences and baseline to be updated");
+            WriteAdditionalRefCodeFile(context, projectDirectory);
+            buildChecker = buildRunner.Build(projectFilePath, additionalInputs);
+            buildChecker.CheckBuildSucceeded("Step 4");
+
+            workflowChecker.CheckComparisonExecutedAndSucceeded(buildChecker);
+            workflowChecker.CheckBaselineUpdated(buildChecker);
+            workflowChecker.CheckReportsAreSame();
+        }
+
+        private static string GetProjectText(TestContext context) =>
+$@"<Project Sdk='Microsoft.NET.Sdk'>
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <RestorePackagesPath>{context.NuGetPackageCachePath}</RestorePackagesPath>
+    <AsmRefLogLevel>Diagnostic</AsmRefLogLevel>
+    <SonarQubeTargetsImported>true</SonarQubeTargetsImported>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include='Devtility.CheckAsmRefs' Version='{context.PackageVersion}' />
+  </ItemGroup>
+</Project>";
+
+        private static void WriteAdditionalRefCodeFile(TestContext context, string subdir)
+        {
+            const string newCode = @"
+class Class1
+{
+    void Method1(System.Data.AcceptRejectRule arg1) { /* no-op */ }
+}";
+            context.WriteFile("additionalRefNewCode.cs", newCode, subdir);
         }
 
         private void CheckValidationTargetProperties(string expectedIncludePatterns, string expectedLogLevel,
