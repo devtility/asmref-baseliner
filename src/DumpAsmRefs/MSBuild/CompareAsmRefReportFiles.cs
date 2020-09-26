@@ -27,6 +27,12 @@ namespace DumpAsmRefs
         [Required]
         public string TargetVersionCompatibility { get; set; }
 
+        [Required]
+        public bool RaiseErrorIfDifferent { get; set; }
+
+        [Output]
+        public bool ReportsAreSame { get; set; }
+
         public CompareAsmRefReportFiles()
             : this(new FileSystemAbstraction(), new YamlReportLoader(),  new AsmRefResultComparer()) { }
 
@@ -44,7 +50,7 @@ namespace DumpAsmRefs
             if (!TryGetVersionCompatibility(SourceVersionCompatibility, nameof(SourceVersionCompatibility), out var sourceVersionCompatibility) ||
                 !TryGetVersionCompatibility(TargetVersionCompatibility, nameof(TargetVersionCompatibility), out var targetVersionCompatibility))
             {
-                return false;    
+                return false;
             }
             Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_IgnoreSourcePublicKeyToken, IgnoreSourcePublicKeyToken);
 
@@ -56,9 +62,9 @@ namespace DumpAsmRefs
 
             var options = new ComparisonOptions(sourceVersionCompatibility, IgnoreSourcePublicKeyToken, targetVersionCompatibility);
 
-            bool result = comparer.AreSame(baseline, current, options);
+            ReportsAreSame = comparer.AreSame(baseline, current, options);
 
-            if (result)
+            if (ReportsAreSame)
             {
                 this.Log.LogMessage(MessageImportance.High, UIStrings.CompareTask_ReferencesAreSame,
                     BaselineReportFilePath, CurrentReportFilePath);
@@ -66,9 +72,19 @@ namespace DumpAsmRefs
             }
             else
             {
-                this.Log.LogError(UIStrings.CompareTask_ReferencesAreDifferent,
-                    BaselineReportFilePath, CurrentReportFilePath);
-                return false;
+                if (RaiseErrorIfDifferent)
+                {
+                    this.Log.LogError(UIStrings.CompareTask_ReferencesAreDifferent,
+                        BaselineReportFilePath, CurrentReportFilePath);
+                    return false;
+                }
+                else
+                {
+                    this.Log.LogMessage(MessageImportance.High,
+                            UIStrings.CompareTask_ReferencesAreDifferent,
+                        BaselineReportFilePath, CurrentReportFilePath);
+                    return true;
+                }
             }
         }
 
