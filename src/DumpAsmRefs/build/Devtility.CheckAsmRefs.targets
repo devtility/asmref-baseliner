@@ -142,7 +142,8 @@
       CurrentReportFilePath="$(AsmRefOutputFilePath)"
       SourceVersionCompatibility="$(AsmRefSourceVersionCompatibility)"
       TargetVersionCompatibility="$(AsmRefTargetVersionCompatibility)"
-      IgnoreSourcePublicKeyToken="$(AsmRefIgnoreSourcePublicKeyToken)" />
+      IgnoreSourcePublicKeyToken="$(AsmRefIgnoreSourcePublicKeyToken)" 
+      RaiseErrorIfDifferent="true"/>
   </Target>
 
   <Target Name="_PublishAsmRefBaselineFile">

@@ -5,6 +5,7 @@ using DumpAsmRefs.Tests.Infrastructure;
 using FluentAssertions;
 using Moq;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace DumpAsmRefs.Tests
@@ -47,9 +48,11 @@ namespace DumpAsmRefs.Tests
         }
 
         [Theory]
-        [InlineData(true, true)]
-        [InlineData(false, false)]
-        public void Compare_ComparerReturnsTrue_TaskSucceeds(bool comparerReturnValue, bool expectedTaskResult)
+        [InlineData(true, true, /* expected task result */ true)]
+        [InlineData(true, false, /* expected task result */ true)]
+        [InlineData(false, true, /* expected task result */ false)]
+        [InlineData(false, false, /* expected task result */ true)]
+        public void Compare_ComparerReturnsX_CheckTaskSuccess(bool comparerReturnValue, bool raiseErrorIfDifferent, bool expectedTaskResult)
         {
             var dummyFileSystem = new FakeFileSystem();
             var mockLoader = new Mock<IReportLoader>(MockBehavior.Strict);
@@ -79,7 +82,9 @@ namespace DumpAsmRefs.Tests
                 SourceVersionCompatibility = "MajorMinorBuild",
                 IgnoreSourcePublicKeyToken = true,
                 TargetVersionCompatibility = "Any",
-                BuildEngine = buildEngine
+                BuildEngine = buildEngine,
+
+                RaiseErrorIfDifferent = raiseErrorIfDifferent
             };
 
             testSubject.Execute().Should().Be(expectedTaskResult);
@@ -88,6 +93,8 @@ namespace DumpAsmRefs.Tests
             actualOptions.SourceVersionCompatibility.Should().Be(VersionCompatibility.MajorMinorBuild);
             actualOptions.IgnoreSourcePublicKeyToken.Should().BeTrue();
             actualOptions.TargetVersionCompatibility.Should().Be(VersionCompatibility.Any);
+
+            testSubject.ReportsAreSame.Should().Be(comparerReturnValue);
 
             if (expectedTaskResult)
             {
@@ -99,9 +106,14 @@ namespace DumpAsmRefs.Tests
             }
         }
 
-        [Fact]
-        public void Compare_EndToEnd_Same_NoError()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Compare_EndToEnd_Same_NoError(bool raiseErrorIfDifferent)
         {
+            // Not expecting the value of RaiseErrorIfDifferent to make any
+            // difference when the reports are the same
+
             var dummyFileSystem = new FakeFileSystem();
             const string reportContent = @"---
 
@@ -144,7 +156,10 @@ Referenced assemblies:   # count = 1
                 CurrentReportFilePath = "file2",
                 SourceVersionCompatibility = "sTRICt",
                 BuildEngine = buildEngine,
-                TargetVersionCompatibility = "any"
+                TargetVersionCompatibility = "any",
+
+                // Test input value
+                RaiseErrorIfDifferent = raiseErrorIfDifferent
             };
 
             // Test
@@ -152,6 +167,8 @@ Referenced assemblies:   # count = 1
 
             // Check
             result.Should().BeTrue();
+            testSubject.ReportsAreSame.Should().BeTrue();
+
             buildEngine.ErrorEvents.Count.Should().Be(0);
             buildEngine.MessageEvents.Count.Should().Be(5);
             buildEngine.MessageEvents[1].Message.Contains("Source").Should().BeTrue();
@@ -165,8 +182,10 @@ Referenced assemblies:   # count = 1
             buildEngine.MessageEvents[4].Message.Contains(": file2").Should().BeTrue();
         }
 
-        [Fact]
-        public void Compare_EndToEnd_Different_Error()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Compare_EndToEnd_Different_CheckResultDependsOnValueOfRaiseErrorIfDifferent(bool raiseErrorIfDifferent)
         {
             var reportContent1 = @"---
 Include patterns:
@@ -215,17 +234,34 @@ Referenced assemblies:   # count = 1
                 CurrentReportFilePath = "file2",
                 SourceVersionCompatibility = "any",
                 BuildEngine = buildEngine,
-                TargetVersionCompatibility = "any"
+                TargetVersionCompatibility = "any",
+
+                // Test input parameter
+                RaiseErrorIfDifferent = raiseErrorIfDifferent
             };
 
             // Test
             bool result = testSubject.Execute();
 
             // Check
-            result.Should().BeFalse();
-            buildEngine.ErrorEvents.Count.Should().Be(1);
-            buildEngine.ErrorEvents[0].Message.Contains("file1").Should().BeTrue();
-            buildEngine.ErrorEvents[0].Message.Contains("file2").Should().BeTrue();
+            testSubject.ReportsAreSame.Should().BeFalse();
+
+            if (raiseErrorIfDifferent)
+            {
+                // Task should fail, error should be logged
+                result.Should().BeFalse();
+                buildEngine.ErrorEvents.Count.Should().Be(1);
+                buildEngine.ErrorEvents[0].Message.Contains("file1").Should().BeTrue();
+                buildEngine.ErrorEvents[0].Message.Contains("file2").Should().BeTrue();
+            }
+            else
+            {
+                // Task should succeed, message should be logged
+                result.Should().BeTrue();
+                buildEngine.ErrorEvents.Count.Should().Be(0);
+                buildEngine.MessageEvents.Last().Message.Contains("file1").Should().BeTrue();
+                buildEngine.MessageEvents.Last().Message.Contains("file2").Should().BeTrue();
+            }
         }
     }
 }
