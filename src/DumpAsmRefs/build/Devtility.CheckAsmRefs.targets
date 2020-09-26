@@ -58,12 +58,14 @@
   <UsingTask AssemblyFile="$(AsmRefAssemblyFile)" TaskName="CompareAsmRefReportFiles" />
 
   <Target Name="CheckAsmRefWorkflow" AfterTargets="Build" Condition="$(AsmRefDisableBaselining) != 'true' " >
-    <CallTarget Targets="_EnsureAsmRefFilePathsAreSet" />
+    <CallTarget Targets="_EnsureAsmRefPropertiesAreSet" />
     <CallTarget Targets="_GenerateAsmRefReportOnBuild" />
     <CallTarget Targets="_PostGenerateAndRefProcessing" />
   </Target>
 
-  <Target Name="_EnsureAsmRefFilePathsAreSet">
+  <Target Name="_EnsureAsmRefPropertiesAreSet">
+    <!-- Set properties that are used in other targets. The way MSBuild propagates dynamic properties between targets
+         means these need to be set in a target that completes before the those other targets are executed. -->
     <PropertyGroup>
       <AsmRefIncludePatterns Condition="$(AsmRefIncludePatterns) == '' ">$([System.IO.Path]::GetFileName('$(TargetPath)'))</AsmRefIncludePatterns>
       <AsmRefRootSearchDir Condition="$(AsmRefRootSearchDir) == '' " >$([System.IO.Path]::GetDirectoryName('$(TargetPath)'))</AsmRefRootSearchDir>
@@ -80,6 +82,9 @@
       <AsmRefVersionCompatibility Condition="$(AsmRefVersionCompatibility)==''">Strict</AsmRefVersionCompatibility>
       <AsmRefSourceVersionCompatibility Condition="$(AsmRefSourceVersionCompatibility)==''">$(AsmRefVersionCompatibility)</AsmRefSourceVersionCompatibility>
       <AsmRefTargetVersionCompatibility Condition="$(AsmRefTargetVersionCompatibility)==''">$(AsmRefVersionCompatibility)</AsmRefTargetVersionCompatibility>
+
+      <_RaiseErrorOnComparisonFailure>true</_RaiseErrorOnComparisonFailure>
+      <_RaiseErrorOnComparisonFailure Condition=" $(AsmRefUpdateBaselineIfChanged) == 'true' ">false</_RaiseErrorOnComparisonFailure>
     </PropertyGroup>
   </Target>
 
@@ -102,6 +107,11 @@
     <CallTarget
       Targets="_UpdateAsmRefBaselineFile"
       Condition="$(AsmRefOutputFileExists) == 'true' AND $(AsmRefBaselineFileExists) == 'true' AND $(AsmRefUpdateBaseline) == 'true' " />
+
+    <!-- Update the baseline if both files exist and the "update if changed" flag is set and the refs have changed -->
+    <CallTarget
+      Targets="_UpdateAsmRefBaselineFileIfChanged"
+      Condition="$(AsmRefOutputFileExists) == 'true' AND $(AsmRefBaselineFileExists) == 'true' AND $(AsmRefUpdateBaseline) != 'true' AND $(AsmRefUpdateBaselineIfChanged) == 'true' " />
 
     <!-- If the base line report doesn't exist but the current report does, set the current as the baseline -->
     <CallTarget
@@ -126,7 +136,7 @@
   
   <!-- Comparison of baseline against new assembly reference report -->
   <Target Name="_CompareAsmRefReportsOnBuild" >
-    <Message Importance="high" Text="AsmRef: Comparing assembly reference report files..." />   
+    <Message Importance="high" Text="AsmRef: Comparing assembly reference report files..." />
 
     <!-- Sanity checks -->
     <Error Condition="$(AsmRefOutputFilePath) == '' " Text="AsmRef: AsmRefOutputFilePath property has not been set" />
@@ -136,16 +146,25 @@
     <Error Condition="$(AsmRefUpdateBaseline) == 'true'" Text="AsmRef: Should not be comparing files since AsmRefUpdateBaseline is true" />
     <Error Condition="$(AsmRefSourceVersionCompatibility) == '' " Text="AsmRef: AsmRefSourceVersionCompatibility property has not been set" />
     <Error Condition="$(AsmRefTargetVersionCompatibility) == '' " Text="AsmRef: AsmRefTargetVersionCompatibility property has not been set" />
+    <Error Condition="$(_RaiseErrorOnComparisonFailure) == '' " Text="AsmRef: _RaiseErrorOnComparisonFailure property has not been set" />
 
     <CompareAsmRefReportFiles
       BaselineReportFilePath="$(AsmRefBaselineFilePath)"
       CurrentReportFilePath="$(AsmRefOutputFilePath)"
       SourceVersionCompatibility="$(AsmRefSourceVersionCompatibility)"
       TargetVersionCompatibility="$(AsmRefTargetVersionCompatibility)"
-      IgnoreSourcePublicKeyToken="$(AsmRefIgnoreSourcePublicKeyToken)" 
-      RaiseErrorIfDifferent="true"/>
+      IgnoreSourcePublicKeyToken="$(AsmRefIgnoreSourcePublicKeyToken)"
+      RaiseErrorIfDifferent="$(_RaiseErrorOnComparisonFailure)">
+        <Output TaskParameter="ReportsAreSame" PropertyName="_ReportsAreSame" />
+    </CompareAsmRefReportFiles>
   </Target>
 
+  <Target Name="_UpdateAsmRefBaselineFileIfChanged" DependsOnTargets="_CompareAsmRefReportsOnBuild">
+    <!-- The "compare" task needs to be run as a dependent target so the _ReportsAreSame property 
+         value is available. -->
+    <CallTarget Targets="_UpdateAsmRefBaselineFile" Condition="$(_ReportsAreSame) != 'true' " />
+  </Target>
+    
   <Target Name="_PublishAsmRefBaselineFile">
     <Message Importance="high" Text="AsmRef: Publishing the baseline assembly reference file to $(AsmRefBaselineFilePath)" />
 
@@ -170,7 +189,7 @@
     <Error Condition="!Exists($(AsmRefOutputFilePath))" Text="AsmRef: New report does not exist: $(AsmRefOutputFilePath)" />  
     <Error Condition="$(AsmRefBaselineFilePath) == '' " Text="AsmRef: AsmRefBaselineFilePath property has not been set" />
     <Error Condition="!Exists($(AsmRefBaselineFilePath))" Text="AsmRef: Baseline file does not exist: $(AsmRefBaselineFilePath)" />
-    <Error Condition="$(AsmRefUpdateBaseline) != 'true'" Text="AsmRef: Should only be updating the baseline if AsmRefUpdateBaseline is true" />
+    <Error Condition="$(AsmRefUpdateBaseline) != 'true' AND $(AsmRefUpdateBaselineIfChanged) != 'true' " Text="AsmRef: Should only be updating the baseline if AsmRefUpdateBaseline or AsmRefUpdateBaselineIfChanged is true" />
   
     <Copy
       SourceFiles="$(AsmRefOutputFilePath)"
