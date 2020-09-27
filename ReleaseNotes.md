@@ -1,5 +1,9 @@
-# Release Notes v0.11.0-rc
+# Release Notes v0.12.0-rc
 TODO
+
+# Release Notes v0.11.0-rc
+Added AmRefUpdateBaseline MSBuild option to improve the local developer experience.
+* Improve the local development experience [#84]
 
 # Release Notes v0.10.0-rc
 
